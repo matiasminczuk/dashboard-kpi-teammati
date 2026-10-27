@@ -1,0 +1,140 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dashboard KPI | Equipo Mati.M</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f5f6fa;
+      color: #172b4d;
+    }
+    header {
+      background: #ffe600;
+      padding: 20px 6%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    header h2 { margin: 0; }
+    header small { color: #555; }
+    main {
+      max-width: 1100px;
+      margin: 35px auto;
+      padding: 0 20px;
+    }
+    .welcome { margin-bottom: 25px; }
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 18px;
+    }
+    .card, .panel {
+      background: white;
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 3px 14px #0000000d;
+    }
+    .card span { font-size: 14px; color: #666; }
+    .card h1 {
+      color: #1464db;
+      font-size: 35px;
+      margin: 12px 0 5px;
+    }
+    .card small { color: #777; }
+    .panel { margin-top: 25px; }
+    .chart {
+      display: flex;
+      align-items: end;
+      justify-content: space-around;
+      height: 230px;
+      border-bottom: 1px solid #ddd;
+      padding-top: 25px;
+      gap: 10px;
+    }
+    .bar {
+      background: #3483fa;
+      width: 12%;
+      border-radius: 6px 6px 0 0;
+    }
+    .notice {
+      background: #fff7cc;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      margin-bottom: 20px;
+    }
+    @media (max-width: 750px) {
+      .cards { grid-template-columns: repeat(2, 1fr); }
+      header { padding: 16px; }
+      .card { padding: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h2>📊 Dashboard KPI</h2>
+      <small>Equipo Mati.M</small>
+    </div>
+    <strong>Mi productividad</strong>
+  </header>
+
+  <main>
+    <div class="welcome">
+      <h1>Mi productividad</h1>
+      <p>Resumen de indicadores y evolución histórica</p>
+    </div>
+
+    <div class="notice">
+      Versión de demostración: datos ilustrativos.
+      Todavía no contiene información real.
+    </div>
+
+    <section class="cards">
+      <div class="card">
+        <span>Promedio diario</span>
+        <h1>104</h1>
+        <small>Tareas comparables</small>
+      </div>
+      <div class="card">
+        <span>Cumplimiento</span>
+        <h1>80%</h1>
+        <small>Objetivo semanal</small>
+      </div>
+      <div class="card">
+        <span>Creaciones</span>
+        <h1>32</h1>
+        <small>Esta semana</small>
+      </div>
+      <div class="card">
+        <span>Objetivo diario</span>
+        <h1>100</h1>
+        <small>Tareas comparables</small>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Evolución de productividad</h2>
+      <p>Promedio semanal de tareas</p>
+      <div class="chart">
+        <div class="bar" style="height:55%"></div>
+        <div class="bar" style="height:65%"></div>
+        <div class="bar" style="height:73%"></div>
+        <div class="bar" style="height:69%"></div>
+        <div class="bar" style="height:81%"></div>
+        <div class="bar" style="height:85%"></div>
+        <div class="bar" style="height:79%"></div>
+        <div class="bar" style="height:90%"></div>
+      </div>
+      <p style="text-align:center;color:#777">
+        W36 — W43
+      </p>
+    </section>
+  </main>
+</body>
+</html>
