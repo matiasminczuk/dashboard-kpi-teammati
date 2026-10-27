@@ -2,139 +2,243 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Dashboard KPI | Equipo Mati.M</title>
-  <style>
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #f5f6fa;
-      color: #172b4d;
-    }
-    header {
-      background: #ffe600;
-      padding: 20px 6%;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    header h2 { margin: 0; }
-    header small { color: #555; }
-    main {
-      max-width: 1100px;
-      margin: 35px auto;
-      padding: 0 20px;
-    }
-    .welcome { margin-bottom: 25px; }
-    .cards {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 18px;
-    }
-    .card, .panel {
-      background: white;
-      border-radius: 12px;
-      padding: 24px;
-      box-shadow: 0 3px 14px #0000000d;
-    }
-    .card span { font-size: 14px; color: #666; }
-    .card h1 {
-      color: #1464db;
-      font-size: 35px;
-      margin: 12px 0 5px;
-    }
-    .card small { color: #777; }
-    .panel { margin-top: 25px; }
-    .chart {
-      display: flex;
-      align-items: end;
-      justify-content: space-around;
-      height: 230px;
-      border-bottom: 1px solid #ddd;
-      padding-top: 25px;
-      gap: 10px;
-    }
-    .bar {
-      background: #3483fa;
-      width: 12%;
-      border-radius: 6px 6px 0 0;
-    }
-    .notice {
-      background: #fff7cc;
-      padding: 12px;
-      border-radius: 8px;
-      font-size: 13px;
-      margin-bottom: 20px;
-    }
-    @media (max-width: 750px) {
-      .cards { grid-template-columns: repeat(2, 1fr); }
-      header { padding: 16px; }
-      .card { padding: 16px; }
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dashboard KPI | Equipo Mati.M</title>
+<style>
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f5f6fa;
+  color: #172b4d;
+}
+header {
+  background: #ffe600;
+  padding: 18px 6%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+header h2 { margin: 0; }
+header small { color: #555; }
+main { max-width: 1100px; margin: 35px auto; padding: 0 20px; }
+.login {
+  max-width: 420px;
+  margin: 70px auto;
+  background: white;
+  padding: 35px;
+  border-radius: 14px;
+  box-shadow: 0 4px 20px #00000012;
+}
+.login h2 { text-align: center; }
+label { display: block; margin: 15px 0 6px; }
+input {
+  width: 100%;
+  padding: 13px;
+  border: 1px solid #ccd3dd;
+  border-radius: 7px;
+  font-size: 15px;
+}
+button {
+  background: #3483fa;
+  color: white;
+  border: none;
+  padding: 13px 20px;
+  border-radius: 7px;
+  cursor: pointer;
+  font-weight: bold;
+}
+.login button { width: 100%; margin-top: 20px; }
+button:disabled { opacity: .6; cursor: wait; }
+.error { color: #c62828; font-size: 14px; }
+.cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 18px;
+}
+.card, .panel {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 3px 14px #0000000d;
+}
+.card span { font-size: 14px; color: #666; }
+.card h1 { color: #1464db; font-size: 32px; }
+.panel { margin-top: 25px; }
+.notice {
+  background: #fff7cc;
+  padding: 14px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+.hidden { display: none !important; }
+@media(max-width:750px) {
+  .cards { grid-template-columns: repeat(2,1fr); }
+  header { padding: 16px; }
+}
+</style>
 </head>
 <body>
-  <header>
-    <div>
-      <h2>📊 Dashboard KPI</h2>
-      <small>Equipo Mati.M</small>
+
+<header>
+  <div>
+    <h2>📊 Dashboard KPI</h2>
+    <small>Equipo Mati.M</small>
+  </div>
+  <button id="logout" class="hidden">Salir</button>
+</header>
+
+<section id="login" class="login hidden">
+  <h2>Bienvenido</h2>
+  <p>Ingresá para consultar tu productividad.</p>
+
+  <form id="loginForm">
+    <label for="email">Correo electrónico</label>
+    <input id="email" type="email" required
+           autocomplete="username">
+
+    <label for="password">Contraseña</label>
+    <input id="password" type="password" required
+           autocomplete="current-password">
+
+    <button id="loginButton" type="submit">Ingresar</button>
+    <p id="error" class="error" role="alert"></p>
+  </form>
+</section>
+
+<main id="dashboard" class="hidden">
+  <h1 id="welcome">Mi productividad</h1>
+  <p>Resumen de indicadores y evolución histórica</p>
+
+  <div class="notice">
+    Inicio de sesión conectado a Firebase.
+    Los KPI reales todavía no están cargados.
+  </div>
+
+  <section class="cards">
+    <div class="card">
+      <span>Promedio diario</span>
+      <h1>—</h1>
     </div>
-    <strong>Mi productividad</strong>
-  </header>
-
-  <main>
-    <div class="welcome">
-      <h1>Mi productividad</h1>
-      <p>Resumen de indicadores y evolución histórica</p>
+    <div class="card">
+      <span>Cumplimiento</span>
+      <h1>—</h1>
     </div>
-
-    <div class="notice">
-      Versión de demostración: datos ilustrativos.
-      Todavía no contiene información real.
+    <div class="card">
+      <span>Creaciones</span>
+      <h1>—</h1>
     </div>
+    <div class="card">
+      <span>Objetivo diario</span>
+      <h1>—</h1>
+    </div>
+  </section>
 
-    <section class="cards">
-      <div class="card">
-        <span>Promedio diario</span>
-        <h1>104</h1>
-        <small>Tareas comparables</small>
-      </div>
-      <div class="card">
-        <span>Cumplimiento</span>
-        <h1>80%</h1>
-        <small>Objetivo semanal</small>
-      </div>
-      <div class="card">
-        <span>Creaciones</span>
-        <h1>32</h1>
-        <small>Esta semana</small>
-      </div>
-      <div class="card">
-        <span>Objetivo diario</span>
-        <h1>100</h1>
-        <small>Tareas comparables</small>
-      </div>
-    </section>
+  <section class="panel">
+    <h2>Evolución de productividad</h2>
+    <p>Próximamente: historial real del catalogador.</p>
+  </section>
+</main>
 
-    <section class="panel">
-      <h2>Evolución de productividad</h2>
-      <p>Promedio semanal de tareas</p>
-      <div class="chart">
-        <div class="bar" style="height:55%"></div>
-        <div class="bar" style="height:65%"></div>
-        <div class="bar" style="height:73%"></div>
-        <div class="bar" style="height:69%"></div>
-        <div class="bar" style="height:81%"></div>
-        <div class="bar" style="height:85%"></div>
-        <div class="bar" style="height:79%"></div>
-        <div class="bar" style="height:90%"></div>
-      </div>
-      <p style="text-align:center;color:#777">
-        W36 — W43
-      </p>
-    </section>
-  </main>
+<script type="module">
+import { initializeApp } from
+  "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
+
+import {
+  getAuth,
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  signOut
+} from
+  "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
+
+import {
+  getFirestore,
+  doc,
+  getDoc
+} from
+  "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyB7edb0wGmr86KVrca5zkBTju7wg_zVDFk",
+  authDomain: "dashboard-kpi-teammati.firebaseapp.com",
+  projectId: "dashboard-kpi-teammati",
+  storageBucket: "dashboard-kpi-teammati.firebasestorage.app",
+  messagingSenderId: "158470825794",
+  appId: "1:158470825794:web:33be0d3c862756b9d7cadb"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+const login = document.getElementById("login");
+const dashboard = document.getElementById("dashboard");
+const logout = document.getElementById("logout");
+const error = document.getElementById("error");
+const loginButton = document.getElementById("loginButton");
+
+function mostrarLogin() {
+  login.classList.remove("hidden");
+  dashboard.classList.add("hidden");
+  logout.classList.add("hidden");
+}
+
+function mostrarDashboard(nombre) {
+  document.getElementById("welcome").textContent =
+    "Bienvenido, " + nombre;
+  login.classList.add("hidden");
+  dashboard.classList.remove("hidden");
+  logout.classList.remove("hidden");
+}
+
+onAuthStateChanged(auth, async (user) => {
+  if (!user) {
+    mostrarLogin();
+    return;
+  }
+
+  try {
+    const perfil = await getDoc(doc(db, "usuarios", user.uid));
+
+    if (!perfil.exists()) {
+      throw new Error("Tu perfil todavía no está configurado.");
+    }
+
+    const datos = perfil.data();
+    mostrarDashboard(datos.nombre || "Catalogador");
+  } catch (e) {
+    mostrarLogin();
+    error.textContent =
+      "No se pudo cargar tu perfil. Contactá al administrador.";
+    await signOut(auth);
+  }
+});
+
+document.getElementById("loginForm")
+  .addEventListener("submit", async (event) => {
+    event.preventDefault();
+    error.textContent = "";
+    loginButton.disabled = true;
+
+    try {
+      await signInWithEmailAndPassword(
+        auth,
+        document.getElementById("email").value.trim(),
+        document.getElementById("password").value
+      );
+    } catch (e) {
+      error.textContent =
+        "No se pudo iniciar sesión. Revisá tus datos.";
+    } finally {
+      loginButton.disabled = false;
+    }
+  });
+
+logout.addEventListener("click", async () => {
+  await signOut(auth);
+});
+</script>
 </body>
 </html>
