@@ -10,6 +10,7 @@
 .week-filters{display:flex;flex-wrap:wrap;gap:12px;align-items:end;margin:16px 0}.week-filters>div{min-width:150px;flex:1}.week-filters label{margin:0 0 6px;font-size:13px;color:#52647d}.week-filters select{width:100%}.week-table{margin-top:18px}.week-chart-note{font-size:12px;color:#617085;margin-top:8px}.week-bar{position:relative}.week-bar .bar-value{position:absolute;bottom:calc(100% + 5px);left:50%;transform:translateX(-50%);font-size:11px;font-weight:bold;color:#172b4d;white-space:nowrap}.week-col{width:86px}.week-bars{gap:12px}.week-bar{width:24px}.chart-grid{padding-top:38px}.chart-legend{flex-wrap:wrap}.weekly-chart{padding-top:24px}
 
 .people-control{margin:14px 0 18px}.people-control summary{cursor:pointer;font-weight:700;color:#172b4d}.people-control .muted{margin:8px 0}.people-tools{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.people-tools button{padding:9px 12px;font-size:12px}.people-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:9px;max-height:280px;overflow:auto}.people-list label{display:flex;align-items:center;gap:9px;margin:0;padding:10px;border:1px solid #e0e6ef;border-radius:8px;font-size:13px;cursor:pointer}.people-list input{width:auto;flex:none;margin:0;accent-color:#3483fa}.people-count{font-size:13px;color:#52647d;margin-top:9px}.people-control[hidden]{display:none!important}
+.line-chart-section{margin:15px 0 28px;padding:16px;border:1px solid #e0e7f0;border-radius:12px;background:#fff}.line-chart-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px}.line-chart-heading strong{font-size:15px}.line-chart-scroll{overflow-x:auto;max-width:100%}.line-chart-scroll svg{display:block;max-width:none}.weekly-chart{overflow-x:visible;padding:0}
 </style>
 </head>
 <body>
@@ -173,19 +174,81 @@ function renderPeopleChecklist(){
 $('selectAllPeople').addEventListener('click',()=>{excludedPeople.clear();saveExcludedPeople();renderPeopleChecklist();renderKpis();});
 $('clearAllPeople').addEventListener('click',()=>{excludedPeople=new Set(kpiCache.map(r=>r.id));saveExcludedPeople();renderPeopleChecklist();renderKpis();});
 function renderWeeklyChart(){
-  const who=$('personFilter').value,chart=$('weeklyChart'),tbody=$('weeklyRows');chart.replaceChildren();tbody.replaceChildren();
-  if($('weekMode').value==='weeks'&&$('weekStart').value>$('weekEnd').value){$('weeklyStatus').textContent='La semana inicial debe ser anterior o igual a la final.';return;}
+  const who=$('personFilter').value,chart=$('weeklyChart'),tbody=$('weeklyRows');
+  chart.replaceChildren();tbody.replaceChildren();
+  if($('weekMode').value==='weeks'&&$('weekStart').value>$('weekEnd').value){
+    $('weeklyStatus').textContent='La semana inicial debe ser anterior o igual a la final.';return;
+  }
   const rows=kpiCache.filter(r=>(!who||r.id===who)&&includedRecord(r)&&weeklyMatches(r.fecha));
-  const weeks=new Map();for(const r of rows){const k=isoWeek(r.fecha).key;if(!weeks.has(k))weeks.set(k,{start:mondayLabel(r.fecha),tareas:{sum:0,count:0},creaciones:{sum:0,count:0}});const item=weeks.get(k)[r.tipo];if(item){item.sum+=r.cantidad;item.count++;}}
+  const weeks=new Map();
+  for(const r of rows){
+    const k=isoWeek(r.fecha).key;
+    if(!weeks.has(k))weeks.set(k,{start:mondayLabel(r.fecha),tareas:{sum:0,count:0},creaciones:{sum:0,count:0}});
+    const item=weeks.get(k)[r.tipo];if(item){item.sum+=r.cantidad;item.count++;}
+  }
   const ordered=[...weeks].sort((a,b)=>a[0].localeCompare(b[0]));
   $('weeklyStatus').textContent=ordered.length?`${ordered.length} semanas con datos · ${who?'Vista individual':'Promedio general del equipo'} · ${rows.length} registros`:'No hay registros para este período.';
   if(!ordered.length){chart.textContent='No hay datos para graficar.';return;}
-  const legend=document.createElement('div');legend.className='chart-legend';legend.innerHTML='<span><i style="background:#3483fa"></i>Promedio diario de tareas</span><span><i style="background:#ffe600"></i>Promedio diario de creaciones</span>';chart.appendChild(legend);
-  const grid=document.createElement('div');grid.className='chart-grid';const averages=ordered.flatMap(([,w])=>['tareas','creaciones'].map(t=>w[t].count?w[t].sum/w[t].count:0));const max=Math.max(1,...averages);
-  for(const [key,w] of ordered){const col=document.createElement('div');col.className='week-col';const bars=document.createElement('div');bars.className='week-bars';for(const tipo of ['tareas','creaciones']){const x=w[tipo],average=x.count?x.sum/x.count:null,bar=document.createElement('div');bar.className='week-bar '+tipo;bar.style.height=(average===null?2:Math.max(2,average/max*180))+'px';bar.title=`${key} · ${tipo}: ${average===null?'Sin datos':fmt(average)+' por jornada'} (${x.count} jornadas)`;const v=document.createElement('span');v.className='bar-value';v.textContent=average===null?'—':fmt(average);bar.appendChild(v);bars.appendChild(bar);}const label=document.createElement('span');label.className='week-label';label.textContent=key.replace(/^\d{4}-/,'');col.append(bars,label);grid.appendChild(col);
-    const tr=document.createElement('tr');for(const value of [key,w.start+' a '+(()=>{const d=new Date(w.start+'T12:00:00');d.setDate(d.getDate()+6);return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;})(),w.tareas.count?fmt(w.tareas.sum/w.tareas.count):'—',w.creaciones.count?fmt(w.creaciones.sum/w.creaciones.count):'—',w.tareas.count,w.creaciones.count]){const td=document.createElement('td');td.textContent=value;tr.appendChild(td);}tbody.appendChild(tr);
-  }chart.appendChild(grid);
+
+  // Dos líneas independientes para que la escala de tareas no aplaste la de creaciones.
+  function drawLineChart(tipo,title,color){
+    const values=ordered.map(([,w])=>w[tipo].count?w[tipo].sum/w[tipo].count:null);
+    const valid=values.filter(v=>v!==null);
+    const section=document.createElement('section');section.className='line-chart-section';
+    const heading=document.createElement('div');heading.className='line-chart-heading';
+    const name=document.createElement('strong');name.textContent=title;
+    const summary=document.createElement('span');summary.className='muted';
+    if(valid.length>1){const change=valid.at(-1)-valid[0];summary.textContent=`Variación del período: ${change>0?'+':''}${fmt(change)} por jornada`;}
+    heading.append(name,summary);section.appendChild(heading);
+    const scroll=document.createElement('div');scroll.className='line-chart-scroll';
+    const svgNS='http://www.w3.org/2000/svg';
+    const width=Math.max(700,ordered.length*76+100),height=285;
+    const left=55,right=32,top=34,bottom=55,plotW=width-left-right,plotH=height-top-bottom;
+    const svg=document.createElementNS(svgNS,'svg');
+    svg.setAttribute('viewBox',`0 0 ${width} ${height}`);svg.setAttribute('width',width);svg.setAttribute('height',height);
+    svg.setAttribute('role','img');svg.setAttribute('aria-label',title+' por semana, con puntos unidos por líneas');
+    const el=(tag,attrs={},txt)=>{const node=document.createElementNS(svgNS,tag);for(const [k,v] of Object.entries(attrs))node.setAttribute(k,String(v));if(txt!==undefined)node.textContent=txt;svg.appendChild(node);return node;};
+    const dataMin=Math.min(...valid),dataMax=Math.max(...valid);
+    const padding=Math.max(2,(dataMax-dataMin)*.18);
+    const min=Math.max(0,dataMin-padding),max=dataMax+padding;
+    const x=i=>left+(ordered.length===1?plotW/2:i*plotW/(ordered.length-1));
+    const y=v=>top+plotH-(v-min)/(max-min)*plotH;
+    for(let i=0;i<=4;i++){
+      const value=min+(max-min)*i/4,py=y(value);
+      el('line',{x1:left,y1:py,x2:width-right,y2:py,stroke:'#dce5f1','stroke-dasharray':'4 5','stroke-width':1});
+      el('text',{x:left-11,y:py+4,'text-anchor':'end',fill:'#65758a','font-size':12},fmt(value));
+    }
+    el('line',{x1:left,y1:top+plotH,x2:width-right,y2:top+plotH,stroke:'#aebcd0'});
+    for(let i=0;i<ordered.length;i++){
+      el('text',{x:x(i),y:height-23,'text-anchor':'middle',fill:'#52647d','font-size':12},ordered[i][0].replace(/^\d{4}-/,''));
+    }
+    // Cortar la línea cuando falten datos, sin inventar valores.
+    let segment=[];
+    const drawSegment=()=>{if(segment.length>1)el('polyline',{points:segment.map(p=>p.join(',')).join(' '),fill:'none',stroke:color,'stroke-width':3.5,'stroke-linejoin':'round','stroke-linecap':'round'});segment=[];};
+    values.forEach((v,i)=>{if(v===null){drawSegment();return;}segment.push([x(i),y(v)]);});drawSegment();
+    values.forEach((v,i)=>{
+      if(v===null)return;
+      const px=x(i),py=y(v);
+      const circle=el('circle',{cx:px,cy:py,r:5.5,fill:'#fff',stroke:color,'stroke-width':3});
+      const tooltip=document.createElementNS(svgNS,'title');tooltip.textContent=`${ordered[i][0]} · ${title}: ${fmt(v)} por jornada (${ordered[i][1][tipo].count} jornadas)`;circle.appendChild(tooltip);
+      el('text',{x:px,y:Math.max(15,py-13),'text-anchor':'middle',fill:'#24364b','font-size':12,'font-weight':700},fmt(v));
+    });
+    scroll.appendChild(svg);section.appendChild(scroll);chart.appendChild(section);
+  }
+  drawLineChart('tareas','Productividad · promedio diario de tareas','#3483fa');
+  drawLineChart('creaciones','Creaciones · promedio diario','#e28a23');
+
+  for(const [key,w] of ordered){
+    const tr=document.createElement('tr');
+    const end=new Date(w.start+'T12:00:00');end.setDate(end.getDate()+6);
+    const period=w.start+' a '+`${end.getFullYear()}-${pad2(end.getMonth()+1)}-${pad2(end.getDate())}`;
+    for(const value of [key,period,w.tareas.count?fmt(w.tareas.sum/w.tareas.count):'—',w.creaciones.count?fmt(w.creaciones.sum/w.creaciones.count):'—',w.tareas.count,w.creaciones.count]){
+      const td=document.createElement('td');td.textContent=value;tr.appendChild(td);
+    }
+    tbody.appendChild(tr);
+  }
 }
+
 for(const id of ['weekMode','weekYear','weekMonth','weekQuarter','weekStart','weekEnd'])$(id).addEventListener('change',()=>{updateWeekMode();renderWeeklyChart();});
 
 // Filtros generales por semana ISO: se aplican a todas las tarjetas y a la tabla de catalogadores.
