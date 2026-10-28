@@ -8,6 +8,8 @@
 .filters{display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:12px;align-items:end;margin:12px 0 18px}.filters label{margin:0 0 6px;font-size:13px;color:#52647d}.filters select,.filters input{width:100%;height:42px}.filter-actions{display:flex;gap:7px;align-items:center}.filter-actions button{white-space:nowrap}.weekly-chart{overflow-x:auto;padding:12px 0}.chart-grid{display:flex;align-items:flex-end;gap:12px;min-width:max-content;min-height:240px;border-bottom:1px solid #d7dfec;padding:20px 8px 0}.week-col{width:65px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:7px}.week-bars{height:180px;display:flex;align-items:flex-end;gap:4px}.week-bar{width:19px;border-radius:4px 4px 0 0;min-height:2px}.week-bar.tasks{background:#3483fa}.week-bar.creations{background:#ffe600}.week-label{font-size:12px;color:#53647b;text-align:center}.chart-legend{display:flex;gap:18px;margin:6px 0 12px;font-size:13px}.chart-legend i{display:inline-block;width:11px;height:11px;margin-right:5px;border-radius:2px}.card h1{margin:16px 0 8px}@media(max-width:900px){.filters{grid-template-columns:1fr 1fr}.filter-actions{align-self:end}}@media(max-width:550px){.filters{grid-template-columns:1fr}.cards{grid-template-columns:1fr 1fr}.filter-actions{justify-content:flex-start}}
 
 .week-filters{display:flex;flex-wrap:wrap;gap:12px;align-items:end;margin:16px 0}.week-filters>div{min-width:150px;flex:1}.week-filters label{margin:0 0 6px;font-size:13px;color:#52647d}.week-filters select{width:100%}.week-table{margin-top:18px}.week-chart-note{font-size:12px;color:#617085;margin-top:8px}.week-bar{position:relative}.week-bar .bar-value{position:absolute;bottom:calc(100% + 5px);left:50%;transform:translateX(-50%);font-size:11px;font-weight:bold;color:#172b4d;white-space:nowrap}.week-col{width:86px}.week-bars{gap:12px}.week-bar{width:24px}.chart-grid{padding-top:38px}.chart-legend{flex-wrap:wrap}.weekly-chart{padding-top:24px}
+
+.people-control{margin:14px 0 18px}.people-control summary{cursor:pointer;font-weight:700;color:#172b4d}.people-control .muted{margin:8px 0}.people-tools{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.people-tools button{padding:9px 12px;font-size:12px}.people-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:9px;max-height:280px;overflow:auto}.people-list label{display:flex;align-items:center;gap:9px;margin:0;padding:10px;border:1px solid #e0e6ef;border-radius:8px;font-size:13px;cursor:pointer}.people-list input{width:auto;flex:none;margin:0;accent-color:#3483fa}.people-count{font-size:13px;color:#52647d;margin-top:9px}.people-control[hidden]{display:none!important}
 </style>
 </head>
 <body>
@@ -17,6 +19,7 @@
 <nav class="tabs"><button id="tabDashboard" class="tab active" type="button">📊 Dashboard</button><button id="tabUpload" class="tab hidden" type="button">📁 Cargar bases</button></nav>
 <div id="viewDashboard">
 <div class="panel filters"><div><label for="personFilter">Catalogador</label><select id="personFilter"><option value="">Todos los catalogadores</option></select></div><div><label for="fromWeek">Desde semana</label><select id="fromWeek"></select></div><div><label for="toWeek">Hasta semana</label><select id="toWeek"></select></div><div class="filter-actions"><button id="resetFilters" type="button" class="tab">Limpiar filtros</button><button id="reloadKpis" type="button">↻ Actualizar</button></div></div>
+<details id="peopleControl" class="panel people-control" hidden><summary>☑ Catalogadores incluidos en el promedio del equipo</summary><p class="muted">Destildá a quienes estén en otros proyectos. No se borra su historial: podés consultarlos individualmente desde el selector de arriba.</p><div class="people-tools"><button id="selectAllPeople" type="button" class="tab">Seleccionar todos</button><button id="clearAllPeople" type="button" class="tab">Desmarcar todos</button></div><div id="peopleChecklist" class="people-list"></div><p id="peopleCount" class="people-count"></p><p class="muted">La selección se recuerda en este navegador. Afecta al promedio del equipo, el gráfico semanal y la tabla general.</p></details>
 <p id="kpiStatus" class="status" role="status">Cargando datos desde Firebase…</p>
 <section class="cards"><div class="card"><span>Promedio diario de tareas</span><h1 id="kpiAverage">—</h1><small id="averageNote" class="muted">Por jornada con registro</small></div><div class="card"><span>Tareas totales</span><h1 id="kpiTasks">—</h1><small id="tasksNote" class="muted">Período seleccionado</small></div><div class="card"><span>Creaciones totales</span><h1 id="kpiCreations">—</h1><small class="muted">Período seleccionado</small></div><div class="card"><span>Jornadas registradas</span><h1 id="kpiDays">—</h1><small class="muted">Colaborador + fecha</small></div></section>
 <section class="panel"><h2>Evolución semanal</h2><p class="muted">Promedio diario de productividad y creaciones por semana (lunes a domingo). Los filtros de esta sección son independientes de las fechas del resumen superior.</p>
@@ -33,8 +36,8 @@ import {getAuth,onAuthStateChanged,signInWithEmailAndPassword,signOut} from 'htt
 import {getFirestore,doc,getDoc,getDocs,collection,writeBatch,serverTimestamp} from 'https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js';
 const firebaseConfig={apiKey:'AIzaSyB7edb0wGmf86KVrca5zkBTju7wg_zVDFk',authDomain:'dashboard-kpi-teammati.firebaseapp.com',projectId:'dashboard-kpi-teammati',storageBucket:'dashboard-kpi-teammati.firebasestorage.app',messagingSenderId:'158470825794',appId:'1:158470825794:web:33eb0d3c862756b9d7cadb',measurementId:'G-7E8M7NSPV0'};
 const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app);
-const $=id=>document.getElementById(id);let isAdmin=false,workbook=null,importPlan=null,importBusy=false,profileData=null,kpiCache=[],kpiLoaded=false;const TEAM='Matías Minczuk';
-function showLogin(){importPlan=null;isAdmin=false;profileData=null;kpiCache=[];kpiLoaded=false; $('login').classList.remove('hidden');$('dashboard').classList.add('hidden');$('logout').classList.add('hidden'); }
+const $=id=>document.getElementById(id);let isAdmin=false,workbook=null,importPlan=null,importBusy=false,profileData=null,kpiCache=[],kpiLoaded=false,excludedPeople=new Set();const TEAM='Matías Minczuk';
+function showLogin(){importPlan=null;isAdmin=false;profileData=null;kpiCache=[];kpiLoaded=false;excludedPeople=new Set(); $('login').classList.remove('hidden');$('dashboard').classList.add('hidden');$('logout').classList.add('hidden'); }
 function showDashboard(name,admin){isAdmin=admin;$('welcome').textContent='Bienvenido, '+name;$('login').classList.add('hidden');$('dashboard').classList.remove('hidden');$('logout').classList.remove('hidden');$('tabUpload').classList.toggle('hidden',!admin);switchTab(false);loadDashboardKpis().catch(console.error);}
 function switchTab(upload){if(upload&&!isAdmin)return;$('viewDashboard').classList.toggle('hidden',upload);$('viewUpload').classList.toggle('hidden',!upload);$('tabDashboard').classList.toggle('active',!upload);$('tabUpload').classList.toggle('active',upload);}
 $('tabDashboard').addEventListener('click',()=>switchTab(false));$('tabUpload').addEventListener('click',()=>switchTab(true));
@@ -151,10 +154,28 @@ function weeklyMatches(date){
   if(mode==='quarter')return dYear===year&&Math.ceil(month/3)===Number($('weekQuarter').value);
   const key=isoWeek(date).key;return key >= $('weekStart').value&&key <= $('weekEnd').value;
 }
+// Exclusiones locales del administrador, guardadas por cuenta y por navegador.
+function peopleStorageKey(){return 'dashboard-matim-excluidos-'+(auth.currentUser?.uid||'anon');}
+function loadExcludedPeople(){try{const ids=JSON.parse(localStorage.getItem(peopleStorageKey())||'[]');excludedPeople=new Set(Array.isArray(ids)?ids.filter(x=>typeof x==='string'):[]);}catch(e){excludedPeople=new Set();}}
+function saveExcludedPeople(){try{localStorage.setItem(peopleStorageKey(),JSON.stringify([...excludedPeople]));}catch(e){console.warn('No se pudo recordar la selección en este navegador',e);}}
+function includedRecord(r){return !isAdmin||$('personFilter').value||!excludedPeople.has(r.id);}
+function refreshPeopleCount(){const names=new Set(kpiCache.map(r=>r.id));const included=[...names].filter(id=>!excludedPeople.has(id)).length;$('peopleCount').textContent=`${included} de ${names.size} catalogadores incluidos en el promedio general.`;}
+function renderPeopleChecklist(){
+ const box=$('peopleControl'),list=$('peopleChecklist');box.hidden=!isAdmin;if(!isAdmin)return;
+ const names=new Map();for(const r of kpiCache)names.set(r.id,r.colaborador);
+ list.replaceChildren();for(const [id,name] of [...names].sort((a,b)=>a[1].localeCompare(b[1],'es'))){
+   const label=document.createElement('label'),check=document.createElement('input');check.type='checkbox';check.checked=!excludedPeople.has(id);check.setAttribute('aria-label','Incluir a '+name);
+   check.addEventListener('change',()=>{if(check.checked)excludedPeople.delete(id);else excludedPeople.add(id);saveExcludedPeople();refreshPeopleCount();renderKpis();});
+   const text=document.createElement('span');text.textContent=name;label.append(check,text);list.appendChild(label);
+ }
+ refreshPeopleCount();
+}
+$('selectAllPeople').addEventListener('click',()=>{excludedPeople.clear();saveExcludedPeople();renderPeopleChecklist();renderKpis();});
+$('clearAllPeople').addEventListener('click',()=>{excludedPeople=new Set(kpiCache.map(r=>r.id));saveExcludedPeople();renderPeopleChecklist();renderKpis();});
 function renderWeeklyChart(){
   const who=$('personFilter').value,chart=$('weeklyChart'),tbody=$('weeklyRows');chart.replaceChildren();tbody.replaceChildren();
   if($('weekMode').value==='weeks'&&$('weekStart').value>$('weekEnd').value){$('weeklyStatus').textContent='La semana inicial debe ser anterior o igual a la final.';return;}
-  const rows=kpiCache.filter(r=>(!who||r.id===who)&&weeklyMatches(r.fecha));
+  const rows=kpiCache.filter(r=>(!who||r.id===who)&&includedRecord(r)&&weeklyMatches(r.fecha));
   const weeks=new Map();for(const r of rows){const k=isoWeek(r.fecha).key;if(!weeks.has(k))weeks.set(k,{start:mondayLabel(r.fecha),tareas:{sum:0,count:0},creaciones:{sum:0,count:0}});const item=weeks.get(k)[r.tipo];if(item){item.sum+=r.cantidad;item.count++;}}
   const ordered=[...weeks].sort((a,b)=>a[0].localeCompare(b[0]));
   $('weeklyStatus').textContent=ordered.length?`${ordered.length} semanas con datos · ${who?'Vista individual':'Promedio general del equipo'} · ${rows.length} registros`:'No hay registros para este período.';
@@ -182,7 +203,7 @@ function initMainWeekFilters(){
 function renderKpis(){
   const who=$('personFilter').value,from=$('fromWeek').value,to=$('toWeek').value;
   if(from && to && from>to){$('kpiStatus').className='status bad';$('kpiStatus').textContent='La semana inicial no puede ser posterior a la final.';return;}
-  const filtered=kpiCache.filter(r=>(!who||r.id===who)&&(!from||isoWeek(r.fecha).key>=from)&&(!to||isoWeek(r.fecha).key<=to));
+  const filtered=kpiCache.filter(r=>(!who||r.id===who)&&includedRecord(r)&&(!from||isoWeek(r.fecha).key>=from)&&(!to||isoWeek(r.fecha).key<=to));
   const tasks=filtered.filter(r=>r.tipo==='tareas'),creations=filtered.filter(r=>r.tipo==='creaciones');
   const taskSum=tasks.reduce((n,r)=>n+r.cantidad,0),creationSum=creations.reduce((n,r)=>n+r.cantidad,0);
   $('kpiAverage').textContent=tasks.length?fmt(taskSum/tasks.length):'—';
@@ -202,12 +223,12 @@ async function loadDashboardKpis(){
     else {const id=String(profileData?.idMeli||'').trim();if(!id){$('kpiStatus').textContent='Tu perfil todavía no tiene un ID MELI vinculado. Pedile al administrador que lo configure.';return;}const snap=await getDoc(doc(db,'kpis',id));if(snap.exists())docs=[snap];}
     const all=[];for(const person of docs){const snap=await getDocs(collection(db,'kpis',person.id,'registros'));for(const item of snap.docs){const r=item.data();if(!['tareas','creaciones'].includes(r.tipo)||typeof r.fecha!=='string'||!Number.isFinite(Number(r.cantidad)))continue;all.push({id:person.id,fecha:r.fecha,tipo:r.tipo,cantidad:Number(r.cantidad),colaborador:safeText(r.colaborador||person.data().nombre||person.id)});}}
     if(!auth.currentUser)return;
-    kpiCache=all;kpiLoaded=true;
+    kpiCache=all;kpiLoaded=true;if(isAdmin)loadExcludedPeople();
     const prev=$('personFilter').value,sel=$('personFilter');sel.replaceChildren();const allOpt=document.createElement('option');allOpt.value='';allOpt.textContent=isAdmin?'Todos los catalogadores':'Mi productividad';sel.appendChild(allOpt);
     if(isAdmin){const names=new Map();for(const r of all)names.set(r.id,r.colaborador);for(const [id,name] of [...names].sort((a,b)=>a[1].localeCompare(b[1],'es'))){const opt=document.createElement('option');opt.value=id;opt.textContent=name;sel.appendChild(opt);}sel.value=names.has(prev)?prev:'';}
     sel.disabled=!isAdmin;
     $('kpiStatus').className='status '+(all.length?'good':'');$('kpiStatus').textContent=all.length?`✓ ${fmt(all.length)} registros cargados desde Firebase. ${docs.length} fichas consultadas.`:'No se encontraron registros en Firebase para esta cuenta.';
-    initWeekFilters();initMainWeekFilters();renderKpis();
+    initWeekFilters();initMainWeekFilters();renderPeopleChecklist();renderKpis();
   }catch(e){console.error('Error leyendo KPI:',e);$('kpiStatus').className='status bad';$('kpiStatus').textContent='No se pudieron cargar los KPI: '+(e.code||e.message||'Error desconocido');}
 }
 for(const id of ['personFilter','fromWeek','toWeek'])$(id).addEventListener('change',renderKpis);
