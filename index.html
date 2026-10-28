@@ -1,347 +1,40 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Dashboard KPI | Equipo Mati.M</title>
-
 <style>
-* { box-sizing: border-box; }
-
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background: #f5f6fa;
-  color: #172b4d;
-}
-
-header {
-  background: #ffe600;
-  padding: 18px 6%;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-header h2 { margin: 0; }
-header small { color: #555; }
-
-main {
-  max-width: 1100px;
-  margin: 35px auto;
-  padding: 0 20px;
-}
-
-.login {
-  max-width: 420px;
-  margin: 70px auto;
-  background: white;
-  padding: 35px;
-  border-radius: 14px;
-  box-shadow: 0 4px 20px #00000012;
-}
-
-.login h2 { text-align: center; }
-
-label {
-  display: block;
-  margin: 15px 0 6px;
-}
-
-input {
-  width: 100%;
-  padding: 13px;
-  border: 1px solid #ccd3dd;
-  border-radius: 7px;
-  font-size: 15px;
-}
-
-button {
-  background: #3483fa;
-  color: white;
-  border: none;
-  padding: 13px 20px;
-  border-radius: 7px;
-  cursor: pointer;
-  font-weight: bold;
-}
-
-.login button {
-  width: 100%;
-  margin-top: 20px;
-}
-
-button:disabled {
-  opacity: .6;
-  cursor: wait;
-}
-
-.error {
-  color: #c62828;
-  font-size: 14px;
-}
-
-.cards {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 18px;
-}
-
-.card, .panel {
-  background: white;
-  border-radius: 12px;
-  padding: 24px;
-  box-shadow: 0 3px 14px #0000000d;
-}
-
-.card span {
-  font-size: 14px;
-  color: #666;
-}
-
-.card h1 {
-  color: #1464db;
-  font-size: 32px;
-}
-
-.panel { margin-top: 25px; }
-
-.notice {
-  background: #fff7cc;
-  padding: 14px;
-  border-radius: 8px;
-  margin-bottom: 20px;
-}
-
-.hidden { display: none !important; }
-
-@media(max-width:750px) {
-  .cards { grid-template-columns: repeat(2,1fr); }
-  header { padding: 16px; }
-  .login { margin: 35px 15px; }
-}
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#f5f6fa;color:#172b4d}header{background:#ffe600;padding:18px 6%;display:flex;align-items:center;justify-content:space-between;gap:15px}header h2{margin:0}header small{color:#555}main{max-width:1120px;margin:30px auto;padding:0 18px}.login{max-width:420px;margin:65px auto;background:#fff;padding:32px;border-radius:14px;box-shadow:0 4px 20px #0001}.login h2{text-align:center}label{display:block;margin:15px 0 6px}input{width:100%;padding:13px;border:1px solid #ccd3dd;border-radius:7px;font-size:15px}button{background:#3483fa;color:white;border:0;padding:12px 18px;border-radius:7px;cursor:pointer;font-weight:bold}button:disabled{opacity:.6;cursor:not-allowed}.login button{width:100%;margin-top:18px}.error{color:#c62828;font-size:14px}.hidden{display:none!important}.tabs{display:flex;gap:10px;flex-wrap:wrap;margin:20px 0}.tab{background:#fff;color:#172b4d;border:1px solid #d8deea}.tab.active{background:#3483fa;color:#fff;border-color:#3483fa}.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:15px}.card,.panel{background:white;border-radius:12px;padding:23px;box-shadow:0 3px 14px #0000000d}.card span{font-size:14px;color:#666}.card h1{color:#1464db;font-size:30px}.panel{margin-top:22px}.notice{background:#fff7cc;padding:14px;border-radius:8px;margin:18px 0}.upload{border:2px dashed #c7d5e8;background:#f9fbff;border-radius:12px;padding:25px;text-align:center}.upload input{max-width:500px;background:#fff}.muted{color:#617085;font-size:14px}.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:20px 0}.summary>div{background:#f4f7fc;border-radius:9px;padding:15px}.summary strong{display:block;font-size:24px;color:#1464db;margin:6px 0}.table-wrap{overflow:auto;max-height:340px;border:1px solid #e1e7ef;border-radius:9px}table{border-collapse:collapse;width:100%;font-size:13px}td,th{padding:10px;border-bottom:1px solid #e6ebf1;text-align:left;white-space:nowrap}th{background:#f3f6fb;position:sticky;top:0}select{padding:11px;border:1px solid #ccd3dd;border-radius:7px;max-width:100%}.status{margin-top:14px;font-size:14px}.good{color:#18784a}.bad{color:#c62828}@media(max-width:750px){.cards{grid-template-columns:repeat(2,1fr)}.summary{grid-template-columns:1fr}header{padding:16px}.login{margin:35px 15px}}
 </style>
 </head>
-
 <body>
-
-<header>
-  <div>
-    <h2>📊 Dashboard KPI</h2>
-    <small>Equipo Mati.M</small>
-  </div>
-  <button id="logout" class="hidden">Salir</button>
-</header>
-
-<section id="login" class="login">
-  <h2>Bienvenido</h2>
-  <p>Ingresá para consultar tu productividad.</p>
-
-  <form id="loginForm">
-    <label for="email">Correo electrónico</label>
-    <input
-      id="email"
-      type="email"
-      required
-      autocomplete="username"
-    >
-
-    <label for="password">Contraseña</label>
-    <input
-      id="password"
-      type="password"
-      required
-      autocomplete="current-password"
-    >
-
-    <button id="loginButton" type="submit">
-      Ingresar
-    </button>
-
-    <p id="error" class="error" role="alert"></p>
-  </form>
-</section>
-
-<main id="dashboard" class="hidden">
-
-  <h1 id="welcome">Mi productividad</h1>
-  <p>Resumen de indicadores y evolución histórica</p>
-
-  <div class="notice">
-    Sesión conectada con Firebase.
-    Los KPI reales todavía no están cargados.
-  </div>
-
-  <section class="cards">
-
-    <div class="card">
-      <span>Promedio diario</span>
-      <h1>—</h1>
-    </div>
-
-    <div class="card">
-      <span>Cumplimiento</span>
-      <h1>—</h1>
-    </div>
-
-    <div class="card">
-      <span>Creaciones</span>
-      <h1>—</h1>
-    </div>
-
-    <div class="card">
-      <span>Objetivo diario</span>
-      <h1>—</h1>
-    </div>
-
-  </section>
-
-  <section class="panel">
-    <h2>Evolución de productividad</h2>
-    <p>
-      Próximamente: historial real del catalogador.
-    </p>
-  </section>
-
+<header><div><h2>📊 Dashboard KPI</h2><small>Equipo Mati.M</small></div><button id="logout" class="hidden">Salir</button></header>
+<section id="login" class="login"><h2>Bienvenido</h2><p>Ingresá para consultar tu productividad.</p><form id="loginForm"><label for="email">Correo electrónico</label><input id="email" type="email" required autocomplete="username"><label for="password">Contraseña</label><input id="password" type="password" required autocomplete="current-password"><button id="loginButton" type="submit">Ingresar</button><p id="error" class="error" role="alert"></p></form></section>
+<main id="dashboard" class="hidden"><h1 id="welcome">Mi productividad</h1><p>Resumen de indicadores y evolución histórica</p>
+<nav class="tabs"><button id="tabDashboard" class="tab active" type="button">📊 Dashboard</button><button id="tabUpload" class="tab hidden" type="button">📁 Cargar bases</button></nav>
+<div id="viewDashboard"><div class="notice">Los KPI reales todavía no están cargados.</div><section class="cards"><div class="card"><span>Promedio diario</span><h1>—</h1></div><div class="card"><span>Cumplimiento</span><h1>—</h1></div><div class="card"><span>Creaciones</span><h1>—</h1></div><div class="card"><span>Objetivo diario</span><h1>—</h1></div></section><section class="panel"><h2>Evolución de productividad</h2><p>Próximamente: historial real del catalogador.</p></section></div>
+<div id="viewUpload" class="hidden"><section class="panel"><h2>📁 Cargar bases de productividad</h2><p>Seleccioná el archivo completo <strong>Evolución Productividad.xlsm</strong> que recibís cada lunes.</p><div class="upload"><p>📗 <strong>Seleccionar archivo Excel</strong></p><input type="file" id="excelFile" accept=".xlsm,.xlsx"><p class="muted">Se leen los datos en tu navegador. Esta versión todavía no guarda información en Firebase.</p></div><p id="fileStatus" class="status" role="status"></p><div id="preview" class="hidden"><div class="summary"><div>Hojas encontradas<strong id="sheetCount">—</strong></div><div>Registros en Base diaria<strong id="dailyCount">—</strong></div><div>Registros en Base creaciones<strong id="creationCount">—</strong></div></div><label for="sheetSelect">Vista previa de la hoja</label><select id="sheetSelect"></select><p class="muted" id="previewInfo"></p><div class="table-wrap"><table id="previewTable"></table></div><div class="notice">Esta es una <strong>vista previa</strong>. No se modificó el archivo original ni se actualizaron los KPI. El siguiente paso será validar el equipo Mati.M y habilitar una importación segura.</div><button type="button" disabled>Confirmar actualización (próxima etapa)</button></div></section></div>
 </main>
-
 <script type="module">
-
-import { initializeApp } from
-"https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
-
-import {
-  getAuth,
-  onAuthStateChanged,
-  signInWithEmailAndPassword,
-  signOut
-} from
-"https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
-
-import {
-  getFirestore,
-  doc,
-  getDoc
-} from
-"https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
-
-// Configuración de Firebase
-const firebaseConfig = {
-  apiKey: "AIzaSyB7edb0wGmf86KVrca5zkBTju7wg_zVDFk",
-  authDomain: "dashboard-kpi-teammati.firebaseapp.com",
-  projectId: "dashboard-kpi-teammati",
-  storageBucket: "dashboard-kpi-teammati.firebasestorage.app",
-  messagingSenderId: "158470825794",
-  appId: "1:158470825794:web:33eb0d3c862756b9d7cadb",
-  measurementId: "G-7E8M7NSPV0"
-};
-
-// Inicialización única
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-
-// Elementos
-const login = document.getElementById("login");
-const dashboard = document.getElementById("dashboard");
-const logout = document.getElementById("logout");
-const error = document.getElementById("error");
-const loginButton = document.getElementById("loginButton");
-
-function mostrarLogin() {
-  login.classList.remove("hidden");
-  dashboard.classList.add("hidden");
-  logout.classList.add("hidden");
-}
-
-function mostrarDashboard(nombre) {
-  document.getElementById("welcome").textContent =
-    "Bienvenido, " + nombre;
-
-  login.classList.add("hidden");
-  dashboard.classList.remove("hidden");
-  logout.classList.remove("hidden");
-}
-
-// Detectar sesión
-onAuthStateChanged(auth, async (user) => {
-
-  if (!user) {
-    mostrarLogin();
-    return;
-  }
-
-  try {
-    const perfil = await getDoc(
-      doc(db, "usuarios", user.uid)
-    );
-
-    if (!perfil.exists()) {
-      throw new Error("Perfil no configurado");
-    }
-
-    const datos = perfil.data();
-
-    mostrarDashboard(
-      datos.nombre || "Catalogador"
-    );
-
-  } catch (e) {
-    console.error("Error al cargar perfil:", e);
-
-    mostrarLogin();
-
-    error.textContent =
-      "No se pudo cargar tu perfil. Contactá al administrador.";
-
-    await signOut(auth);
-  }
-});
-
-// Inicio de sesión
-document.getElementById("loginForm")
-.addEventListener("submit", async (event) => {
-
-  event.preventDefault();
-  error.textContent = "";
-  loginButton.disabled = true;
-
-  try {
-    await signInWithEmailAndPassword(
-      auth,
-      document.getElementById("email").value.trim(),
-      document.getElementById("password").value
-    );
-
-  } catch (e) {
-    console.error("Error de autenticación:", e.code);
-
-    if (e.code === "auth/invalid-api-key") {
-      error.textContent =
-        "Error de configuración de Firebase.";
-    } else if (
-      e.code === "auth/invalid-credential" ||
-      e.code === "auth/wrong-password"
-    ) {
-      error.textContent =
-        "Correo o contraseña incorrectos.";
-    } else {
-      error.textContent =
-        "No se pudo iniciar sesión. Código: " + e.code;
-    }
-
-  } finally {
-    loginButton.disabled = false;
-  }
-});
-
-// Cerrar sesión
-logout.addEventListener("click", async () => {
-  await signOut(auth);
-});
-
+import {initializeApp} from 'https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js';
+import {getAuth,onAuthStateChanged,signInWithEmailAndPassword,signOut} from 'https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js';
+import {getFirestore,doc,getDoc} from 'https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js';
+const firebaseConfig={apiKey:'AIzaSyB7edb0wGmf86KVrca5zkBTju7wg_zVDFk',authDomain:'dashboard-kpi-teammati.firebaseapp.com',projectId:'dashboard-kpi-teammati',storageBucket:'dashboard-kpi-teammati.firebasestorage.app',messagingSenderId:'158470825794',appId:'1:158470825794:web:33eb0d3c862756b9d7cadb',measurementId:'G-7E8M7NSPV0'};
+const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app);
+const $=id=>document.getElementById(id);let isAdmin=false,workbook=null;
+function showLogin(){ $('login').classList.remove('hidden');$('dashboard').classList.add('hidden');$('logout').classList.add('hidden'); }
+function showDashboard(name,admin){isAdmin=admin;$('welcome').textContent='Bienvenido, '+name;$('login').classList.add('hidden');$('dashboard').classList.remove('hidden');$('logout').classList.remove('hidden');$('tabUpload').classList.toggle('hidden',!admin);switchTab(false);}
+function switchTab(upload){if(upload&&!isAdmin)return;$('viewDashboard').classList.toggle('hidden',upload);$('viewUpload').classList.toggle('hidden',!upload);$('tabDashboard').classList.toggle('active',!upload);$('tabUpload').classList.toggle('active',upload);}
+$('tabDashboard').addEventListener('click',()=>switchTab(false));$('tabUpload').addEventListener('click',()=>switchTab(true));
+onAuthStateChanged(auth,async user=>{if(!user){showLogin();return;}try{const snap=await getDoc(doc(db,'usuarios',user.uid));if(!snap.exists())throw Error('Perfil no configurado');const profile=snap.data();showDashboard(profile.nombre||'Catalogador',profile.rol==='admin');}catch(e){console.error(e);showLogin();$('error').textContent='No se pudo cargar tu perfil. Contactá al administrador.';await signOut(auth);}});
+$('loginForm').addEventListener('submit',async event=>{event.preventDefault();$('error').textContent='';$('loginButton').disabled=true;try{await signInWithEmailAndPassword(auth,$('email').value.trim(),$('password').value);}catch(e){console.error(e);$('error').textContent=e.code==='auth/invalid-credential'?'Correo o contraseña incorrectos.':'No se pudo iniciar sesión: '+(e.code||'error');}finally{$('loginButton').disabled=false;}});
+$('logout').addEventListener('click',()=>signOut(auth));
+function loadXlsx(){return new Promise((resolve,reject)=>{if(window.XLSX)return resolve();const script=document.createElement('script');script.src='https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';script.onload=()=>window.XLSX?resolve():reject(Error('No se pudo iniciar el lector de Excel'));script.onerror=()=>reject(Error('No se pudo descargar el lector de Excel. Revisá la conexión.'));document.head.appendChild(script);});}
+function rows(name){if(!workbook||!workbook.Sheets[name])return [];return window.XLSX.utils.sheet_to_json(workbook.Sheets[name],{header:1,defval:'',raw:false,blankrows:false});}
+function countData(name){const data=rows(name);return Math.max(0,data.length-1);}
+function previewSheet(){const name=$('sheetSelect').value,data=rows(name);$('previewInfo').textContent=`Vista previa: primeras ${Math.min(12,data.length)} filas de ${data.length} filas de la hoja «${name}».`;
+const table=$('previewTable');table.replaceChildren();if(!data.length){table.textContent='La hoja está vacía.';return;}const tbody=document.createElement('tbody');data.slice(0,12).forEach((row,index)=>{const tr=document.createElement('tr');row.slice(0,18).forEach(value=>{const cell=document.createElement(index===0?'th':'td');cell.textContent=String(value??'');tr.appendChild(cell);});tbody.appendChild(tr);});table.appendChild(tbody);}
+$('sheetSelect').addEventListener('change',previewSheet);
+$('excelFile').addEventListener('change',async event=>{if(!isAdmin)return;const file=event.target.files?.[0];if(!file)return;$('preview').classList.add('hidden');$('fileStatus').className='status';$('fileStatus').textContent='Leyendo archivo...';try{if(!/\.(xlsm|xlsx)$/i.test(file.name))throw Error('Elegí un archivo .xlsm o .xlsx');await loadXlsx();const bytes=await file.arrayBuffer();workbook=window.XLSX.read(bytes,{type:'array',bookVBA:false});if(!workbook.SheetNames.includes('Base diaria')||!workbook.SheetNames.includes('Base creaciones'))throw Error('El archivo no contiene las hojas Base diaria y Base creaciones.');$('sheetCount').textContent=workbook.SheetNames.length;$('dailyCount').textContent=countData('Base diaria').toLocaleString('es-AR');$('creationCount').textContent=countData('Base creaciones').toLocaleString('es-AR');const select=$('sheetSelect');select.replaceChildren();['Base diaria','Base creaciones',...workbook.SheetNames.filter(n=>n!=='Base diaria'&&n!=='Base creaciones')].forEach(name=>{const opt=document.createElement('option');opt.value=name;opt.textContent=name;select.appendChild(opt);});previewSheet();$('preview').classList.remove('hidden');$('fileStatus').className='status good';$('fileStatus').textContent='✓ Archivo leído correctamente. No se guardó ningún dato.';}catch(e){console.error(e);$('fileStatus').className='status bad';$('fileStatus').textContent=e.message||'No se pudo leer el archivo.';}});
 </script>
-
-</body>
-</html>
+</body></html>
