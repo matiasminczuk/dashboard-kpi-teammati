@@ -160,14 +160,27 @@ import {
 } from
   "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
 
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
   apiKey: "AIzaSyB7edb0wGmf86KVrca5zkBTju7wg_zVDFk",
   authDomain: "dashboard-kpi-teammati.firebaseapp.com",
   projectId: "dashboard-kpi-teammati",
   storageBucket: "dashboard-kpi-teammati.firebasestorage.app",
   messagingSenderId: "158470825794",
-  appId: "1:158470825794:web:33be0d3c862756b9d7cadb"
+  appId: "1:158470825794:web:33eb0d3c862756b9d7cadb",
+  measurementId: "G-7E8M7NSPV0"
 };
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
