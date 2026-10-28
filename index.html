@@ -16,7 +16,7 @@
 <main id="dashboard" class="hidden"><h1 id="welcome">Mi productividad</h1><p>Resumen de indicadores y evolución histórica</p>
 <nav class="tabs"><button id="tabDashboard" class="tab active" type="button">📊 Dashboard</button><button id="tabUpload" class="tab hidden" type="button">📁 Cargar bases</button></nav>
 <div id="viewDashboard">
-<div class="panel filters"><div><label for="personFilter">Catalogador</label><select id="personFilter"><option value="">Todos los catalogadores</option></select></div><div><label for="fromDate">Desde</label><input id="fromDate" type="date"></div><div><label for="toDate">Hasta</label><input id="toDate" type="date"></div><div class="filter-actions"><button id="resetFilters" type="button" class="tab">Limpiar filtros</button><button id="reloadKpis" type="button">↻ Actualizar</button></div></div>
+<div class="panel filters"><div><label for="personFilter">Catalogador</label><select id="personFilter"><option value="">Todos los catalogadores</option></select></div><div><label for="fromWeek">Desde semana</label><select id="fromWeek"></select></div><div><label for="toWeek">Hasta semana</label><select id="toWeek"></select></div><div class="filter-actions"><button id="resetFilters" type="button" class="tab">Limpiar filtros</button><button id="reloadKpis" type="button">↻ Actualizar</button></div></div>
 <p id="kpiStatus" class="status" role="status">Cargando datos desde Firebase…</p>
 <section class="cards"><div class="card"><span>Promedio diario de tareas</span><h1 id="kpiAverage">—</h1><small id="averageNote" class="muted">Por jornada con registro</small></div><div class="card"><span>Tareas totales</span><h1 id="kpiTasks">—</h1><small id="tasksNote" class="muted">Período seleccionado</small></div><div class="card"><span>Creaciones totales</span><h1 id="kpiCreations">—</h1><small class="muted">Período seleccionado</small></div><div class="card"><span>Jornadas registradas</span><h1 id="kpiDays">—</h1><small class="muted">Colaborador + fecha</small></div></section>
 <section class="panel"><h2>Evolución semanal</h2><p class="muted">Promedio diario de productividad y creaciones por semana (lunes a domingo). Los filtros de esta sección son independientes de las fechas del resumen superior.</p>
@@ -166,9 +166,23 @@ function renderWeeklyChart(){
   }chart.appendChild(grid);
 }
 for(const id of ['weekMode','weekYear','weekMonth','weekQuarter','weekStart','weekEnd'])$(id).addEventListener('change',()=>{updateWeekMode();renderWeeklyChart();});
+
+// Filtros generales por semana ISO: se aplican a todas las tarjetas y a la tabla de catalogadores.
+function initMainWeekFilters(){
+  const keys=[...new Set(kpiCache.map(r=>isoWeek(r.fecha).key))].sort();
+  for(const id of ['fromWeek','toWeek']){
+    const sel=$(id),old=sel.value;
+    sel.replaceChildren();
+    const empty=document.createElement('option');empty.value='';empty.textContent=id==='fromWeek'?'Todas (desde el inicio)':'Todas (hasta la última)';sel.appendChild(empty);
+    for(const key of keys){const option=document.createElement('option');option.value=key;option.textContent=key;sel.appendChild(option);}
+    sel.value=keys.includes(old)?old:'';
+  }
+}
+
 function renderKpis(){
-  const who=$('personFilter').value,from=$('fromDate').value,to=$('toDate').value;
-  const filtered=kpiCache.filter(r=>(!who||r.id===who)&&(!from||r.fecha>=from)&&(!to||r.fecha<=to));
+  const who=$('personFilter').value,from=$('fromWeek').value,to=$('toWeek').value;
+  if(from && to && from>to){$('kpiStatus').className='status bad';$('kpiStatus').textContent='La semana inicial no puede ser posterior a la final.';return;}
+  const filtered=kpiCache.filter(r=>(!who||r.id===who)&&(!from||isoWeek(r.fecha).key>=from)&&(!to||isoWeek(r.fecha).key<=to));
   const tasks=filtered.filter(r=>r.tipo==='tareas'),creations=filtered.filter(r=>r.tipo==='creaciones');
   const taskSum=tasks.reduce((n,r)=>n+r.cantidad,0),creationSum=creations.reduce((n,r)=>n+r.cantidad,0);
   $('kpiAverage').textContent=tasks.length?fmt(taskSum/tasks.length):'—';
@@ -193,11 +207,11 @@ async function loadDashboardKpis(){
     if(isAdmin){const names=new Map();for(const r of all)names.set(r.id,r.colaborador);for(const [id,name] of [...names].sort((a,b)=>a[1].localeCompare(b[1],'es'))){const opt=document.createElement('option');opt.value=id;opt.textContent=name;sel.appendChild(opt);}sel.value=names.has(prev)?prev:'';}
     sel.disabled=!isAdmin;
     $('kpiStatus').className='status '+(all.length?'good':'');$('kpiStatus').textContent=all.length?`✓ ${fmt(all.length)} registros cargados desde Firebase. ${docs.length} fichas consultadas.`:'No se encontraron registros en Firebase para esta cuenta.';
-    initWeekFilters();renderKpis();
+    initWeekFilters();initMainWeekFilters();renderKpis();
   }catch(e){console.error('Error leyendo KPI:',e);$('kpiStatus').className='status bad';$('kpiStatus').textContent='No se pudieron cargar los KPI: '+(e.code||e.message||'Error desconocido');}
 }
-for(const id of ['personFilter','fromDate','toDate'])$(id).addEventListener('change',renderKpis);
-$('resetFilters').addEventListener('click',()=>{$('personFilter').value='';$('fromDate').value='';$('toDate').value='';renderKpis();});
+for(const id of ['personFilter','fromWeek','toWeek'])$(id).addEventListener('change',renderKpis);
+$('resetFilters').addEventListener('click',()=>{$('personFilter').value='';$('fromWeek').value='';$('toWeek').value='';renderKpis();});
 $('reloadKpis').addEventListener('click',()=>loadDashboardKpis());
 
 </script>
