@@ -28,7 +28,7 @@
 <section class="panel"><h2>Evolución semanal</h2><p class="muted">Promedio diario de productividad y creaciones por semana (lunes a domingo). Los filtros de esta sección son independientes de las fechas del resumen superior.</p>
 <div class="week-filters"><div><label for="weekMode">Período</label><select id="weekMode"><option value="month">Mes</option><option value="quarter" selected>Q1 / Q2 / Q3 / Q4</option><option value="weeks">Semanas</option></select></div><div><label for="weekYear">Año</label><select id="weekYear"></select></div><div id="monthWrap" class="hidden"><label for="weekMonth">Mes</label><select id="weekMonth"><option value="1">Enero</option><option value="2">Febrero</option><option value="3">Marzo</option><option value="4">Abril</option><option value="5">Mayo</option><option value="6">Junio</option><option value="7">Julio</option><option value="8">Agosto</option><option value="9">Septiembre</option><option value="10">Octubre</option><option value="11">Noviembre</option><option value="12">Diciembre</option></select></div><div id="quarterWrap"><label for="weekQuarter">Quarter</label><select id="weekQuarter"><option value="1">Q1</option><option value="2">Q2</option><option value="3" selected>Q3</option><option value="4">Q4</option></select></div><div id="startWeekWrap" class="hidden"><label for="weekStart">Desde semana</label><select id="weekStart"></select></div><div id="endWeekWrap" class="hidden"><label for="weekEnd">Hasta semana</label><select id="weekEnd"></select></div></div>
 <p id="weeklyStatus" class="muted"></p><div id="weeklyChart" class="weekly-chart"><p class="muted">Cargando gráfico…</p></div><div class="table-wrap week-table"><table><thead><tr><th>Semana</th><th>Período</th><th>Promedio diario de tareas</th><th>Promedio diario de creaciones</th><th>Jornadas tareas</th><th>Jornadas creaciones</th></tr></thead><tbody id="weeklyRows"></tbody></table></div><p class="week-chart-note">El promedio semanal se calcula como total de tareas o creaciones dividido por las jornadas registradas de ese indicador. En la vista general se promedian todas las jornadas registradas del equipo. Las semanas que cruzan un mes o un Q usan solo los días del período elegido.</p></section>
-<section class="panel" id="holdsPanel"><h2>⏸️ Evolución de tareas holdeadas</h2><p class="muted">Cada ID CDM cuenta una sola vez por semana, según la fecha de «Ultimo Hold». Se utilizan los mismos filtros de catalogador y período del gráfico superior.</p><div class="holds-stats"><div class="holds-stat"><span class="muted">Tareas holdeadas en el período</span><strong id="holdsTotal">—</strong></div><div class="holds-stat"><span class="muted">Semanas con holds</span><strong id="holdsWeeks">—</strong></div><div class="holds-stat"><span class="muted">Promedio semanal</span><strong id="holdsAverage">—</strong></div></div><p id="holdsStatus" class="muted">Consultando historial de holds…</p><div id="holdsChart" class="weekly-chart"></div><div class="table-wrap week-table"><table><thead><tr><th>Semana</th><th>Tareas holdeadas (ID CDM únicos)</th></tr></thead><tbody id="holdsWeeklyRows"></tbody></table></div><h3>Holds por catalogador</h3><div class="table-wrap"><table><thead><tr><th>Catalogador</th><th>ID MELI</th><th>Holds</th></tr></thead><tbody id="holdsPeopleRows"></tbody></table></div></section>
+<section class="panel" id="holdsPanel"><h2>⏸️ Evolución de tareas holdeadas</h2><p class="muted">Se cuenta cada fila del CSV, incluso cuando se repite el ID CDM, según la fecha de «Ultimo Hold». Se utilizan los mismos filtros de catalogador y período del gráfico superior.</p><div class="holds-stats"><div class="holds-stat"><span class="muted">Tareas holdeadas en el período</span><strong id="holdsTotal">—</strong></div><div class="holds-stat"><span class="muted">Semanas con holds</span><strong id="holdsWeeks">—</strong></div><div class="holds-stat"><span class="muted">Promedio semanal</span><strong id="holdsAverage">—</strong></div></div><p id="holdsStatus" class="muted">Consultando historial de holds…</p><div id="holdsChart" class="weekly-chart"></div><div class="table-wrap week-table"><table><thead><tr><th>Semana</th><th>Tareas holdeadas (filas del CSV)</th></tr></thead><tbody id="holdsWeeklyRows"></tbody></table></div><h3>Holds por catalogador</h3><div class="table-wrap"><table><thead><tr><th>Catalogador</th><th>ID MELI</th><th>Holds</th></tr></thead><tbody id="holdsPeopleRows"></tbody></table></div></section>
 <section class="panel"><h2>Resumen por catalogador</h2><div class="table-wrap"><table><thead><tr><th>Catalogador</th><th>ID MELI</th><th>Jornadas</th><th>Tareas</th><th>Promedio diario</th><th>Creaciones</th></tr></thead><tbody id="peopleRows"><tr><td colspan="6">Cargando…</td></tr></tbody></table></div></section>
 <section class="panel"><h2>Indicadores pendientes</h2><p class="muted">El objetivo diario y el porcentaje de cumplimiento requieren incorporar los criterios correspondientes del Excel. Todavía no están guardados en los registros importados; no se calculan valores ficticios.</p></section>
 </div>
@@ -313,11 +313,16 @@ async function loadHoldsForPeople(people){
  const all=[];let errors=0;
  for(const person of people){
   try{const snap=await getDocs(collection(db,'kpis',person.id,'registros'));
-   for(const d of snap.docs){const r=d.data();if(r.tipo==='hold'&&r.fecha&&r.idCDM)all.push({id:person.id,fecha:r.fecha,idCDM:String(r.idCDM),colaborador:person.data().nombre||person.id});}
+   const newer=new Set(snap.docs.filter(d=>d.data().tipo==='hold'&&d.data().versionHold===2).map(d=>String(d.data().idCDM)));
+   for(const d of snap.docs){const r=d.data();if(r.tipo!=='hold'||!r.fecha||!r.idCDM)continue;
+    // Los registros v1 se reemplazan por los grupos v2, nunca se suman dos veces.
+    if(r.versionHold!==2&&newer.has(String(r.idCDM)))continue;
+    all.push({id:person.id,fecha:r.fecha,idCDM:String(r.idCDM),cantidad:r.versionHold===2?Number(r.cantidad)||0:1,colaborador:person.data().nombre||person.id});
+   }
   }catch(e){errors++;console.error('No se pudieron leer holds de '+person.id,e);}
  }
  holdsCache=all;
- $('holdsStatus').textContent=errors?`No se pudieron consultar los holds de ${errors} catalogadores.`:`${fmt(all.length)} tareas holdeadas guardadas en Firebase.`;
+ $('holdsStatus').textContent=errors?`No se pudieron consultar los holds de ${errors} catalogadores.`:`${fmt(all.reduce((n,r)=>n+r.cantidad,0))} holds registrados en Firebase.`;
 }
 function renderHolds(){
  const chart=$('holdsChart'),weekly=$('holdsWeeklyRows'),peopleBody=$('holdsPeopleRows');
@@ -325,15 +330,14 @@ function renderHolds(){
  const who=$('personFilter').value;
  if($('weekMode').value==='weeks'&&$('weekStart').value>$('weekEnd').value){chart.textContent='Revisá el rango de semanas.';return;}
  const selected=holdsCache.filter(r=>(!who||r.id===who)&&includedRecord(r)&&weeklyMatches(r.fecha));
- const uniq=new Map();for(const r of selected)uniq.set(`${r.id}|${isoWeek(r.fecha).key}|${r.idCDM}`,r);
- const rows=[...uniq.values()],counts=new Map(),byPerson=new Map();
- for(const r of rows){const wk=isoWeek(r.fecha).key;counts.set(wk,(counts.get(wk)||0)+1);const p=byPerson.get(r.id)||{name:r.colaborador,id:r.id,count:0};p.count++;byPerson.set(r.id,p);}
+ const rows=selected,counts=new Map(),byPerson=new Map();
+ for(const r of rows){const wk=isoWeek(r.fecha).key;counts.set(wk,(counts.get(wk)||0)+r.cantidad);const p=byPerson.get(r.id)||{name:r.colaborador,id:r.id,count:0};p.count+=r.cantidad;byPerson.set(r.id,p);}
  const ordered=[...counts].sort((a,b)=>a[0].localeCompare(b[0]));
- $('holdsTotal').textContent=fmt(rows.length);$('holdsWeeks').textContent=fmt(ordered.length);$('holdsAverage').textContent=ordered.length?fmt(rows.length/ordered.length):'—';
+ const total=rows.reduce((n,r)=>n+r.cantidad,0);$('holdsTotal').textContent=fmt(total);$('holdsWeeks').textContent=fmt(ordered.length);$('holdsAverage').textContent=ordered.length?fmt(total/ordered.length):'—';
  if(!ordered.length){chart.innerHTML='<p class="muted">No hay holds para los filtros seleccionados. Cargá el CSV desde «Cargar bases».</p>';}
  else{
   const section=document.createElement('section');section.className='line-chart-section';
-  const heading=document.createElement('div');heading.className='line-chart-heading';heading.innerHTML='<strong class="hold-heading">Holds por semana · ID CDM únicos</strong>';
+  const heading=document.createElement('div');heading.className='line-chart-heading';heading.innerHTML='<strong class="hold-heading">Holds por semana · registros del CSV</strong>';
   section.appendChild(heading);
   const scroll=document.createElement('div');scroll.className='line-chart-scroll';
   const ns='http://www.w3.org/2000/svg',width=Math.max(700,ordered.length*76+100),height=285,left=55,right=32,top=34,bottom=55,pw=width-left-right,ph=height-top-bottom,max=Math.max(1,...ordered.map(x=>x[1]));
@@ -348,7 +352,7 @@ function renderHolds(){
  for(const [wk,count] of ordered){const tr=document.createElement('tr');for(const v of [wk,count]){const td=document.createElement('td');td.textContent=v;tr.appendChild(td);}weekly.appendChild(tr);}
  for(const p of [...byPerson.values()].sort((a,b)=>b.count-a.count)){const tr=document.createElement('tr');for(const v of [p.name,p.id,p.count]){const td=document.createElement('td');td.textContent=v;tr.appendChild(td);}peopleBody.appendChild(tr);}
 }
-function holdRecordId(cdm){return 'hold_'+String(cdm).replace(/[^a-zA-Z0-9_-]/g,'_');}
+function holdRecordId(cdm,fecha){return 'hold2_'+String(cdm).replace(/[^a-zA-Z0-9_-]/g,'_')+'_'+fecha;}
 $('holdsFile').addEventListener('change',async event=>{
  if(!isAdmin)return;const file=event.target.files?.[0];if(!file)return;
  holdsImportPlan=null;$('confirmHoldsImport').disabled=true;$('holdsImportPanel').classList.add('hidden');$('holdsFileStatus').className='status';$('holdsFileStatus').textContent='Analizando CSV…';
@@ -362,23 +366,24 @@ $('holdsFile').addEventListener('change',async event=>{
    const r=matrix[i],id=String(r[cp]??'').trim(),cdm=String(r[ci]??'').trim(),fecha=parseHoldDate(r[cd]);
    if(!people.has(id)){skipped++;continue;}
    if(!cdm||!fecha){invalid++;continue;}
-   const key=id+'|'+cdm,record={id,idCDM:cdm,fecha,tipo:'hold',cantidad:1,colaborador:people.get(id),equipo:TEAM};
-   if(selected.has(key)){duplicates++;if(selected.get(key).fecha>fecha)continue;}
-   selected.set(key,record);
+   // Se contabilizan todas las filas, agrupadas por catalogador, CDM y fecha.
+   const key=id+'|'+cdm+'|'+fecha;
+   if(selected.has(key)){duplicates++;selected.get(key).cantidad++;}
+   else selected.set(key,{id,idCDM:cdm,fecha,tipo:'hold',cantidad:1,versionHold:2,colaborador:people.get(id),equipo:TEAM});
   }
   if(!selected.size)throw Error('El CSV no contiene holds válidos de catalogadores presentes en tu equipo.');
   const changes=[],stats={newCount:0,updatedCount:0,unchangedCount:0};const grouped=new Map();
   for(const record of selected.values()){if(!grouped.has(record.id))grouped.set(record.id,[]);grouped.get(record.id).push(record);}
   for(const [id,recs] of grouped){const snap=await getDocs(collection(db,'kpis',id,'registros'));const existing=new Map(snap.docs.map(d=>[d.id,d.data()]));
-   for(const record of recs){const recordId=holdRecordId(record.idCDM),old=existing.get(recordId);
+   for(const record of recs){const recordId=holdRecordId(record.idCDM,record.fecha),old=existing.get(recordId);
     if(!old){stats.newCount++;changes.push({recordId,record});}
-    else if(old.fecha!==record.fecha||old.colaborador!==record.colaborador||old.idCDM!==record.idCDM){stats.updatedCount++;changes.push({recordId,record});}
+    else if(old.fecha!==record.fecha||old.colaborador!==record.colaborador||old.idCDM!==record.idCDM||Number(old.cantidad)!==record.cantidad){stats.updatedCount++;changes.push({recordId,record});}
     else stats.unchangedCount++;
    }
   }
   holdsImportPlan={changes,stats,fileName:file.name};
   $('holdsImportStats').innerHTML=`<div>Holds nuevos<strong>${stats.newCount}</strong></div><div>Actualizados<strong>${stats.updatedCount}</strong></div><div>Sin cambios<strong>${stats.unchangedCount}</strong></div>`;
-  $('holdsImportSummary').textContent=`${selected.size} ID CDM únicos por catalogador del equipo · ${duplicates} filas repetidas · ${skipped} filas de otros catalogadores · ${invalid} filas inválidas. ${changes.length?'Revisá los cambios y confirmá.':'Firebase ya tiene estos registros.'}`;
+  $('holdsImportSummary').textContent=`${[...selected.values()].reduce((n,r)=>n+r.cantidad,0)} holds del equipo en ${selected.size} grupos de ID CDM y fecha · ${duplicates} filas con ID CDM y fecha repetidos (contabilizadas) · ${skipped} filas de otros catalogadores · ${invalid} filas inválidas. ${changes.length?'Revisá los cambios y confirmá.':'Firebase ya tiene estos registros.'}`;
   $('holdsImportPanel').classList.remove('hidden');$('confirmHoldsImport').disabled=!changes.length;
   $('holdsFileStatus').className='status good';$('holdsFileStatus').textContent='✓ CSV analizado. Aún no se guardó nada.';
  }catch(e){console.error(e);$('holdsFileStatus').className='status bad';$('holdsFileStatus').textContent='No se pudo analizar el CSV: '+e.message;}
