@@ -276,6 +276,7 @@ function renderKpis(){
   $('kpiTasks').textContent=fmt(taskSum);$('kpiCreations').textContent=fmt(creationSum);$('kpiDays').textContent=fmt(tasks.length);
   $('averageNote').textContent=tasks.length?`${tasks.length} jornadas con registro de tareas`:'Sin registros de tareas en este período';
   renderWeeklyChart();
+  renderHolds();
   const people=new Map();for(const r of filtered){if(!people.has(r.id))people.set(r.id,{name:r.colaborador,id:r.id,days:0,tasks:0,creations:0});const p=people.get(r.id);if(r.tipo==='tareas'){p.days++;p.tasks+=r.cantidad;}else p.creations+=r.cantidad;}
   const body=$('peopleRows');body.replaceChildren();if(!people.size){const tr=document.createElement('tr'),td=document.createElement('td');td.colSpan=6;td.textContent='No hay registros para este período.';tr.appendChild(td);body.appendChild(tr);}
   for(const p of [...people.values()].sort((a,b)=>a.name.localeCompare(b.name,'es'))){const tr=document.createElement('tr');for(const v of [p.name,p.id,fmt(p.days),fmt(p.tasks),p.days?fmt(p.tasks/p.days):'—',fmt(p.creations)]){const td=document.createElement('td');td.textContent=v;tr.appendChild(td);}body.appendChild(tr);}
@@ -294,6 +295,7 @@ async function loadDashboardKpis(){
     if(isAdmin){const names=new Map();for(const r of all)names.set(r.id,r.colaborador);for(const [id,name] of [...names].sort((a,b)=>a[1].localeCompare(b[1],'es'))){const opt=document.createElement('option');opt.value=id;opt.textContent=name;sel.appendChild(opt);}sel.value=names.has(prev)?prev:'';}
     sel.disabled=!isAdmin;
     $('kpiStatus').className='status '+(all.length?'good':'');$('kpiStatus').textContent=all.length?`✓ ${fmt(all.length)} registros cargados desde Firebase. ${docs.length} fichas consultadas.`:'No se encontraron registros en Firebase para esta cuenta.';
+    await loadHoldsForPeople(docs);
     initWeekFilters();initMainWeekFilters();renderPeopleChecklist();renderKpis();
   }catch(e){console.error('Error leyendo KPI:',e);$('kpiStatus').className='status bad';$('kpiStatus').textContent='No se pudieron cargar los KPI: '+(e.code||e.message||'Error desconocido');}
 }
