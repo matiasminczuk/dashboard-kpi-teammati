@@ -79,10 +79,37 @@ body.dark-theme #themeToggle{background:#24334c;color:#f3f7ff;border-color:#3447
 body.dark-theme .summary-visual .summary-sub,body.dark-theme .summary-legend,body.dark-theme .summary-col small{color:#b3c2d8}
 body.dark-theme .summary-track{background:#31415c}body.dark-theme .summary-bars{border-color:#40516c}
 @media(max-width:760px){.summary-visual-grid{grid-template-columns:1fr}}
+
+/* V19: cabecera de equipo con indicador calculado localmente. */
+.kpi-header{padding:13px clamp(18px,3vw,50px);min-height:114px;gap:24px}
+.header-brand{display:flex;align-items:center;gap:20px;min-width:0}
+.meli-mark{display:flex;align-items:center;gap:9px;color:#143477;font-weight:900;font-size:23px;line-height:.87;letter-spacing:-1.2px}
+.meli-mark svg{width:74px;height:52px;flex:none}
+.brand-divider{width:1px;height:52px;background:#cbb900}
+.brand-team{display:flex;flex-direction:column;gap:6px;white-space:nowrap}
+.brand-team strong{font-size:24px;letter-spacing:-.5px;color:#12274a}
+.brand-team small{font-size:13px;color:#4b5263}
+.header-kpi{background:rgba(255,255,255,.9);border:1px solid rgba(255,255,255,.85);border-radius:13px;padding:13px 20px;min-width:260px;box-shadow:0 3px 14px #584a0020}
+.header-kpi-title{font-size:13px;color:#526176;font-weight:700}
+.header-kpi-bottom{display:flex;align-items:center;gap:16px;margin-top:5px}
+.header-kpi-bottom>strong{font-size:37px;line-height:1.1;color:#142b50}
+.header-trend{display:flex;align-items:center;gap:7px;padding-left:13px;border-left:1px solid #dfe4e9}
+.header-trend>span:first-child{font-size:29px;font-weight:800;line-height:1}
+.header-trend>span:last-child{display:flex;flex-direction:column;gap:2px}
+.header-trend b{font-size:14px;white-space:nowrap}
+.header-trend small{font-size:11px;color:#667386;white-space:nowrap}
+.header-trend.up{color:#15944a}.header-trend.down{color:#d73742}.header-trend.neutral{color:#667386}
+.kpi-header .header-actions{margin-left:auto}
+body.dark-theme .header-kpi{background:#1a2a42;border-color:#384963}
+body.dark-theme .header-kpi-title,body.dark-theme .header-trend small{color:#b5c5dc}
+body.dark-theme .header-kpi-bottom>strong{color:#f1f6ff}
+body.dark-theme .brand-divider{background:#a78e00}
+@media(max-width:1120px){.kpi-header{flex-wrap:wrap}.kpi-header .header-actions{margin-left:0}.header-kpi{margin-left:auto}}
+@media(max-width:670px){.kpi-header{gap:13px}.header-brand{gap:10px}.meli-mark{font-size:17px}.meli-mark svg{width:53px;height:39px}.brand-divider{height:40px}.brand-team strong{font-size:19px}.header-kpi{width:100%;margin-left:0}.kpi-header .header-actions{width:100%;justify-content:flex-start}}
 </style>
 </head>
 <body>
-<header><div><h2>📊 Dashboard KPI</h2><small>Equipo Mati.M</small></div><div class="header-actions"><button id="publishKpis" class="hidden" type="button">☁️ Publicar actualización</button><button id="themeToggle" type="button" aria-label="Activar modo oscuro">🌙 Modo oscuro</button><button id="logout" class="hidden">Salir</button></div></header>
+<header class="kpi-header"><div class="header-brand"><div class="meli-mark" aria-label="Mercado Libre"><svg viewBox="0 0 72 48" role="img" aria-label="Mercado Libre"><ellipse cx="36" cy="24" rx="34" ry="22" fill="#ffe600" stroke="#163b82" stroke-width="2.5"/><path d="M8 19 L20 15 L29 20 L35 16 Q39 14 43 18 L49 22 L60 18 M9 25 L23 34 L29 30 L34 34 L40 30 L46 32 L62 24" fill="none" stroke="#163b82" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M29 20 L35 25 Q38 27 41 24 L45 22" fill="none" stroke="#163b82" stroke-width="2.7" stroke-linecap="round"/></svg><span>mercado<br>libre</span></div><div class="brand-divider"></div><div class="brand-team"><strong>Equipo Mati</strong><small>Dashboard KPI</small></div></div><div id="headerKpi" class="header-kpi hidden" aria-live="polite"><span class="header-kpi-title">Productividad promedio</span><div class="header-kpi-bottom"><strong id="headerAverage">—</strong><div id="headerTrend" class="header-trend neutral"><span id="headerArrow">—</span><span><b id="headerDelta">Sin comparación</b><small id="headerCompare">Semanas disponibles</small></span></div></div></div><div class="header-actions"><button id="publishKpis" class="hidden" type="button">☁️ Publicar actualización</button><button id="themeToggle" type="button" aria-label="Activar modo oscuro">🌙 Modo oscuro</button><button id="logout" class="hidden">Salir</button></div></header>
 <section id="login" class="login"><h2>Bienvenido</h2><p>Ingresá para consultar tu productividad.</p><form id="loginForm"><label for="email">Correo electrónico</label><input id="email" type="email" required autocomplete="username"><label for="password">Contraseña</label><input id="password" type="password" required autocomplete="current-password"><button id="loginButton" type="submit">Ingresar</button><p id="error" class="error" role="alert"></p></form></section>
 <main id="dashboard" class="hidden"><aside id="adminSidebar" class="admin-sidebar hidden" aria-label="Secciones de administración"><div class="sidebar-heading">PANEL DE CONTROL</div><button class="side-link active" data-section="resumen" type="button">⌂ &nbsp; Resumen</button><button class="side-link" data-section="productividad" type="button">▤ &nbsp; Productividad</button><button class="side-link" data-section="holds" type="button">◷ &nbsp; Holds</button><button class="side-link" data-section="flujos" type="button">◈ &nbsp; Flujos</button><button class="side-link" data-section="horarios" type="button">◴ &nbsp; Horarios de gestión</button><button class="side-link" data-section="catalogadores" type="button">♙ &nbsp; Catalogadores</button><button class="side-link" data-section="cargar" type="button">▣ &nbsp; Cargar bases</button></aside><div id="adminContent" class="admin-content"><h1 id="welcome">Mi productividad</h1><p>Resumen de indicadores y evolución histórica</p>
 <nav class="tabs"><button id="tabDashboard" class="tab active" type="button">📊 Dashboard</button><button id="tabUpload" class="tab hidden" type="button">📁 Cargar bases</button></nav>
@@ -118,7 +145,7 @@ import {getFirestore,doc,getDoc,getDocs,collection,writeBatch,serverTimestamp} f
 const firebaseConfig={apiKey:'AIzaSyB7edb0wGmf86KVrca5zkBTju7wg_zVDFk',authDomain:'dashboard-kpi-teammati.firebaseapp.com',projectId:'dashboard-kpi-teammati',storageBucket:'dashboard-kpi-teammati.firebasestorage.app',messagingSenderId:'158470825794',appId:'1:158470825794:web:33eb0d3c862756b9d7cadb',measurementId:'G-7E8M7NSPV0'};
 const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app);
 const $=id=>document.getElementById(id);let isAdmin=false,workbook=null,importPlan=null,importBusy=false,profileData=null,kpiCache=[],kpiLoaded=false,holdsCache=[],holdsImportPlan=null,holdsBusy=false,gestionCache=[],gestionPlan=null,gestionBusy=false,excludedPeople=new Set();const TEAM='Matías Minczuk';
-function showLogin(){document.body.classList.remove('employee-mode','admin-mode');importPlan=null;isAdmin=false;profileData=null;kpiCache=[];holdsCache=[];holdsImportPlan=null;gestionCache=[];gestionPlan=null;kpiLoaded=false;excludedPeople=new Set(); $('login').classList.remove('hidden');$('dashboard').classList.add('hidden');$('logout').classList.add('hidden'); }
+function showLogin(){document.body.classList.remove('employee-mode','admin-mode');importPlan=null;isAdmin=false;profileData=null;kpiCache=[];holdsCache=[];holdsImportPlan=null;gestionCache=[];gestionPlan=null;kpiLoaded=false;excludedPeople=new Set(); $('login').classList.remove('hidden');$('dashboard').classList.add('hidden');$('logout').classList.add('hidden');$('headerKpi').classList.add('hidden'); }
 function showDashboard(name,admin){isAdmin=admin;document.body.classList.toggle('admin-mode',admin);$('adminSidebar').classList.toggle('hidden',!admin);document.body.classList.toggle('employee-mode',!admin);$('employeeGreeting').textContent='¡Hola, '+name+'!';$('welcome').textContent=admin?'Bienvenido, '+name:'Mi productividad';$('login').classList.add('hidden');$('dashboard').classList.remove('hidden');$('logout').classList.remove('hidden');$('tabUpload').classList.toggle('hidden',!admin);$('publishKpis').classList.toggle('hidden',!admin);switchTab(false);if(admin)selectAdminSection('resumen');loadDashboardKpis().catch(console.error);}
 function switchTab(upload){if(upload&&!isAdmin)return;$('viewDashboard').classList.toggle('hidden',upload);$('viewUpload').classList.toggle('hidden',!upload);$('tabDashboard').classList.toggle('active',!upload);$('tabUpload').classList.toggle('active',upload);}
 $('tabDashboard').addEventListener('click',()=>switchTab(false));$('tabUpload').addEventListener('click',()=>switchTab(true));
@@ -405,6 +432,23 @@ function renderSummaryVisual(){
  drawBars('sumHours',G_BINS.slice(0,5),[{name:'Cierres',color:'#3483fa',values:bins.slice(0,5)}]);
 }
 
+function renderHeaderKpi(){
+ const who=$('personFilter').value,from=$('fromWeek').value,to=$('toWeek').value;
+ const rows=kpiCache.filter(r=>r.tipo==='tareas'&&(!who||r.id===who)&&includedRecord(r)&&(!from||isoWeek(r.fecha).key>=from)&&(!to||isoWeek(r.fecha).key<=to));
+ const total=rows.reduce((sum,r)=>sum+(Number(r.cantidad)||0),0);
+ $('headerKpi').classList.remove('hidden');
+ $('headerAverage').textContent=rows.length?fmt(total/rows.length):'—';
+ const weeks=new Map();for(const r of rows){const key=isoWeek(r.fecha).key;const v=weeks.get(key)||{sum:0,days:0};v.sum+=Number(r.cantidad)||0;v.days++;weeks.set(key,v);}
+ const ordered=[...weeks].sort((a,b)=>a[0].localeCompare(b[0]));
+ const trend=$('headerTrend');trend.className='header-trend neutral';
+ $('headerArrow').textContent='—';$('headerDelta').textContent='Sin comparación';$('headerCompare').textContent='Se necesitan 2 semanas';
+ if(ordered.length<2)return;
+ const prev=ordered.at(-2)[1],last=ordered.at(-1)[1];
+ const a=prev.sum/prev.days,b=last.sum/last.days,diff=b-a;
+ if(Math.abs(diff)<1e-9){$('headerArrow').textContent='→';$('headerDelta').textContent='Sin cambios';}
+ else{const up=diff>0;trend.className='header-trend '+(up?'up':'down');$('headerArrow').textContent=up?'↑':'↓';$('headerDelta').textContent=(up?'+':'−')+fmt(Math.abs(diff))+' tareas/día';}
+ $('headerCompare').textContent=ordered.at(-1)[0].split('-').pop()+' vs. '+ordered.at(-2)[0].split('-').pop();
+}
 function renderKpis(){
   const who=$('personFilter').value,from=$('fromWeek').value,to=$('toWeek').value;
   if(from && to && from>to){$('kpiStatus').className='status bad';$('kpiStatus').textContent='La semana inicial no puede ser posterior a la final.';return;}
