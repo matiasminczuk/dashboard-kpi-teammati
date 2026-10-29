@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Dashboard KPI | Equipo Mati.M · V15</title>
+<title>Dashboard KPI | Equipo Mati.M · V16</title>
 <style>
 *{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#f5f6fa;color:#172b4d}header{background:#ffe600;padding:18px 6%;display:flex;align-items:center;justify-content:space-between;gap:15px}header h2{margin:0}header small{color:#555}main{max-width:1120px;margin:30px auto;padding:0 18px}.login{max-width:420px;margin:65px auto;background:#fff;padding:32px;border-radius:14px;box-shadow:0 4px 20px #0001}.login h2{text-align:center}label{display:block;margin:15px 0 6px}input{width:100%;padding:13px;border:1px solid #ccd3dd;border-radius:7px;font-size:15px}button{background:#3483fa;color:white;border:0;padding:12px 18px;border-radius:7px;cursor:pointer;font-weight:bold}button:disabled{opacity:.6;cursor:not-allowed}.login button{width:100%;margin-top:18px}.error{color:#c62828;font-size:14px}.hidden{display:none!important}.tabs{display:flex;gap:10px;flex-wrap:wrap;margin:20px 0}.tab{background:#fff;color:#172b4d;border:1px solid #d8deea}.tab.active{background:#3483fa;color:#fff;border-color:#3483fa}.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:15px}.card,.panel{background:white;border-radius:12px;padding:23px;box-shadow:0 3px 14px #0000000d}.card span{font-size:14px;color:#666}.card h1{color:#1464db;font-size:30px}.panel{margin-top:22px}.notice{background:#fff7cc;padding:14px;border-radius:8px;margin:18px 0}.upload{border:2px dashed #c7d5e8;background:#f9fbff;border-radius:12px;padding:25px;text-align:center}.upload input{max-width:500px;background:#fff}.muted{color:#617085;font-size:14px}.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:20px 0}.summary>div{background:#f4f7fc;border-radius:9px;padding:15px}.summary strong{display:block;font-size:24px;color:#1464db;margin:6px 0}.table-wrap{overflow:auto;max-height:340px;border:1px solid #e1e7ef;border-radius:9px}table{border-collapse:collapse;width:100%;font-size:13px}td,th{padding:10px;border-bottom:1px solid #e6ebf1;text-align:left;white-space:nowrap}th{background:#f3f6fb;position:sticky;top:0}select{padding:11px;border:1px solid #ccd3dd;border-radius:7px;max-width:100%}.status{margin-top:14px;font-size:14px}.validation{margin-top:18px;padding:16px;border:1px solid #dce5ef;border-radius:10px;background:#f8fbff}.validation h3{margin:0 0 10px}.validation ul{margin:8px 0;padding-left:22px}.validation li{margin:5px 0}.validation .summary{grid-template-columns:repeat(4,1fr)}@media(max-width:750px){.validation .summary{grid-template-columns:repeat(2,1fr)}}.good{color:#18784a}.importbox{margin-top:18px;border:1px solid #d6e1ef;border-radius:10px;padding:18px;background:#fff}.importbox h3{margin-top:0}.importbox button{margin:12px 0}.importbox p{line-height:1.5}.importbox .summary{grid-template-columns:repeat(3,1fr)}.importbox .summary strong{font-size:21px}@media(max-width:750px){.importbox .summary{grid-template-columns:1fr}}.bad{color:#c62828}@media(max-width:750px){.cards{grid-template-columns:repeat(2,1fr)}.summary{grid-template-columns:1fr}header{padding:16px}.login{margin:35px 15px}}
 .filters{display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:12px;align-items:end;margin:12px 0 18px}.filters label{margin:0 0 6px;font-size:13px;color:#52647d}.filters select,.filters input{width:100%;height:42px}.filter-actions{display:flex;gap:7px;align-items:center}.filter-actions button{white-space:nowrap}.weekly-chart{overflow-x:auto;padding:12px 0}.chart-grid{display:flex;align-items:flex-end;gap:12px;min-width:max-content;min-height:240px;border-bottom:1px solid #d7dfec;padding:20px 8px 0}.week-col{width:65px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:7px}.week-bars{height:180px;display:flex;align-items:flex-end;gap:4px}.week-bar{width:19px;border-radius:4px 4px 0 0;min-height:2px}.week-bar.tasks{background:#3483fa}.week-bar.creations{background:#ffe600}.week-label{font-size:12px;color:#53647b;text-align:center}.chart-legend{display:flex;gap:18px;margin:6px 0 12px;font-size:13px}.chart-legend i{display:inline-block;width:11px;height:11px;margin-right:5px;border-radius:2px}.card h1{margin:16px 0 8px}@media(max-width:900px){.filters{grid-template-columns:1fr 1fr}.filter-actions{align-self:end}}@media(max-width:550px){.filters{grid-template-columns:1fr}.cards{grid-template-columns:1fr 1fr}.filter-actions{justify-content:flex-start}}
@@ -36,6 +36,7 @@
 <section id="employeeHero" class="employee-only employee-hero"><span class="employee-tag">MI PANEL PERSONAL</span><h2 id="employeeGreeting">Mi rendimiento</h2><p>Tu productividad, creaciones, holds y horarios de gestión en un solo lugar.</p><p id="employeePeriodNote">Los indicadores corresponden al período seleccionado.</p></section>
 <div class="panel filters"><div id="personFilterWrap"><label for="personFilter">Catalogador</label><select id="personFilter"><option value="">Todos los catalogadores</option></select></div><div><label for="fromWeek">Desde semana</label><select id="fromWeek"></select></div><div><label for="toWeek">Hasta semana</label><select id="toWeek"></select></div><div class="filter-actions"><button id="resetFilters" type="button" class="tab">Limpiar filtros</button><button id="reloadKpis" type="button">↻ Actualizar</button></div></div>
 <details id="peopleControl" class="panel people-control" hidden><summary>☑ Catalogadores incluidos en el promedio del equipo</summary><p class="muted">Destildá a quienes estén en otros proyectos. No se borra su historial: podés consultarlos individualmente desde el selector de arriba.</p><div class="people-tools"><button id="selectAllPeople" type="button" class="tab">Seleccionar todos</button><button id="clearAllPeople" type="button" class="tab">Desmarcar todos</button></div><div id="peopleChecklist" class="people-list"></div><p id="peopleCount" class="people-count"></p><p class="muted">La selección se recuerda en este navegador. Afecta al promedio del equipo, el gráfico semanal y la tabla general.</p></details>
+<section id="publishPanel" class="panel" style="margin-bottom:16px"><h3>☁️ Publicación manual de KPI</h3><p class="muted">Los colaboradores consultan únicamente la última versión publicada. Cargar bases no publica automáticamente.</p><button id="publishKpis" type="button">Publicar actualización del equipo</button><p id="publishStatus" class="status" role="status">Sin consultar historial.</p></section>
 <p id="kpiStatus" class="status" role="status">Cargando datos desde Firebase…</p>
 <section class="cards"><div class="card"><span>Promedio diario de tareas</span><h1 id="kpiAverage">—</h1><small id="averageNote" class="muted">Por jornada con registro</small></div><div class="card"><span>Tareas totales</span><h1 id="kpiTasks">—</h1><small id="tasksNote" class="muted">Período seleccionado</small></div><div class="card"><span>Creaciones totales</span><h1 id="kpiCreations">—</h1><small class="muted">Período seleccionado</small></div><div class="card"><span>Jornadas registradas</span><h1 id="kpiDays">—</h1><small class="muted">Colaborador + fecha</small></div></section>
 <section class="panel"><h2>Evolución semanal</h2><p class="muted">Promedio diario de productividad y creaciones por semana (lunes a domingo). Los filtros de esta sección son independientes de las fechas del resumen superior.</p>
@@ -58,7 +59,7 @@ const firebaseConfig={apiKey:'AIzaSyB7edb0wGmf86KVrca5zkBTju7wg_zVDFk',authDomai
 const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app);
 const $=id=>document.getElementById(id);let isAdmin=false,workbook=null,importPlan=null,importBusy=false,profileData=null,kpiCache=[],kpiLoaded=false,holdsCache=[],holdsImportPlan=null,holdsBusy=false,gestionCache=[],gestionPlan=null,gestionBusy=false,excludedPeople=new Set();const TEAM='Matías Minczuk';
 function showLogin(){document.body.classList.remove('employee-mode');importPlan=null;isAdmin=false;profileData=null;kpiCache=[];holdsCache=[];holdsImportPlan=null;gestionCache=[];gestionPlan=null;kpiLoaded=false;excludedPeople=new Set(); $('login').classList.remove('hidden');$('dashboard').classList.add('hidden');$('logout').classList.add('hidden'); }
-function showDashboard(name,admin){isAdmin=admin;document.body.classList.toggle('employee-mode',!admin);$('employeeGreeting').textContent='¡Hola, '+name+'!';$('welcome').textContent=admin?'Bienvenido, '+name:'Mi productividad';$('login').classList.add('hidden');$('dashboard').classList.remove('hidden');$('logout').classList.remove('hidden');$('tabUpload').classList.toggle('hidden',!admin);switchTab(false);loadDashboardKpis().catch(console.error);}
+function showDashboard(name,admin){isAdmin=admin;document.body.classList.toggle('employee-mode',!admin);$('employeeGreeting').textContent='¡Hola, '+name+'!';$('welcome').textContent=admin?'Bienvenido, '+name:'Mi productividad';$('login').classList.add('hidden');$('dashboard').classList.remove('hidden');$('logout').classList.remove('hidden');$('tabUpload').classList.toggle('hidden',!admin);$('publishPanel').classList.toggle('hidden',!admin);switchTab(false);loadDashboardKpis().catch(console.error);}
 function switchTab(upload){if(upload&&!isAdmin)return;$('viewDashboard').classList.toggle('hidden',upload);$('viewUpload').classList.toggle('hidden',!upload);$('tabDashboard').classList.toggle('active',!upload);$('tabUpload').classList.toggle('active',upload);}
 $('tabDashboard').addEventListener('click',()=>switchTab(false));$('tabUpload').addEventListener('click',()=>switchTab(true));
 onAuthStateChanged(auth,async user=>{if(!user){showLogin();return;}try{const snap=await getDoc(doc(db,'usuarios',user.uid));if(!snap.exists())throw Error('Perfil no configurado');const profile=snap.data();profileData=profile;showDashboard(profile.nombre||'Catalogador',profile.rol==='admin');}catch(e){console.error(e);showLogin();$('error').textContent='No se pudo cargar tu perfil. Contactá al administrador.';await signOut(auth);}});
@@ -142,7 +143,7 @@ $('confirmImport').addEventListener('click',async()=>{
     const log=writeBatch(db);
     log.set(logRef,{archivo:plan.fileName,equipo:TEAM,usuario:auth.currentUser.uid,nuevos:plan.stats.newCount,corregidos:plan.stats.updatedCount,sinCambios:plan.stats.unchangedCount,catalogadores:plan.stats.people,fecha:serverTimestamp(),estado:'completado'});
     await log.commit();
-    status.className='status good';status.textContent=`✓ Importación completada: ${plan.stats.newCount} nuevos, ${plan.stats.updatedCount} corregidos. Historial guardado en Firebase.`;kpiLoaded=false;loadDashboardKpis().catch(console.error);
+    status.className='status good';status.textContent=`✓ Importación completada: ${plan.stats.newCount} nuevos, ${plan.stats.updatedCount} corregidos. Historial guardado en Firebase.`;kpiLoaded=false;$('importStatus').textContent+=' Para que los colaboradores vean los cambios, pulsá «Publicar actualización del equipo».';
     importPlan=null;
   }catch(e){console.error(e);status.className='status bad';status.textContent='Error durante la importación: '+e.message+'. Puede haber lotes guardados; volvé a seleccionar el Excel para comparar y reintentar sin duplicar.';}
   finally{importBusy=false;$('excelFile').disabled=false;}
@@ -302,25 +303,63 @@ function renderKpis(){
   const body=$('peopleRows');body.replaceChildren();if(!people.size){const tr=document.createElement('tr'),td=document.createElement('td');td.colSpan=6;td.textContent='No hay registros para este período.';tr.appendChild(td);body.appendChild(tr);}
   for(const p of [...people.values()].sort((a,b)=>a.name.localeCompare(b.name,'es'))){const tr=document.createElement('tr');for(const v of [p.name,p.id,fmt(p.days),fmt(p.tasks),p.days?fmt(p.tasks/p.days):'—',fmt(p.creations)]){const td=document.createElement('td');td.textContent=v;tr.appendChild(td);}body.appendChild(tr);}
 }
-async function loadDashboardKpis(){
-  if(!auth.currentUser)return;
-  $('kpiStatus').className='status';$('kpiStatus').textContent='Consultando historial en Firebase…';
-  try{
-    let docs=[];
-    if(isAdmin){const snap=await getDocs(collection(db,'kpis'));docs=snap.docs;}
-    else {const id=String(profileData?.idMeli||'').trim();if(!id){$('kpiStatus').textContent='Tu perfil todavía no tiene un ID MELI vinculado. Pedile al administrador que lo configure.';return;}const snap=await getDoc(doc(db,'kpis',id));if(snap.exists())docs=[snap];}
-    const all=[];for(const person of docs){const snap=await getDocs(collection(db,'kpis',person.id,'registros'));for(const item of snap.docs){const r=item.data();if(!['tareas','creaciones'].includes(r.tipo)||typeof r.fecha!=='string'||!Number.isFinite(Number(r.cantidad)))continue;all.push({id:person.id,fecha:r.fecha,tipo:r.tipo,cantidad:Number(r.cantidad),colaborador:safeText(r.colaborador||person.data().nombre||person.id)});}}
-    if(!auth.currentUser)return;
-    kpiCache=all;kpiLoaded=true;if(isAdmin)loadExcludedPeople();
-    const prev=$('personFilter').value,sel=$('personFilter');sel.replaceChildren();const allOpt=document.createElement('option');allOpt.value='';allOpt.textContent=isAdmin?'Todos los catalogadores':'Mi productividad';sel.appendChild(allOpt);
-    if(isAdmin){const names=new Map();for(const r of all)names.set(r.id,r.colaborador);for(const [id,name] of [...names].sort((a,b)=>a[1].localeCompare(b[1],'es'))){const opt=document.createElement('option');opt.value=id;opt.textContent=name;sel.appendChild(opt);}sel.value=names.has(prev)?prev:'';}
-    sel.disabled=!isAdmin;
-    $('kpiStatus').className='status '+(all.length?'good':'');$('kpiStatus').textContent=all.length?`✓ ${fmt(all.length)} registros cargados desde Firebase. ${docs.length} fichas consultadas.`:'No se encontraron registros en Firebase para esta cuenta.';
-    await loadHoldsForPeople(docs);
-    await loadGestionForPeople(docs);
-    initWeekFilters();initMainWeekFilters();renderPeopleChecklist();renderKpis();
-  }catch(e){console.error('Error leyendo KPI:',e);$('kpiStatus').className='status bad';$('kpiStatus').textContent='No se pudieron cargar los KPI: '+(e.code||e.message||'Error desconocido');}
+// V16: las vistas consultan SOLO los documentos publicados; nunca el historial crudo.
+function applyPublishedData(items){
+ const old=$('personFilter').value;
+ kpiCache=items.flatMap(x=>x.tareas||[]);
+ holdsCache=items.flatMap(x=>x.holds||[]);
+ gestionCache=items.flatMap(x=>x.gestion||[]);
+ kpiLoaded=true;if(isAdmin)loadExcludedPeople();
+ const sel=$('personFilter');sel.replaceChildren();const all=document.createElement('option');all.value='';all.textContent=isAdmin?'Todos los catalogadores':'Mi productividad';sel.appendChild(all);
+ if(isAdmin){const names=new Map();for(const r of kpiCache)names.set(r.id,r.colaborador);for(const [id,name] of [...names].sort((a,b)=>a[1].localeCompare(b[1],'es'))){const opt=document.createElement('option');opt.value=id;opt.textContent=name;sel.appendChild(opt);}sel.value=names.has(old)?old:'';}
+ sel.disabled=!isAdmin;
+ $('holdsStatus').textContent=`${fmt(holdsCache.reduce((n,r)=>n+(Number(r.cantidad)||0),0))} holds en la última publicación.`;
+ $('gestionStatus').textContent=`${fmt(gestionCache.reduce((n,r)=>n+(Number(r.total)||0),0))} tareas finalizadas en la última publicación.`;
+ initWeekFilters();initMainWeekFilters();renderPeopleChecklist();renderKpis();
 }
+async function loadDashboardKpis(){
+ if(!auth.currentUser)return;
+ $('kpiStatus').className='status';$('kpiStatus').textContent='Consultando los KPI publicados…';
+ try{
+  let items=[];
+  if(isAdmin){const snap=await getDocs(collection(db,'kpi_publicados'));items=snap.docs.map(d=>d.data());}
+  else {const id=String(profileData?.idMeli||'').trim();if(!id){$('kpiStatus').textContent='Tu perfil no tiene ID MELI vinculado.';return;}const snap=await getDoc(doc(db,'kpi_publicados',id));if(snap.exists())items=[snap.data()];}
+  applyPublishedData(items);
+  $('kpiStatus').className='status '+(items.length?'good':'');
+  $('kpiStatus').textContent=items.length?`✓ ${items.length} ficha(s) publicadas. Los filtros no generan nuevas lecturas.`:'Todavía no hay KPI publicados. El administrador debe pulsar «Publicar actualización del equipo».';
+ }catch(e){console.error(e);$('kpiStatus').className='status bad';$('kpiStatus').textContent='No se pudieron leer los KPI publicados: '+(e.code||e.message);}
+}
+// Publicar consume lecturas del historial una sola vez por pulsación del administrador.
+// Los holds se compactan por fecha: el dashboard solo necesita sus cantidades diarias.
+let publishing=false;
+$('publishKpis').addEventListener('click',async()=>{
+ if(!isAdmin||publishing||!auth.currentUser)return;
+ if(!confirm('¿Leer el historial de Firebase y publicar los KPI actualizados para todos los colaboradores? Esta operación puede consumir muchas lecturas.'))return;
+ publishing=true;$('publishKpis').disabled=true;const status=$('publishStatus');status.className='status';status.textContent='Leyendo historial original (una sola pasada)…';
+ try{
+  const persons=await getDocs(collection(db,'kpis'));let totalRead=persons.size,updated=0;
+  for(const person of persons.docs){
+   const id=person.id,name=String(person.data().nombre||id);
+   const snap=await getDocs(collection(db,'kpis',id,'registros'));totalRead+=snap.size;
+   const tareas=[],gestion=[],holdsByDay=new Map();
+   const newerHolds=new Set(snap.docs.filter(d=>d.data().tipo==='hold'&&d.data().versionHold===2).map(d=>String(d.data().idCDM)));
+   for(const item of snap.docs){const r=item.data();if(!r.fecha)continue;
+    if((r.tipo==='tareas'||r.tipo==='creaciones')&&Number.isFinite(Number(r.cantidad)))tareas.push({id,fecha:r.fecha,tipo:r.tipo,cantidad:Number(r.cantidad),colaborador:String(r.colaborador||name)});
+    else if(r.tipo==='gestion')gestion.push({id,fecha:r.fecha,colaborador:name,tipo:'gestion',versionGestion:r.versionGestion,total:Number(r.total)||0,flujos:r.flujos||{},franjas:r.franjas||[],cierresValidos:Number(r.cierresValidos)||0,ultimas3:Number(r.ultimas3)||0,primerInicio:r.primerInicio??null,ultimoCierre:r.ultimoCierre??null});
+    else if(r.tipo==='hold'){if(r.versionHold!==2&&newerHolds.has(String(r.idCDM)))continue;const qty=r.versionHold===2?(Number(r.cantidad)||0):1;holdsByDay.set(r.fecha,(holdsByDay.get(r.fecha)||0)+qty);}
+   }
+   const holds=[...holdsByDay].map(([fecha,cantidad])=>({id,fecha,cantidad,colaborador:name}));
+   // Firestore limita cada documento a 1 MiB; avisar antes de publicar documentos demasiado grandes.
+   const payload={idMeli:id,nombre:name,tareas,holds,gestion,publicadoEn:serverTimestamp(),version:16};
+   if(new Blob([JSON.stringify({...payload,publicadoEn:null})]).size>850000)throw Error('El resumen de '+name+' supera el tamaño seguro de Firestore. No se publicó su ficha.');
+   await (async()=>{const batch=writeBatch(db);batch.set(doc(db,'kpi_publicados',id),payload);await batch.commit();})();
+   updated++;status.textContent=`Publicando ${updated}/${persons.size} colaboradores · ${totalRead} documentos leídos aproximadamente…`;
+  }
+  status.className='status good';status.textContent=`✓ ${updated} fichas publicadas. Lecturas aproximadas: ${totalRead}. Los colaboradores ya pueden ver la nueva publicación.`;
+  $('holdsImportStatus').textContent+=' Publicá manualmente los KPI para hacer visibles los cambios.';
+ }catch(e){console.error(e);status.className='status bad';status.textContent='Publicación incompleta: '+e.message+'; las fichas anteriores no publicadas permanecen sin cambios.';}
+ finally{publishing=false;$('publishKpis').disabled=false;}
+});
 
 // V10: Holds. Se usa kpis/{idMeli}/registros/hold_{idCDM} para respetar las reglas
 // de acceso existentes. Un CDM se actualiza si cambia su último hold.
@@ -494,13 +533,13 @@ $('confirmGestionImport').addEventListener('click',async()=>{
  if(!isAdmin||gestionBusy||!gestionPlan||!auth.currentUser)return;const plan=gestionPlan;if(!confirm(`¿Guardar ${plan.stats.newCount} jornadas nuevas y actualizar ${plan.stats.updatedCount} jornadas de Gestión?`))return;
  gestionBusy=true;$('confirmGestionImport').disabled=true;$('gestionFile').disabled=true;const status=$('gestionImportStatus');status.className='status';
  try{for(let i=0;i<plan.changes.length;i+=250){const batch=writeBatch(db);for(const {recordId,record} of plan.changes.slice(i,i+250))batch.set(doc(db,'kpis',record.id,'registros',recordId),{...record,actualizadoEn:serverTimestamp()});await batch.commit();status.textContent=`Guardando Gestión… ${Math.min(i+250,plan.changes.length)} de ${plan.changes.length}`;}
- const log=writeBatch(db);log.set(doc(collection(db,'importaciones')),{archivo:plan.fileName,tipo:'gestion',equipo:TEAM,usuario:auth.currentUser.uid,nuevos:plan.stats.newCount,corregidos:plan.stats.updatedCount,fecha:serverTimestamp(),estado:'completado'});await log.commit();status.className='status good';status.textContent='✓ Gestión guardada correctamente en Firebase.';gestionPlan=null;await loadDashboardKpis();
+ const log=writeBatch(db);log.set(doc(collection(db,'importaciones')),{archivo:plan.fileName,tipo:'gestion',equipo:TEAM,usuario:auth.currentUser.uid,nuevos:plan.stats.newCount,corregidos:plan.stats.updatedCount,fecha:serverTimestamp(),estado:'completado'});await log.commit();status.className='status good';status.textContent='✓ Gestión guardada correctamente en Firebase.';gestionPlan=null;status.textContent+=' Publicá manualmente los KPI para hacer visibles los cambios.';
  }catch(e){console.error(e);status.className='status bad';status.textContent='Error al guardar Gestión: '+e.message+'. Volvé a cargar el CSV para comparar y reintentar sin duplicados.';}finally{gestionBusy=false;$('gestionFile').disabled=false;}
 });
 
 for(const id of ['personFilter','fromWeek','toWeek'])$(id).addEventListener('change',renderKpis);
 $('resetFilters').addEventListener('click',()=>{$('personFilter').value='';$('fromWeek').value='';$('toWeek').value='';renderKpis();});
-$('reloadKpis').addEventListener('click',()=>loadDashboardKpis());
+$('reloadKpis').addEventListener('click',()=>{renderKpis();$('kpiStatus').textContent='Vista actualizada con los datos publicados que ya están cargados. No se consultó Firebase.';});
 
 </script>
 </body></html>
