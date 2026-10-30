@@ -143,6 +143,11 @@ body.dark-theme .flows-premium-head,body.dark-theme .flows-row-icon,body.dark-th
 body.dark-theme .flows-row-name,body.dark-theme .flows-row-count{color:#e2e9f5}
 body.dark-theme .flows-summary-text small{color:#b3c2d8}
 @media(max-width:650px){.flows-premium-row{grid-template-columns:24px 80px minmax(20px,1fr) 50px 49px;gap:4px}.flows-row-name,.flows-row-count,.flows-row-percent{font-size:10px}.flows-premium-list{gap:12px}}
+
+/* V39: gráfico de Holds realmente extendido en el ancho de la tarjeta */
+#sumHolds{display:block!important;width:100%!important;min-width:0!important}
+#sumHolds .line-chart-scroll{display:block!important;width:100%!important;max-width:100%!important;overflow:visible!important}
+#sumHolds .line-chart-scroll svg{display:block!important;width:100%!important;min-width:100%!important;max-width:100%!important;height:300px!important;max-height:none!important}
 </style>
 <style>
 .settings-wrap{position:relative;display:inline-flex;align-items:center}
@@ -541,8 +546,7 @@ function renderSummaryVisual(){
   const summaryText=document.createElement('div');summaryText.className='flows-summary-text';
   const summaryLabel=document.createElement('small');summaryLabel.textContent='Total de tareas';
   const summaryValue=document.createElement('strong');summaryValue.textContent=fmt(total);
-  const summarySub=document.createElement('small');summarySub.textContent='100% del período';
-  summaryText.append(summaryLabel,summaryValue,summarySub);summary.append(summaryIcon,summaryText);flowEl.appendChild(summary);
+  summaryText.append(summaryLabel,summaryValue);summary.append(summaryIcon,summaryText);flowEl.appendChild(summary);
   const list=document.createElement('div');list.className='flows-premium-list';
   const flowInfo=[['CCC','CCC','#3483fa','▤'],['DEMANDA','Demanda','#ffbf00','▣'],['SOPORTE','Soporte','#22a06b','▥'],['KNOWN_VALUE','KNOWN_VALUE','#e28a23','▧'],['OTROS','Otros','#9b86df','•••']];
   for(const [key,label,color,symbol] of flowInfo){
@@ -568,7 +572,7 @@ function renderSummaryVisual(){
    const max=Math.max(1,...values),ceiling=Math.max(1,Math.ceil(max*1.15));
    const svg=document.createElementNS(ns,'svg');
    svg.setAttribute('viewBox',`0 0 ${width} ${height}`);
-   svg.setAttribute('preserveAspectRatio','xMinYMin meet');
+   svg.setAttribute('preserveAspectRatio','none');
    svg.setAttribute('width',width);svg.setAttribute('height',height);
    svg.setAttribute('role','img');svg.setAttribute('aria-label','Evolución semanal de Holds en línea con puntos');
    const add=(tag,attrs={},label)=>{const node=document.createElementNS(ns,tag);for(const [k,v] of Object.entries(attrs))node.setAttribute(k,String(v));if(label!==undefined)node.textContent=label;svg.appendChild(node);return node;};
