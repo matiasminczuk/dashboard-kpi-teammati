@@ -61,6 +61,12 @@ body.dark-theme .employee-hero{background:linear-gradient(115deg,#1d365d,#225fbb
 body.dark-theme .notice{background:#473b18;color:#f5e4aa}
 body.dark-theme #themeToggle{background:#24334c;color:#f3f7ff;border-color:#344761}
 
+/* V32: aprovechar el ancho completo de los dos evolutivos. */
+#sumTrend, #sumHolds {width:100%; min-width:0; align-items:stretch;}
+#sumTrend > div:last-child, #sumHolds .line-chart-scroll {width:100%; min-width:0; display:block;}
+#sumTrend svg, #sumHolds svg {display:block!important; width:100%!important; max-width:none!important; height:230px!important; min-height:0!important; max-height:230px!important;}
+#sumHolds svg {height:190px!important; max-height:190px!important;}
+@media(max-width:760px){#sumTrend svg,#sumHolds svg{min-width:560px;}}
 /* V18: resumen visual independiente, sin lecturas adicionales. */
 .summary-visual-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:18px}
 /* V31: dos evolutivos apilados, dos gráficos secundarios en paralelo. */
@@ -381,7 +387,7 @@ function renderWeeklyChart(){
     const width=Math.max(700,ordered.length*76+100),height=285;
     const left=55,right=32,top=34,bottom=55,plotW=width-left-right,plotH=height-top-bottom;
     const svg=document.createElementNS(svgNS,'svg');
-    svg.setAttribute('viewBox',`0 0 ${width} ${height}`);svg.setAttribute('width',width);svg.setAttribute('height',height);
+    svg.setAttribute('viewBox',`0 0 ${width} ${height}`);svg.setAttribute('preserveAspectRatio','none');svg.setAttribute('width',width);svg.setAttribute('height',height);
     svg.setAttribute('role','img');svg.setAttribute('aria-label',title+' por semana, con puntos unidos por líneas');
     const el=(tag,attrs={},txt)=>{const node=document.createElementNS(svgNS,tag);for(const [k,v] of Object.entries(attrs))node.setAttribute(k,String(v));if(txt!==undefined)node.textContent=txt;svg.appendChild(node);return node;};
     const dataMin=Math.min(...valid),dataMax=Math.max(...valid);
@@ -472,7 +478,7 @@ function renderSummaryVisual(){
   const targetLabel=document.createElement('span');targetLabel.style.color='#e5484d';targetLabel.textContent='┄ Target: 100 tareas';legend.appendChild(targetLabel);trendEl.appendChild(legend);
   const ns='http://www.w3.org/2000/svg',width=Math.max(1100,trendWeeks.length*92+90),height=410,left=45,right=30,top=20,bottom=40;
   const plotW=width-left,plotH=height-top-bottom,maximum=Math.max(110,...series.flatMap(s=>s.values)),ceiling=Math.ceil(maximum*1.12);
-  const svg=document.createElementNS(ns,'svg');svg.setAttribute('viewBox',`0 0 ${width} ${height}`);svg.setAttribute('width',width);svg.setAttribute('height',height);svg.style.maxWidth='100%';svg.style.height='auto';svg.setAttribute('role','img');svg.setAttribute('aria-label','Promedio diario semanal de tareas y creaciones con referencia de 100 tareas');
+  const svg=document.createElementNS(ns,'svg');svg.setAttribute('viewBox',`0 0 ${width} ${height}`);svg.setAttribute('preserveAspectRatio','none');svg.setAttribute('width',width);svg.setAttribute('height',height);svg.style.maxWidth='100%';svg.style.height='auto';svg.setAttribute('role','img');svg.setAttribute('aria-label','Promedio diario semanal de tareas y creaciones con referencia de 100 tareas');
   const add=(tag,attrs,text)=>{const e=document.createElementNS(ns,tag);for(const [k,v] of Object.entries(attrs))e.setAttribute(k,String(v));if(text!==undefined)e.textContent=text;svg.appendChild(e);return e;};
   const x=i=>left+(trendWeeks.length===1?plotW/2:i*(plotW-right)/(trendWeeks.length-1));
   const y=v=>top+plotH-v/ceiling*plotH;
@@ -494,6 +500,7 @@ function renderSummaryVisual(){
    const max=Math.max(1,...values),ceiling=Math.max(1,Math.ceil(max*1.15));
    const svg=document.createElementNS(ns,'svg');
    svg.setAttribute('viewBox',`0 0 ${width} ${height}`);
+   svg.setAttribute('preserveAspectRatio','none');
    svg.setAttribute('width',width);svg.setAttribute('height',height);
    svg.setAttribute('role','img');svg.setAttribute('aria-label','Evolución semanal de Holds en línea con puntos');
    const add=(tag,attrs={},label)=>{const node=document.createElementNS(ns,tag);for(const [k,v] of Object.entries(attrs))node.setAttribute(k,String(v));if(label!==undefined)node.textContent=label;svg.appendChild(node);return node;};
@@ -663,7 +670,7 @@ function renderHolds(){
   section.appendChild(heading);
   const scroll=document.createElement('div');scroll.className='line-chart-scroll';
   const ns='http://www.w3.org/2000/svg',width=Math.max(700,ordered.length*76+100),height=285,left=55,right=32,top=34,bottom=55,pw=width-left-right,ph=height-top-bottom,max=Math.max(1,...ordered.map(x=>x[1]));
-  const svg=document.createElementNS(ns,'svg');svg.setAttribute('viewBox',`0 0 ${width} ${height}`);svg.setAttribute('width',width);svg.setAttribute('height',height);svg.setAttribute('role','img');svg.setAttribute('aria-label','Tareas holdeadas por semana');
+  const svg=document.createElementNS(ns,'svg');svg.setAttribute('viewBox',`0 0 ${width} ${height}`);svg.setAttribute('preserveAspectRatio','none');svg.setAttribute('width',width);svg.setAttribute('height',height);svg.setAttribute('role','img');svg.setAttribute('aria-label','Tareas holdeadas por semana');
   const el=(tag,attrs={},txt)=>{const n=document.createElementNS(ns,tag);for(const [k,v]of Object.entries(attrs))n.setAttribute(k,String(v));if(txt!==undefined)n.textContent=txt;svg.appendChild(n);return n;};
   const x=i=>left+(ordered.length===1?pw/2:i*pw/(ordered.length-1)),y=v=>top+ph-v/(max*1.15)*ph;
   for(let i=0;i<=4;i++){const v=max*1.15*i/4,py=y(v);el('line',{x1:left,y1:py,x2:width-right,y2:py,stroke:'#dce5f1','stroke-dasharray':'4 5'});el('text',{x:left-11,y:py+4,'text-anchor':'end',fill:'#65758a','font-size':12},fmt(v));}
