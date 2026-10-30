@@ -120,7 +120,7 @@ body.dark-theme .meli-mark img{mix-blend-mode:normal;background:#ffe600;border-r
 <details id="peopleControl" class="panel people-control" hidden><summary>☑ Catalogadores incluidos en el promedio del equipo</summary><p class="muted">Destildá a quienes estén en otros proyectos. No se borra su historial: podés consultarlos individualmente desde el selector de arriba.</p><div class="people-tools"><button id="selectAllPeople" type="button" class="tab">Seleccionar todos</button><button id="clearAllPeople" type="button" class="tab">Desmarcar todos</button></div><div id="peopleChecklist" class="people-list"></div><p id="peopleCount" class="people-count"></p><p class="muted">La selección se recuerda en este navegador. Afecta al promedio del equipo, el gráfico semanal y la tabla general.</p></details>
 <p id="publishStatus" class="status hidden" role="status">Sin consultar historial.</p>
 <p id="kpiStatus" class="status" role="status">Cargando datos desde Firebase…</p>
-<section id="pmComparison" class="panel hidden"><h2>Comparativa de equipos</h2><p class="muted">Promedio de tareas por jornada con registro, calculado con la última publicación.</p><div class="table-wrap"><table><thead><tr><th>Equipo</th><th>Catalogadores</th><th>Jornadas</th><th>Promedio diario</th><th>Tareas</th></tr></thead><tbody id="pmComparisonRows"></tbody></table></div></section><section class="cards" id="mainCards"><div class="card"><span>Promedio diario de tareas</span><h1 id="kpiAverage">—</h1><small id="averageNote" class="muted">Por jornada con registro</small></div><div class="card"><span>Tareas totales</span><h1 id="kpiTasks">—</h1><small id="tasksNote" class="muted">Período seleccionado</small></div><div class="card"><span>Creaciones totales</span><h1 id="kpiCreations">—</h1><small class="muted">Período seleccionado</small></div><div class="card"><span>Jornadas registradas</span><h1 id="kpiDays">—</h1><small class="muted">Colaborador + fecha</small></div></section>
+<section id="pmComparison" class="panel hidden"><h2>Comparativa de equipos</h2><p class="muted">Promedio de tareas por jornada computable, excluyendo días con KNOWN_VALUE, calculado con la última publicación.</p><div class="table-wrap"><table><thead><tr><th>Equipo</th><th>Catalogadores</th><th>Jornadas</th><th>Promedio diario</th><th>Tareas</th></tr></thead><tbody id="pmComparisonRows"></tbody></table></div></section><section class="cards" id="mainCards"><div class="card"><span>Promedio diario de tareas (sin días KNOWN_VALUE)</span><h1 id="kpiAverage">—</h1><small id="averageNote" class="muted">Por jornada con registro</small></div><div class="card"><span>Tareas totales</span><h1 id="kpiTasks">—</h1><small id="tasksNote" class="muted">Período seleccionado</small></div><div class="card"><span>Creaciones totales</span><h1 id="kpiCreations">—</h1><small class="muted">Período seleccionado</small></div><div class="card"><span>Jornadas computables</span><h1 id="kpiDays">—</h1><small class="muted">Colaborador + fecha</small></div></section>
 <section id="summaryVisual" class="summary-visual-grid" aria-label="Gráficos del resumen">
  <article class="panel summary-visual"><h2>Evolución de tareas y creaciones</h2><p class="summary-sub">Totales por semana · filtros generales</p><div id="sumTrend" class="summary-chart"></div></article>
  <article class="panel summary-visual"><h2>Distribución de flujos</h2><p class="summary-sub">CCC, Demanda y Otros</p><div id="sumFlows" class="summary-chart"></div></article>
@@ -285,13 +285,25 @@ function renderPeopleChecklist(){
 }
 $('selectAllPeople').addEventListener('click',()=>{excludedPeople.clear();saveExcludedPeople();renderPeopleChecklist();renderKpis();});
 $('clearAllPeople').addEventListener('click',()=>{excludedPeople=new Set(kpiCache.map(r=>r.id));saveExcludedPeople();renderPeopleChecklist();renderKpis();});
+// KPI: KNOWN_VALUE se trabaja aparte. Cualquier presencia en un día excluye
+// esa jornada COMPLETA de los promedios, incluso si hubo otros flujos.
+// Solo se consulta la información ya publicada; no se escribe en Firebase.
+function knownValueDays(){
+ const days=new Set();
+ for(const r of gestionCache){
+  if(Object.entries(r.flujos||{}).some(([flow,count])=>normalize(flow)==='known_value'&&Number(count)>0))days.add(r.id+'|'+r.fecha);
+ }
+ return days;
+}
+function isKpiDay(r,excluded=knownValueDays()){return !excluded.has(r.id+'|'+r.fecha);}
 function renderWeeklyChart(){
   const who=$('personFilter').value,chart=$('weeklyChart'),tbody=$('weeklyRows');
   chart.replaceChildren();tbody.replaceChildren();
   if($('weekMode').value==='weeks'&&$('weekStart').value>$('weekEnd').value){
     $('weeklyStatus').textContent='La semana inicial debe ser anterior o igual a la final.';return;
   }
-  const rows=kpiCache.filter(r=>(!who||r.id===who)&&includedRecord(r)&&weeklyMatches(r.fecha));
+  const excludedDays=knownValueDays();
+  const rows=kpiCache.filter(r=>(!who||r.id===who)&&includedRecord(r)&&weeklyMatches(r.fecha)&&isKpiDay(r,excludedDays));
   const weeks=new Map();
   for(const r of rows){
     const k=isoWeek(r.fecha).key;
@@ -381,8 +393,9 @@ function initMainWeekFilters(){
 function renderSummaryVisual(){
  const who=$('personFilter').value,from=$('fromWeek').value,to=$('toWeek').value;
  const match=r=>(!who||r.id===who)&&includedRecord(r)&&(!from||isoWeek(r.fecha).key>=from)&&(!to||isoWeek(r.fecha).key<=to);
- const tasks=new Map(),creations=new Map(),holds=new Map(),groups={CCC:0,DEMANDA:0,OTROS:0},bins=[0,0,0,0,0,0];
- for(const r of kpiCache.filter(match)){const key=isoWeek(r.fecha).key,map=r.tipo==='tareas'?tasks:r.tipo==='creaciones'?creations:null;if(map)map.set(key,(map.get(key)||0)+(Number(r.cantidad)||0));}
+ const tasks=new Map(),creations=new Map(),holds=new Map(),groups={CCC:0,DEMANDA:0,SOPORTE:0,KNOWN_VALUE:0,OTROS:0},bins=[0,0,0,0,0,0];
+ const excludedDays=knownValueDays();
+ for(const r of kpiCache.filter(r=>match(r)&&isKpiDay(r,excludedDays))){const key=r.tipo==='tareas'?tasks:r.tipo==='creaciones'?creations:null;if(map)map.set(key,(map.get(key)||0)+(Number(r.cantidad)||0));}
  for(const r of holdsCache.filter(match)){const key=isoWeek(r.fecha).key;holds.set(key,(holds.get(key)||0)+(Number(r.cantidad)||0));}
  for(const r of gestionCache.filter(match)){
   for(const [flow,count] of Object.entries(r.flujos||{})){const cat=gCategory(flow);if(cat in groups)groups[cat]+=Number(count)||0;}
@@ -400,7 +413,7 @@ function renderSummaryVisual(){
  const weeks=[...new Set([...tasks.keys(),...creations.keys()])].sort();
  drawBars('sumTrend',weeks.slice(-12).map(w=>w.split('-').pop()),[{name:'Tareas',color:'#3483fa',values:weeks.slice(-12).map(w=>tasks.get(w)||0)},{name:'Creaciones',color:'#ffbf00',values:weeks.slice(-12).map(w=>creations.get(w)||0)}]);
  const flowEl=make('sumFlows'),total=Object.values(groups).reduce((a,b)=>a+b,0);
- if(!total)empty(flowEl);else for(const [i,name] of ['CCC','DEMANDA','OTROS'].entries()){const row=document.createElement('div');row.className='summary-row';const label=document.createElement('span');label.textContent=name==='DEMANDA'?'Demanda':name==='OTROS'?'Otros':name;const track=document.createElement('div');track.className='summary-track';const fill=document.createElement('div');fill.className='summary-fill';fill.style.width=(groups[name]/total*100)+'%';fill.style.background=['#3483fa','#ffbf00','#9b86df'][i];track.appendChild(fill);const pct=document.createElement('strong');pct.textContent=(groups[name]/total*100).toFixed(1)+'%';row.append(label,track,pct);flowEl.appendChild(row);}
+ if(!total)empty(flowEl);else for(const [i,name] of ['CCC','DEMANDA','SOPORTE','KNOWN_VALUE','OTROS'].entries()){const row=document.createElement('div');row.className='summary-row';const label=document.createElement('span');label.textContent=name==='DEMANDA'?'Demanda':name==='OTROS'?'Otros':name==='SOPORTE'?'Soporte':name;const track=document.createElement('div');track.className='summary-track';const fill=document.createElement('div');fill.className='summary-fill';fill.style.width=(groups[name]/total*100)+'%';fill.style.background=['#3483fa','#ffbf00','#22a06b','#e28a23','#9b86df'][i];track.appendChild(fill);const pct=document.createElement('strong');pct.textContent=(groups[name]/total*100).toFixed(1)+'%';row.append(label,track,pct);flowEl.appendChild(row);}
   // Evolución de Holds: línea con puntos, usando los mismos datos y filtros del resumen.
   const holdWeeks=[...holds.keys()].sort().slice(-12);
   const holdEl=make('sumHolds');
@@ -436,7 +449,8 @@ function renderSummaryVisual(){
 
 function renderHeaderKpi(){
  const who=$('personFilter').value,from=$('fromWeek').value,to=$('toWeek').value;
- const rows=kpiCache.filter(r=>r.tipo==='tareas'&&(!who||r.id===who)&&includedRecord(r)&&(!from||isoWeek(r.fecha).key>=from)&&(!to||isoWeek(r.fecha).key<=to));
+ const excludedDays=knownValueDays();
+ const rows=kpiCache.filter(r=>r.tipo==='tareas'&&isKpiDay(r,excludedDays)&&(!who||r.id===who)&&includedRecord(r)&&(!from||isoWeek(r.fecha).key>=from)&&(!to||isoWeek(r.fecha).key<=to));
  const total=rows.reduce((sum,r)=>sum+(Number(r.cantidad)||0),0);
  $('headerKpi').classList.remove('hidden');
  $('headerAverage').textContent=rows.length?fmt(total/rows.length):'—';
@@ -456,24 +470,27 @@ function renderKpis(){
   if(from && to && from>to){$('kpiStatus').className='status bad';$('kpiStatus').textContent='La semana inicial no puede ser posterior a la final.';return;}
   if(!isAdmin)$('employeePeriodNote').textContent=from||to?'Mostrando tus indicadores para las semanas seleccionadas.':'Mostrando tu historial disponible. Podés ajustar el período debajo.';
   const filtered=kpiCache.filter(r=>(!who||r.id===who)&&includedRecord(r)&&(!from||isoWeek(r.fecha).key>=from)&&(!to||isoWeek(r.fecha).key<=to));
-  const tasks=filtered.filter(r=>r.tipo==='tareas'),creations=filtered.filter(r=>r.tipo==='creaciones');
+  const excludedDays=knownValueDays();
+  const computable=filtered.filter(r=>isKpiDay(r,excludedDays));
+  const tasks=computable.filter(r=>r.tipo==='tareas'),creations=filtered.filter(r=>r.tipo==='creaciones');
   const taskSum=tasks.reduce((n,r)=>n+r.cantidad,0),creationSum=creations.reduce((n,r)=>n+r.cantidad,0);
   $('kpiAverage').textContent=tasks.length?fmt(taskSum/tasks.length):'—';
   $('kpiTasks').textContent=fmt(taskSum);$('kpiCreations').textContent=fmt(creationSum);$('kpiDays').textContent=fmt(tasks.length);
-  $('averageNote').textContent=tasks.length?`${tasks.length} jornadas con registro de tareas`:'Sin registros de tareas en este período';
+  const excludedCount=new Set(filtered.filter(r=>r.tipo==='tareas'&&!isKpiDay(r,excludedDays)).map(r=>r.id+'|'+r.fecha)).size;
+  $('averageNote').textContent=tasks.length?`${tasks.length} jornadas computables${excludedCount?' · '+excludedCount+' excluidas por KNOWN_VALUE':''}`:excludedCount?`${excludedCount} jornadas excluidas por KNOWN_VALUE`:'Sin registros de tareas en este período';
   renderWeeklyChart();
   renderHolds();
   renderGestion();
   renderSummaryVisual();
   renderHeaderKpi();
-  const people=new Map();for(const r of filtered){if(!people.has(r.id))people.set(r.id,{name:r.colaborador,id:r.id,days:0,tasks:0,creations:0});const p=people.get(r.id);if(r.tipo==='tareas'){p.days++;p.tasks+=r.cantidad;}else p.creations+=r.cantidad;}
+  const people=new Map();for(const r of filtered){if(!people.has(r.id))people.set(r.id,{name:r.colaborador,id:r.id,days:0,tasks:0,creations:0});const p=people.get(r.id);if(r.tipo==='tareas'){if(isKpiDay(r,excludedDays)){p.days++;p.tasks+=r.cantidad;}}else p.creations+=r.cantidad;}
   const body=$('peopleRows');body.replaceChildren();if(!people.size){const tr=document.createElement('tr'),td=document.createElement('td');td.colSpan=6;td.textContent='No hay registros para este período.';tr.appendChild(td);body.appendChild(tr);}
   for(const p of [...people.values()].sort((a,b)=>a.name.localeCompare(b.name,'es'))){const tr=document.createElement('tr');for(const v of [p.name,p.id,fmt(p.days),fmt(p.tasks),p.days?fmt(p.tasks/p.days):'—',fmt(p.creations)]){const td=document.createElement('td');td.textContent=v;tr.appendChild(td);}body.appendChild(tr);}
 }
 // V16: las vistas consultan SOLO los documentos publicados; nunca el historial crudo.
 function applyPublishedData(items){
  publishedItems=items;renderPMComparison();applyTeamView();}
-function renderPMComparison(){if(!isPM)return;const body=$('pmComparisonRows');body.replaceChildren();for(const team of TEAMS){const items=publishedItems.filter(x=>validTeam(x.equipo)===team);const tasks=items.flatMap(x=>x.tareas||[]).filter(r=>r.tipo==='tareas');const total=tasks.reduce((n,r)=>n+(Number(r.cantidad)||0),0);const tr=document.createElement('tr');for(const v of [team,items.length,tasks.length,tasks.length?fmt(total/tasks.length):'—',fmt(total)]){const td=document.createElement('td');td.textContent=String(v);tr.appendChild(td);}body.appendChild(tr);}}
+function renderPMComparison(){if(!isPM)return;const body=$('pmComparisonRows');body.replaceChildren();for(const team of TEAMS){const items=publishedItems.filter(x=>validTeam(x.equipo)===team);const excluded=new Set(items.flatMap(x=>(x.gestion||[]).filter(g=>Object.entries(g.flujos||{}).some(([f,n])=>normalize(f)==='known_value'&&Number(n)>0)).map(g=>x.idMeli+'|'+g.fecha)));const tasks=items.flatMap(x=>(x.tareas||[]).filter(r=>r.tipo==='tareas'&&!excluded.has(x.idMeli+'|'+r.fecha)));const total=tasks.reduce((n,r)=>n+(Number(r.cantidad)||0),0);const tr=document.createElement('tr');for(const v of [team,items.length,tasks.length,tasks.length?fmt(total/tasks.length):'—',fmt(total)]){const td=document.createElement('td');td.textContent=String(v);tr.appendChild(td);}body.appendChild(tr);}}
 $('pmTeamFilter').addEventListener('change',event=>{if(!isPM)return;selectedTeam=event.target.value;applyTeamView();});
 function applyTeamView(){
  const items=publishedItems.filter(x=>isPM?(!selectedTeam||validTeam(x.equipo)===selectedTeam):(!isAdmin||validTeam(x.equipo)===selectedTeam||(!x.equipo&&selectedTeam===TEAM)));
@@ -657,7 +674,14 @@ function parseGestionCSV(text){
  row.push(field);if(row.some(x=>x!==''))rows.push(row);
  return rows;
 }
-function gCategory(name){const n=normalize(name);if(n==='mao'||n==='known_value'||n.includes('knowns values'))return 'CCC';if(n.includes('sugerencia')||n.includes('corregir grupo'))return 'DEMANDA';return 'OTROS';}
+function gCategory(name){
+ const n=normalize(name);
+ if(n==='known_value')return 'KNOWN_VALUE';
+ if(n==='mao')return 'CCC';
+ if(['sugerencia de correccion','sugerencia de creacion'].includes(n))return 'DEMANDA';
+ if(['denuncias_bpp','sugerencias de correccion','unificacion de familias','sugerencias de creacion','separacion de familias','merge de productos','denuncia bpp - uso indebido de marca','analisis y correccion de knowns values'].includes(n))return 'SOPORTE';
+ return 'OTROS';
+}
 function gMinutes(value){const m=String(value??'').trim().match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(AM|PM)?$/i);if(!m)return null;let h=+m[1];const min=+m[2];if(min>59||h>23)return null;if(m[4]){if(h<1||h>12)return null;h=(h%12)+(m[4].toUpperCase()==='PM'?12:0);}else if(h>=1&&h<=7)h+=12;return h*60+min;}
 function gBin(min){if(min===null)return -1;const h=min/60;return h>=9&&h<11?0:h>=11&&h<13?1:h>=13&&h<15?2:h>=15&&h<17?3:h>=17&&h<18?4:5;}
 function gTime(min){if(min===null||!Number.isFinite(min))return '—';const x=Math.round(min);return `${pad2(Math.floor(x/60)%24)}:${pad2(x%60)}`;}
@@ -671,7 +695,7 @@ async function loadGestionForPeople(people){
 function renderGestion(){
  const who=$('personFilter').value;
  const rows=gestionCache.filter(r=>(!who||r.id===who)&&includedRecord(r)&&weeklyMatches(r.fecha));
- const groups={CCC:0,DEMANDA:0,OTROS:0},flows=new Map(),bins=[0,0,0,0,0,0];let total=0,closed=0,firstSum=0,firstDays=0,lastSum=0,lastDays=0,last3=0;
+ const groups={CCC:0,DEMANDA:0,SOPORTE:0,KNOWN_VALUE:0,OTROS:0},flows=new Map(),bins=[0,0,0,0,0,0];let total=0,closed=0,firstSum=0,firstDays=0,lastSum=0,lastDays=0,last3=0;
  for(const r of rows){const count=Number(r.total)||0;total+=count;for(const [name,raw] of Object.entries(r.flujos||{})){const v=Number(raw)||0;flows.set(name,(flows.get(name)||0)+v);groups[gCategory(name)]+=v;}
   if(r.versionGestion===G_SCHEMA){(r.franjas||[]).forEach((v,i)=>{if(i<6)bins[i]+=Number(v)||0;});closed+=Number(r.cierresValidos)||0;last3+=Number(r.ultimas3)||0;}
   if(r.versionGestion===G_SCHEMA&&Number.isFinite(Number(r.primerInicio))&&r.primerInicio!==null){firstSum+=Number(r.primerInicio);firstDays++;}if(r.versionGestion===G_SCHEMA&&Number.isFinite(Number(r.ultimoCierre))&&r.ultimoCierre!==null){lastSum+=Number(r.ultimoCierre);lastDays++;}
