@@ -154,6 +154,16 @@ body.employee-mode #summaryVisual > .summary-wide{display:none!important;}
 
 /* V42: ocultar panel antiguo de distribución de flujos solo para colaboradores. */
 body.employee-mode #gestionPanel{display:none!important;}
+/* V43: porcentajes por flujo debajo de los cuatro KPI, solo colaboradores */
+#employeeFlowPercent{display:none}
+body.employee-mode #employeeFlowPercent{display:block;margin:12px 0 20px}
+.employee-flow-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.employee-flow-card{background:var(--card,#fff);border:1px solid #e1e7f1;border-top:4px solid var(--flow-color);border-radius:10px;padding:9px 11px;min-width:0}
+.employee-flow-card span{display:block;color:#53657d;font-size:10px;font-weight:600;margin-bottom:5px;overflow-wrap:anywhere}
+.employee-flow-card strong{display:block;color:var(--flow-color);font-size:21px;line-height:1.2}
+.employee-flow-card small{color:#65758a;font-size:10px}
+@media(max-width:600px){.employee-flow-grid{grid-template-columns:repeat(5,minmax(0,1fr));gap:4px}.employee-flow-card{padding:7px 5px}.employee-flow-card span{font-size:9px}.employee-flow-card strong{font-size:16px}.employee-flow-card small{font-size:9px}}
+
 </style>
 <style>
 .settings-wrap{position:relative;display:inline-flex;align-items:center}
@@ -220,6 +230,13 @@ body.dark-theme .hours-premium-track{border-color:#42526b}
 <p id="publishStatus" class="status hidden" role="status">Sin consultar historial.</p>
 <p id="kpiStatus" class="status" role="status">Cargando datos desde Firebase…</p>
 <section id="pmComparison" class="panel hidden"><h2>Comparativa de equipos</h2><p class="muted">Promedio de tareas por jornada computable, según filtros de flujos, calculado con la última publicación.</p><div class="table-wrap"><table><thead><tr><th>Equipo</th><th>Catalogadores</th><th>Jornadas</th><th>Promedio diario</th><th>Tareas</th></tr></thead><tbody id="pmComparisonRows"></tbody></table></div></section><div class="kpi-flow-controls" id="kpiFlowControls"><strong>Filtros de productividad</strong><label><input type="checkbox" id="excludeKnown" checked> Excluir jornadas con KNOWN_VALUE</label><label><input type="checkbox" id="excludeSupport" checked> Excluir jornadas con Soporte</label><small>Se excluye el día completo si hubo actividad de esos flujos. Los registros siguen visibles en Gestión.</small></div><section class="cards" id="mainCards"><div class="card"><span>Promedio diario de tareas (según filtros)</span><h1 id="kpiAverage">—</h1><small id="averageNote" class="muted">Por jornada con registro</small></div><div class="card"><span>Tareas totales</span><h1 id="kpiTasks">—</h1><small id="tasksNote" class="muted">Período seleccionado</small></div><div class="card"><span>Creaciones totales</span><h1 id="kpiCreations">—</h1><small class="muted">Período seleccionado</small></div><div class="card"><span>Jornadas computables</span><h1 id="kpiDays">—</h1><small class="muted">Colaborador + fecha</small></div></section>
+<section id="employeeFlowPercent" aria-label="Porcentaje de tareas accionadas por flujo"><div class="employee-flow-grid">
+<div class="employee-flow-card" style="--flow-color:#3483fa"><span>CCC</span><strong id="employeePctCcc">—</strong><small id="employeeCountCcc">Sin registros</small></div>
+<div class="employee-flow-card" style="--flow-color:#e3a900"><span>Demanda</span><strong id="employeePctDemanda">—</strong><small id="employeeCountDemanda">Sin registros</small></div>
+<div class="employee-flow-card" style="--flow-color:#22a06b"><span>Soporte</span><strong id="employeePctSoporte">—</strong><small id="employeeCountSoporte">Sin registros</small></div>
+<div class="employee-flow-card" style="--flow-color:#e28a23"><span>KNOWN_VALUE</span><strong id="employeePctKnown">—</strong><small id="employeeCountKnown">Sin registros</small></div>
+<div class="employee-flow-card" style="--flow-color:#9b86df"><span>Otros</span><strong id="employeePctOtros">—</strong><small id="employeeCountOtros">Sin registros</small></div>
+</div></section>
 <section id="summaryVisual" class="summary-visual-grid" aria-label="Gráficos del resumen">
  <article class="panel summary-visual summary-wide"><h2>Evolución de tareas y creaciones</h2><p class="summary-sub">Promedio diario por semana · filtros generales</p><div id="sumTrend" class="summary-chart"></div></article>
  <article class="panel summary-visual summary-wide"><h2>Evolución de Holds</h2><p class="summary-sub">Cantidad por semana</p><div id="sumHolds" class="summary-chart"></div></article>
@@ -253,11 +270,12 @@ function arrangeEmployeePanels(){
  const weekly=$('weeklyPanel'),summary=$('summaryVisual'),holds=$('holdsPanel'),creations=$('employeeCreationsPanel'),gestion=$('gestionPanel'),times=$('tiemposPanel'),table=$('employeeWeeklyTablePanel');
  const wrap=weekly.parentNode;
  if(!isAdmin){
+  $('mainCards').after($('employeeFlowPercent'));
   weekly.after(creations);creations.after(holds);holds.after(gestion);gestion.after(times);times.after(summary);summary.after(table);
   const t=weekly.querySelector('.week-table');if(t)$('employeeWeeklyTableSlot').appendChild(t);
  }else{
   const t=$('employeeWeeklyTableSlot').querySelector('.week-table');if(t)weekly.querySelector('.weekly-chart').after(t);
-  $('mainCards').after(summary);summary.after(weekly);weekly.after(holds);holds.after(gestion);gestion.after(times);
+  $('mainCards').after($('employeeFlowPercent'));$('employeeFlowPercent').after(summary);summary.after(weekly);weekly.after(holds);holds.after(gestion);gestion.after(times);
  }
 }
 function showDashboard(name,admin){isAdmin=admin;isPM=String(profileData?.rol||'').toLowerCase()==='pm';selectedTeam=isPM?'':validTeam(profileData?.equipo)||TEAM;document.body.classList.toggle('admin-mode',admin);$('adminSidebar').classList.toggle('hidden',!admin);document.body.classList.toggle('employee-mode',!admin);$('employeeGreeting').textContent='¡Hola, '+name+'!';$('teamGreetingName').textContent='¡Bienvenido, '+name+'! 👋';$('teamGreeting').classList.toggle('hidden',!admin);$('welcome').textContent=admin?'Bienvenido, '+name:'Mi productividad';$('login').classList.add('hidden');$('dashboard').classList.remove('hidden');$('logout').classList.remove('hidden');$('tabUpload').classList.toggle('hidden',!isPM);$('publishKpis').classList.toggle('hidden',!isPM);$('pmTeamWrap').classList.toggle('hidden',!isPM);$('pmComparison').classList.toggle('hidden',!isPM);$('pmTeamFilter').value=isPM?'':selectedTeam;switchTab(false);arrangeEmployeePanels();if(admin)selectAdminSection('resumen');loadDashboardKpis().catch(console.error);}
@@ -558,7 +576,12 @@ function renderSummaryVisual(){
   for(const s of series){const points=s.values.map((v,i)=>`${x(i)},${y(v)}`).join(' ');add('polyline',{points,fill:'none',stroke:s.color,'stroke-width':3,'stroke-linejoin':'round','stroke-linecap':'round'});s.values.forEach((v,i)=>{const dot=add('circle',{cx:x(i),cy:y(v),r:5.5,fill:'#fff',stroke:s.color,'stroke-width':2.5});const title=document.createElementNS(ns,'title');title.textContent=`${s.name} · ${trendWeeks[i]}: ${fmt(v)}`;dot.appendChild(title);add('text',{x:x(i),y:Math.max(18,y(v)-12),'text-anchor':'middle','font-size':13,'font-weight':700,fill:'#24364b'},fmt(v));});}
   const wrap=document.createElement('div');wrap.style.cssText='width:100%;overflow-x:auto';wrap.appendChild(svg);trendEl.appendChild(wrap);
  }
- const flowEl=make('sumFlows'),total=Object.values(groups).reduce((a,b)=>a+b,0);
+ const flowTotal=Object.values(groups).reduce((a,b)=>a+b,0);
+ for(const [key,pctId,countId] of [['CCC','employeePctCcc','employeeCountCcc'],['DEMANDA','employeePctDemanda','employeeCountDemanda'],['SOPORTE','employeePctSoporte','employeeCountSoporte'],['KNOWN_VALUE','employeePctKnown','employeeCountKnown'],['OTROS','employeePctOtros','employeeCountOtros']]){
+  $(pctId).textContent=flowTotal?(groups[key]/flowTotal*100).toLocaleString('es-AR',{minimumFractionDigits:1,maximumFractionDigits:1})+'%':'—';
+  $(countId).textContent=flowTotal?fmt(groups[key])+' tareas':'Sin registros de Gestión';
+ }
+ const flowEl=make('sumFlows'),total=flowTotal;
  if(!total)empty(flowEl);else {
   flowEl.classList.add('flows-premium');
   const summary=document.createElement('div');summary.className='flows-premium-head';
