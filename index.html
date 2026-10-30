@@ -63,6 +63,11 @@ body.dark-theme #themeToggle{background:#24334c;color:#f3f7ff;border-color:#3447
 
 /* V18: resumen visual independiente, sin lecturas adicionales. */
 .summary-visual-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:18px}
+/* V29: gráficos evolutivos a ancho completo */
+.summary-visual:has(#sumTrend),.summary-visual:has(#sumHolds){grid-column:1/-1}
+#sumTrend svg,#sumHolds svg{display:block;max-width:none;width:100%;height:auto;min-height:310px}
+#sumTrend>div:last-child,#sumHolds .line-chart-scroll{width:100%;overflow-x:auto}
+@media(max-width:760px){#sumTrend svg,#sumHolds svg{width:850px;min-height:0}}
 .summary-visual{min-width:0;margin:0!important;padding:20px}
 .summary-visual h2{font-size:17px;margin:0 0 6px}
 .summary-visual .summary-sub{font-size:12px;margin:0 0 15px;color:#718096}
@@ -153,7 +158,7 @@ body.dark-theme #settingsButton{background:#24334c;color:#f3f7ff;border-color:#3
 <p id="kpiStatus" class="status" role="status">Cargando datos desde Firebase…</p>
 <section id="pmComparison" class="panel hidden"><h2>Comparativa de equipos</h2><p class="muted">Promedio de tareas por jornada computable, según filtros de flujos, calculado con la última publicación.</p><div class="table-wrap"><table><thead><tr><th>Equipo</th><th>Catalogadores</th><th>Jornadas</th><th>Promedio diario</th><th>Tareas</th></tr></thead><tbody id="pmComparisonRows"></tbody></table></div></section><div class="kpi-flow-controls" id="kpiFlowControls"><strong>Filtros de productividad</strong><label><input type="checkbox" id="excludeKnown" checked> Excluir jornadas con KNOWN_VALUE</label><label><input type="checkbox" id="excludeSupport" checked> Excluir jornadas con Soporte</label><small>Se excluye el día completo si hubo actividad de esos flujos. Los registros siguen visibles en Gestión.</small></div><section class="cards" id="mainCards"><div class="card"><span>Promedio diario de tareas (según filtros)</span><h1 id="kpiAverage">—</h1><small id="averageNote" class="muted">Por jornada con registro</small></div><div class="card"><span>Tareas totales</span><h1 id="kpiTasks">—</h1><small id="tasksNote" class="muted">Período seleccionado</small></div><div class="card"><span>Creaciones totales</span><h1 id="kpiCreations">—</h1><small class="muted">Período seleccionado</small></div><div class="card"><span>Jornadas computables</span><h1 id="kpiDays">—</h1><small class="muted">Colaborador + fecha</small></div></section>
 <section id="summaryVisual" class="summary-visual-grid" aria-label="Gráficos del resumen">
- <article class="panel summary-visual"><h2>Evolución de tareas y creaciones</h2><p class="summary-sub">Totales por semana · filtros generales</p><div id="sumTrend" class="summary-chart"></div></article>
+ <article class="panel summary-visual"><h2>Evolución de tareas y creaciones</h2><p class="summary-sub">Promedio diario por semana · filtros generales</p><div id="sumTrend" class="summary-chart"></div></article>
  <article class="panel summary-visual"><h2>Distribución de flujos</h2><p class="summary-sub">CCC, Demanda y Otros</p><div id="sumFlows" class="summary-chart"></div></article>
  <article class="panel summary-visual"><h2>Evolución de Holds</h2><p class="summary-sub">Cantidad por semana</p><div id="sumHolds" class="summary-chart"></div></article>
  <article class="panel summary-visual"><h2>Cierres por franja horaria</h2><p class="summary-sub">Tareas finalizadas · Gestión</p><div id="sumHours" class="summary-chart"></div></article>
@@ -441,7 +446,7 @@ function renderSummaryVisual(){
  const match=r=>(!who||r.id===who)&&includedRecord(r)&&(!from||isoWeek(r.fecha).key>=from)&&(!to||isoWeek(r.fecha).key<=to);
  const tasks=new Map(),creations=new Map(),holds=new Map(),groups={CCC:0,DEMANDA:0,SOPORTE:0,KNOWN_VALUE:0,OTROS:0},bins=[0,0,0,0,0,0];
  const excludedDays=excludedFlowDays();
- for(const r of kpiCache.filter(r=>match(r)&&isKpiDay(r,excludedDays))){const map=r.tipo==='tareas'?tasks:r.tipo==='creaciones'?creations:null;const key=isoWeek(r.fecha).key;if(map)map.set(key,(map.get(key)||0)+(Number(r.cantidad)||0));}
+ for(const r of kpiCache.filter(r=>match(r)&&isKpiDay(r,excludedDays))){const map=r.tipo==='tareas'?tasks:r.tipo==='creaciones'?creations:null;const key=isoWeek(r.fecha).key;if(map){const item=map.get(key)||{sum:0,count:0};item.sum+=Number(r.cantidad)||0;item.count++;map.set(key,item);}}
  for(const r of holdsCache.filter(match)){const key=isoWeek(r.fecha).key;holds.set(key,(holds.get(key)||0)+(Number(r.cantidad)||0));}
  for(const r of gestionCache.filter(match)){
   for(const [flow,count] of Object.entries(r.flujos||{})){const cat=gCategory(flow);if(cat in groups)groups[cat]+=Number(count)||0;}
@@ -457,16 +462,16 @@ function renderSummaryVisual(){
   labels.forEach((label,i)=>{const col=document.createElement('div');col.className='summary-col';const stack=document.createElement('div');stack.className='bar-stack';for(const serie of series){const bar=document.createElement('span');const value=serie.values[i]||0;bar.style.height=(value?Math.max(3,100*value/max):0)+'%';bar.style.background=serie.color;bar.title=serie.name+': '+fmt(value);stack.appendChild(bar);}const text=document.createElement('small');text.textContent=label;col.append(stack,text);chart.appendChild(col);});el.appendChild(chart);
  };
  const weeks=[...new Set([...tasks.keys(),...creations.keys()])].sort();
- // Evolutivo de tareas y creaciones en líneas; referencia visual de 100 tareas.
+ // Promedios diarios por semana (total / jornadas registradas), con target diario de 100.
  const trendWeeks=weeks.slice(-12),trendEl=make('sumTrend');
  if(!trendWeeks.length){empty(trendEl);}else{
-  const series=[{name:'Tareas',color:'#3483fa',values:trendWeeks.map(w=>tasks.get(w)||0)},{name:'Creaciones',color:'#ffbf00',values:trendWeeks.map(w=>creations.get(w)||0)}];
+  const series=[{name:'Tareas',color:'#3483fa',values:trendWeeks.map(w=>tasks.get(w)?.count?tasks.get(w).sum/tasks.get(w).count:0)},{name:'Creaciones',color:'#ffbf00',values:trendWeeks.map(w=>creations.get(w)?.count?creations.get(w).sum/creations.get(w).count:0)}];
   const legend=document.createElement('div');legend.className='summary-legend';
   for(const s of series){const item=document.createElement('span'),dot=document.createElement('i');dot.style.background=s.color;item.append(dot,document.createTextNode(s.name));legend.appendChild(item);}
   const targetLabel=document.createElement('span');targetLabel.style.color='#e5484d';targetLabel.textContent='┄ Target: 100 tareas';legend.appendChild(targetLabel);trendEl.appendChild(legend);
-  const ns='http://www.w3.org/2000/svg',width=Math.max(520,trendWeeks.length*62+90),height=220,left=45,right=30,top=20,bottom=40;
+  const ns='http://www.w3.org/2000/svg',width=Math.max(850,trendWeeks.length*78+90),height=350,left=45,right=30,top=20,bottom=40;
   const plotW=width-left,plotH=height-top-bottom,maximum=Math.max(110,...series.flatMap(s=>s.values)),ceiling=Math.ceil(maximum*1.12);
-  const svg=document.createElementNS(ns,'svg');svg.setAttribute('viewBox',`0 0 ${width} ${height}`);svg.setAttribute('width',width);svg.setAttribute('height',height);svg.style.maxWidth='100%';svg.style.height='auto';svg.setAttribute('role','img');svg.setAttribute('aria-label','Evolución semanal de tareas y creaciones con referencia de 100 tareas');
+  const svg=document.createElementNS(ns,'svg');svg.setAttribute('viewBox',`0 0 ${width} ${height}`);svg.setAttribute('width',width);svg.setAttribute('height',height);svg.style.maxWidth='100%';svg.style.height='auto';svg.setAttribute('role','img');svg.setAttribute('aria-label','Promedio diario semanal de tareas y creaciones con referencia de 100 tareas');
   const add=(tag,attrs,text)=>{const e=document.createElementNS(ns,tag);for(const [k,v] of Object.entries(attrs))e.setAttribute(k,String(v));if(text!==undefined)e.textContent=text;svg.appendChild(e);return e;};
   const x=i=>left+(trendWeeks.length===1?plotW/2:i*(plotW-right)/(trendWeeks.length-1));
   const y=v=>top+plotH-v/ceiling*plotH;
@@ -483,7 +488,7 @@ function renderSummaryVisual(){
   const holdEl=make('sumHolds');
   if(!holdWeeks.length){empty(holdEl);}else{
    const values=holdWeeks.map(w=>holds.get(w)||0);
-   const ns='http://www.w3.org/2000/svg',width=Math.max(520,holdWeeks.length*62+90),height=220;
+   const ns='http://www.w3.org/2000/svg',width=Math.max(850,holdWeeks.length*78+90),height=350;
    const left=43,right=25,top=28,bottom=43,plotW=width-left-right,plotH=height-top-bottom;
    const max=Math.max(1,...values),ceiling=Math.max(1,Math.ceil(max*1.15));
    const svg=document.createElementNS(ns,'svg');
