@@ -181,6 +181,18 @@ body.employee-mode #employeeFlowPercent{display:block;margin:12px 0 20px}
 body.dark-theme.employee-mode #employeePeriodFilters{background:#18243a}
 @media(max-width:850px){.employee-mode .employee-top-row{grid-template-columns:1fr;gap:12px}.employee-mode #employeePeriodFilters .week-filters{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:480px){.employee-mode #employeePeriodFilters .week-filters{grid-template-columns:1fr}}
+
+/* V46: cabecera completa, filtro de productividad integrado, sin detalle semanal para catalogadores. */
+.employee-mode #employeeTitleGroup{display:none!important}
+.employee-mode .employee-top-row{display:block;margin:8px 0 14px}
+.employee-mode #employeeHero{display:block;width:100%;box-sizing:border-box;padding:22px 26px}
+.employee-mode #employeeWeeklyTablePanel{display:none!important}
+.employee-mode #employeePeriodFilters{padding:16px 18px}
+.employee-mode #employeePeriodFilters #kpiFlowControls{display:flex;flex-wrap:wrap;align-items:center;gap:10px 20px;margin:14px 0 0;padding:13px 0 0;border:0;border-top:1px solid #e3e9f2;background:transparent;box-shadow:none;border-radius:0}
+.employee-mode #employeePeriodFilters #kpiFlowControls strong{white-space:nowrap}
+.employee-mode #employeePeriodFilters #kpiFlowControls label{display:inline-flex;align-items:center;gap:7px;margin:0}
+.employee-mode #employeePeriodFilters #kpiFlowControls small{flex-basis:100%;margin:0}
+body.dark-theme.employee-mode #employeePeriodFilters #kpiFlowControls{border-top-color:#33435b}
 </style>
 <style>
 .settings-wrap{position:relative;display:inline-flex;align-items:center}
@@ -290,11 +302,13 @@ function arrangeEmployeePanels(){
  const periodFilters=weekly.querySelector('.week-filters')||$('employeePeriodFilters').querySelector('.week-filters');
  if(!isAdmin){
   if(periodFilters)$('employeePeriodFilters').appendChild(periodFilters);
+  $('employeePeriodFilters').appendChild($('kpiFlowControls'));
   $('mainCards').after($('employeeFlowPercent'));
   weekly.after(creations);creations.after(holds);holds.after(gestion);gestion.after(times);times.after(summary);summary.after(table);
   const t=weekly.querySelector('.week-table');if(t)$('employeeWeeklyTableSlot').appendChild(t);
  }else{
   if(periodFilters)weekly.querySelector('h2').after(periodFilters);
+  $('pmComparison').after($('kpiFlowControls'));
   const t=$('employeeWeeklyTableSlot').querySelector('.week-table');if(t)weekly.querySelector('.weekly-chart').after(t);
   $('mainCards').after($('employeeFlowPercent'));$('employeeFlowPercent').after(summary);summary.after(weekly);weekly.after(holds);holds.after(gestion);gestion.after(times);
  }
