@@ -395,7 +395,7 @@ function renderSummaryVisual(){
  const match=r=>(!who||r.id===who)&&includedRecord(r)&&(!from||isoWeek(r.fecha).key>=from)&&(!to||isoWeek(r.fecha).key<=to);
  const tasks=new Map(),creations=new Map(),holds=new Map(),groups={CCC:0,DEMANDA:0,SOPORTE:0,KNOWN_VALUE:0,OTROS:0},bins=[0,0,0,0,0,0];
  const excludedDays=knownValueDays();
- for(const r of kpiCache.filter(r=>match(r)&&isKpiDay(r,excludedDays))){const key=r.tipo==='tareas'?tasks:r.tipo==='creaciones'?creations:null;if(map)map.set(key,(map.get(key)||0)+(Number(r.cantidad)||0));}
+ for(const r of kpiCache.filter(r=>match(r)&&isKpiDay(r,excludedDays))){const map=r.tipo==='tareas'?tasks:r.tipo==='creaciones'?creations:null;const key=isoWeek(r.fecha).key;if(map)map.set(key,(map.get(key)||0)+(Number(r.cantidad)||0));}
  for(const r of holdsCache.filter(match)){const key=isoWeek(r.fecha).key;holds.set(key,(holds.get(key)||0)+(Number(r.cantidad)||0));}
  for(const r of gestionCache.filter(match)){
   for(const [flow,count] of Object.entries(r.flujos||{})){const cat=gCategory(flow);if(cat in groups)groups[cat]+=Number(count)||0;}
