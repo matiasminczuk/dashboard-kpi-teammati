@@ -476,11 +476,11 @@ function renderSummaryVisual(){
   const legend=document.createElement('div');legend.className='summary-legend';
   for(const s of series){const item=document.createElement('span'),dot=document.createElement('i');dot.style.background=s.color;item.append(dot,document.createTextNode(s.name));legend.appendChild(item);}
   const targetLabel=document.createElement('span');targetLabel.style.color='#e5484d';targetLabel.textContent='┄ Target: 100 tareas';legend.appendChild(targetLabel);trendEl.appendChild(legend);
-  const ns='http://www.w3.org/2000/svg',width=Math.max(960,trendWeeks.length*86+100),height=285,left=65,right=30,top=34,bottom=48;
-  const plotW=width-left,plotH=height-top-bottom,maximum=Math.max(110,...series.flatMap(s=>s.values)),ceiling=Math.ceil(maximum*1.12);
+  const ns='http://www.w3.org/2000/svg',width=Math.max(720,Math.round(trendEl.getBoundingClientRect().width)||960),height=285,left=65,right=30,top=34,bottom=48;
+  const plotW=width-left-right,plotH=height-top-bottom,maximum=Math.max(110,...series.flatMap(s=>s.values)),ceiling=Math.ceil(maximum*1.12);
   const svg=document.createElementNS(ns,'svg');svg.setAttribute('viewBox',`0 0 ${width} ${height}`);svg.setAttribute('preserveAspectRatio','xMinYMin meet');svg.setAttribute('width',width);svg.setAttribute('height',height);svg.setAttribute('role','img');svg.setAttribute('aria-label','Promedio diario semanal de tareas y creaciones con referencia de 100 tareas');
   const add=(tag,attrs,text)=>{const e=document.createElementNS(ns,tag);for(const [k,v] of Object.entries(attrs))e.setAttribute(k,String(v));if(text!==undefined)e.textContent=text;svg.appendChild(e);return e;};
-  const x=i=>left+(trendWeeks.length===1?plotW/2:i*(plotW-right)/(trendWeeks.length-1));
+  const x=i=>left+(trendWeeks.length===1?plotW/2:i*plotW/(trendWeeks.length-1));
   const y=v=>top+plotH-v/ceiling*plotH;
   for(let tick=0;tick<=4;tick++){const val=ceiling*tick/4,yy=y(val);add('line',{x1:left,y1:yy,x2:width-right,y2:yy,stroke:'currentColor','stroke-opacity':'.12'});add('text',{x:left-7,y:yy+7,'text-anchor':'end','font-size':14,fill:'#65758a'},Math.round(val));}
   const ty=y(100);add('line',{x1:left,y1:ty,x2:width-right,y2:ty,stroke:'#e5484d','stroke-width':2,'stroke-dasharray':'7 6'});
@@ -495,7 +495,7 @@ function renderSummaryVisual(){
   const holdEl=make('sumHolds');
   if(!holdWeeks.length){empty(holdEl);}else{
    const values=holdWeeks.map(w=>holds.get(w)||0);
-   const ns='http://www.w3.org/2000/svg',width=Math.max(960,holdWeeks.length*86+100),height=285;
+   const ns='http://www.w3.org/2000/svg',width=Math.max(720,Math.round(holdEl.getBoundingClientRect().width)||960),height=285;
    const left=72,right=35,top=28,bottom=45,plotW=width-left-right,plotH=height-top-bottom;
    const max=Math.max(1,...values),ceiling=Math.max(1,Math.ceil(max*1.15));
    const svg=document.createElementNS(ns,'svg');
@@ -853,5 +853,5 @@ $('passwordForm').addEventListener('submit',async event=>{event.preventDefault()
 </body></html>
 
 <style>/* V34: gráficos de Resumen con escala y tipografía de Productividad */
-#sumTrend svg,#sumHolds svg{width:100%!important;max-width:100%;height:285px!important;display:block}#sumTrend .summary-legend{font-size:13px}#sumTrend,#sumHolds{min-width:0}#sumTrend>div:last-child,#sumHolds .line-chart-scroll{overflow:hidden;width:100%}
+#sumTrend svg,#sumHolds svg{width:100%!important;max-width:none;height:285px!important;display:block}#sumTrend .summary-legend{font-size:13px}#sumTrend,#sumHolds{min-width:0}#sumTrend>div:last-child,#sumHolds .line-chart-scroll{overflow-x:auto;width:100%}
 </style>
