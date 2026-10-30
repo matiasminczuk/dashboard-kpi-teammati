@@ -126,6 +126,23 @@ body.dark-theme .meli-mark img{mix-blend-mode:normal;background:#ffffff;border-r
 .team-greeting span{color:#64748b;font-size:13px}
 body.dark-theme .team-greeting{background:#1b2a40;border-color:#41516b}
 body.dark-theme .team-greeting strong{color:#f2f6fc}
+
+/* V38: Holds ocupa todo el ancho; distribución de flujos premium */
+#sumHolds{width:100%;display:block!important;min-width:0}
+#sumHolds .line-chart-scroll{width:100%!important;max-width:100%!important;overflow:hidden!important;display:block}
+#sumHolds svg{display:block!important;width:100%!important;height:305px!important;max-width:none!important}
+#sumTrend svg{width:100%!important}
+#sumFlows.flows-premium{display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:22px;min-height:330px}
+.flows-premium-head{display:flex;align-items:center;justify-content:flex-end;gap:12px;align-self:flex-end;background:#eef5ff;border-radius:12px;padding:10px 15px;min-width:190px}
+.flows-summary-icon{font-size:27px;color:#3483fa}.flows-summary-text{display:flex;flex-direction:column;gap:2px}.flows-summary-text small{font-size:11px;color:#64748b}.flows-summary-text strong{font-size:24px;color:#1264db;line-height:1.1}
+.flows-premium-list{display:flex;flex-direction:column;gap:16px;width:100%;margin-top:3px}
+.flows-premium-row{display:grid;grid-template-columns:30px 100px minmax(40px,1fr) 65px 64px;align-items:center;gap:9px;min-width:0}
+.flows-row-icon{display:flex;align-items:center;justify-content:center;background:#eef5ff;border-radius:8px;height:29px;font-weight:800;font-size:17px}
+.flows-row-name{font-size:12px;color:#203657;white-space:nowrap}.flows-premium-track{height:15px!important}.flows-row-count{font-size:12px;text-align:right;color:#24364b}.flows-row-percent{font-size:12px;text-align:right;background:#eef5ff;padding:5px 4px;border-radius:8px}
+body.dark-theme .flows-premium-head,body.dark-theme .flows-row-icon,body.dark-theme .flows-row-percent{background:#243650}
+body.dark-theme .flows-row-name,body.dark-theme .flows-row-count{color:#e2e9f5}
+body.dark-theme .flows-summary-text small{color:#b3c2d8}
+@media(max-width:650px){.flows-premium-row{grid-template-columns:24px 80px minmax(20px,1fr) 50px 49px;gap:4px}.flows-row-name,.flows-row-count,.flows-row-percent{font-size:10px}.flows-premium-list{gap:12px}}
 </style>
 <style>
 .settings-wrap{position:relative;display:inline-flex;align-items:center}
@@ -504,7 +521,7 @@ function renderSummaryVisual(){
   const legend=document.createElement('div');legend.className='summary-legend';
   for(const s of series){const item=document.createElement('span'),dot=document.createElement('i');dot.style.background=s.color;item.append(dot,document.createTextNode(s.name));legend.appendChild(item);}
   const targetLabel=document.createElement('span');targetLabel.style.color='#e5484d';targetLabel.textContent='┄ Target: 100 tareas';legend.appendChild(targetLabel);trendEl.appendChild(legend);
-  const ns='http://www.w3.org/2000/svg',width=Math.max(720,Math.round(trendEl.getBoundingClientRect().width)||960),height=340,left=65,right=30,top=45,bottom=52;
+  const ns='http://www.w3.org/2000/svg',width=1200,height=340,left=65,right=30,top=45,bottom=52;
   const plotW=width-left-right,plotH=height-top-bottom,maximum=Math.max(110,...series.flatMap(s=>s.values)),ceiling=Math.ceil(maximum*1.12);
   const svg=document.createElementNS(ns,'svg');svg.setAttribute('viewBox',`0 0 ${width} ${height}`);svg.setAttribute('preserveAspectRatio','xMinYMin meet');svg.setAttribute('width',width);svg.setAttribute('height',height);svg.setAttribute('role','img');svg.setAttribute('aria-label','Promedio diario semanal de tareas y creaciones con referencia de 100 tareas');
   const add=(tag,attrs,text)=>{const e=document.createElementNS(ns,tag);for(const [k,v] of Object.entries(attrs))e.setAttribute(k,String(v));if(text!==undefined)e.textContent=text;svg.appendChild(e);return e;};
@@ -517,13 +534,36 @@ function renderSummaryVisual(){
   const wrap=document.createElement('div');wrap.style.cssText='width:100%;overflow-x:auto';wrap.appendChild(svg);trendEl.appendChild(wrap);
  }
  const flowEl=make('sumFlows'),total=Object.values(groups).reduce((a,b)=>a+b,0);
- if(!total)empty(flowEl);else for(const [i,name] of ['CCC','DEMANDA','SOPORTE','KNOWN_VALUE','OTROS'].entries()){const row=document.createElement('div');row.className='summary-row';const label=document.createElement('span');label.textContent=name==='DEMANDA'?'Demanda':name==='OTROS'?'Otros':name==='SOPORTE'?'Soporte':name;const track=document.createElement('div');track.className='summary-track';const fill=document.createElement('div');fill.className='summary-fill';fill.style.width=(groups[name]/total*100)+'%';fill.style.background=['#3483fa','#ffbf00','#22a06b','#e28a23','#9b86df'][i];track.appendChild(fill);const pct=document.createElement('strong');pct.textContent=(groups[name]/total*100).toFixed(1)+'%';row.append(label,track,pct);flowEl.appendChild(row);}
+ if(!total)empty(flowEl);else {
+  flowEl.classList.add('flows-premium');
+  const summary=document.createElement('div');summary.className='flows-premium-head';
+  const summaryIcon=document.createElement('span');summaryIcon.className='flows-summary-icon';summaryIcon.textContent='▤';
+  const summaryText=document.createElement('div');summaryText.className='flows-summary-text';
+  const summaryLabel=document.createElement('small');summaryLabel.textContent='Total de tareas';
+  const summaryValue=document.createElement('strong');summaryValue.textContent=fmt(total);
+  const summarySub=document.createElement('small');summarySub.textContent='100% del período';
+  summaryText.append(summaryLabel,summaryValue,summarySub);summary.append(summaryIcon,summaryText);flowEl.appendChild(summary);
+  const list=document.createElement('div');list.className='flows-premium-list';
+  const flowInfo=[['CCC','CCC','#3483fa','▤'],['DEMANDA','Demanda','#ffbf00','▣'],['SOPORTE','Soporte','#22a06b','▥'],['KNOWN_VALUE','KNOWN_VALUE','#e28a23','▧'],['OTROS','Otros','#9b86df','•••']];
+  for(const [key,label,color,symbol] of flowInfo){
+   const count=groups[key],pct=count/total*100;
+   const row=document.createElement('div');row.className='flows-premium-row';
+   const icon=document.createElement('span');icon.className='flows-row-icon';icon.textContent=symbol;icon.style.color=color;
+   const name=document.createElement('span');name.className='flows-row-name';name.textContent=label;
+   const track=document.createElement('div');track.className='summary-track flows-premium-track';
+   const fill=document.createElement('div');fill.className='summary-fill';fill.style.width=pct+'%';fill.style.background=color;track.appendChild(fill);
+   const number=document.createElement('strong');number.className='flows-row-count';number.textContent=fmt(count);
+   const percent=document.createElement('strong');percent.className='flows-row-percent';percent.textContent=pct.toLocaleString('es-AR',{minimumFractionDigits:1,maximumFractionDigits:1})+'%';percent.style.color=color;
+   row.append(icon,name,track,number,percent);list.appendChild(row);
+  }
+  flowEl.appendChild(list);
+ }
   // Evolución de Holds: línea con puntos, usando los mismos datos y filtros del resumen.
   const holdWeeks=[...holds.keys()].sort().slice(-12);
   const holdEl=make('sumHolds');
   if(!holdWeeks.length){empty(holdEl);}else{
    const values=holdWeeks.map(w=>holds.get(w)||0);
-   const ns='http://www.w3.org/2000/svg',width=Math.max(720,Math.round(holdEl.getBoundingClientRect().width)||960),height=285;
+   const ns='http://www.w3.org/2000/svg',width=1200,height=305;
    const left=72,right=35,top=28,bottom=45,plotW=width-left-right,plotH=height-top-bottom;
    const max=Math.max(1,...values),ceiling=Math.max(1,Math.ceil(max*1.15));
    const svg=document.createElementNS(ns,'svg');
