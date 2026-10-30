@@ -148,10 +148,10 @@ const firebaseConfig={apiKey:'AIzaSyB7edb0wGmf86KVrca5zkBTju7wg_zVDFk',authDomai
 const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app);
 const $=id=>document.getElementById(id);let isPM=false,selectedTeam='',publishedItems=[];let isAdmin=false,workbook=null,importPlan=null,importBusy=false,profileData=null,kpiCache=[],kpiLoaded=false,holdsCache=[],holdsImportPlan=null,holdsBusy=false,gestionCache=[],gestionPlan=null,gestionBusy=false,excludedPeople=new Set();const TEAM='Matías Minczuk';const TEAMS=['Matías Minczuk','José Puentes','Matías López','Celeste Cignoli'];const validTeam=v=>TEAMS.find(t=>normalize(t)===normalize(v))||'';const teamForId=id=>{const item=publishedItems.find(x=>x.idMeli===id);return validTeam(item?.equipo)||TEAM;};
 function showLogin(){isPM=false;selectedTeam='';publishedItems=[];document.body.classList.remove('employee-mode','admin-mode');importPlan=null;isAdmin=false;profileData=null;kpiCache=[];holdsCache=[];holdsImportPlan=null;gestionCache=[];gestionPlan=null;kpiLoaded=false;excludedPeople=new Set(); $('login').classList.remove('hidden');$('dashboard').classList.add('hidden');$('logout').classList.add('hidden');$('headerKpi').classList.add('hidden'); }
-function showDashboard(name,admin){isAdmin=admin;isPM=profileData?.rol==='pm';selectedTeam=isPM?'':validTeam(profileData?.equipo)||TEAM;document.body.classList.toggle('admin-mode',admin);$('adminSidebar').classList.toggle('hidden',!admin);document.body.classList.toggle('employee-mode',!admin);$('employeeGreeting').textContent='¡Hola, '+name+'!';$('welcome').textContent=admin?'Bienvenido, '+name:'Mi productividad';$('login').classList.add('hidden');$('dashboard').classList.remove('hidden');$('logout').classList.remove('hidden');$('tabUpload').classList.toggle('hidden',!admin);$('publishKpis').classList.toggle('hidden',!admin);$('pmTeamWrap').classList.toggle('hidden',!isPM);$('pmComparison').classList.toggle('hidden',!isPM);$('pmTeamFilter').value=isPM?'':selectedTeam;switchTab(false);if(admin)selectAdminSection('resumen');loadDashboardKpis().catch(console.error);}
-function switchTab(upload){if(upload&&!isAdmin)return;$('viewDashboard').classList.toggle('hidden',upload);$('viewUpload').classList.toggle('hidden',!upload);$('tabDashboard').classList.toggle('active',!upload);$('tabUpload').classList.toggle('active',upload);}
+function showDashboard(name,admin){isAdmin=admin;isPM=String(profileData?.rol||'').toLowerCase()==='pm';selectedTeam=isPM?'':validTeam(profileData?.equipo)||TEAM;document.body.classList.toggle('admin-mode',admin);$('adminSidebar').classList.toggle('hidden',!admin);document.body.classList.toggle('employee-mode',!admin);$('employeeGreeting').textContent='¡Hola, '+name+'!';$('welcome').textContent=admin?'Bienvenido, '+name:'Mi productividad';$('login').classList.add('hidden');$('dashboard').classList.remove('hidden');$('logout').classList.remove('hidden');$('tabUpload').classList.toggle('hidden',!isPM);$('publishKpis').classList.toggle('hidden',!isPM);$('pmTeamWrap').classList.toggle('hidden',!isPM);$('pmComparison').classList.toggle('hidden',!isPM);$('pmTeamFilter').value=isPM?'':selectedTeam;switchTab(false);if(admin)selectAdminSection('resumen');loadDashboardKpis().catch(console.error);}
+function switchTab(upload){if(upload&&!isPM)return;$('viewDashboard').classList.toggle('hidden',upload);$('viewUpload').classList.toggle('hidden',!upload);$('tabDashboard').classList.toggle('active',!upload);$('tabUpload').classList.toggle('active',upload);}
 $('tabDashboard').addEventListener('click',()=>switchTab(false));$('tabUpload').addEventListener('click',()=>switchTab(true));
-onAuthStateChanged(auth,async user=>{if(!user){showLogin();return;}try{const snap=await getDoc(doc(db,'usuarios',user.uid));if(!snap.exists())throw Error('Perfil no configurado');const profile=snap.data();profileData=profile;showDashboard(profile.nombre||'Catalogador',['admin','pm'].includes(profile.rol));}catch(e){console.error(e);showLogin();$('error').textContent='No se pudo cargar tu perfil. Contactá al administrador.';await signOut(auth);}});
+onAuthStateChanged(auth,async user=>{if(!user){showLogin();return;}try{const snap=await getDoc(doc(db,'usuarios',user.uid));if(!snap.exists())throw Error('Perfil no configurado');const profile=snap.data();profileData=profile;showDashboard(profile.nombre||'Catalogador',['admin','pm','tl'].includes(String(profile.rol||'').toLowerCase()));}catch(e){console.error(e);showLogin();$('error').textContent='No se pudo cargar tu perfil. Contactá al administrador.';await signOut(auth);}});
 $('loginForm').addEventListener('submit',async event=>{event.preventDefault();$('error').textContent='';$('loginButton').disabled=true;try{await signInWithEmailAndPassword(auth,$('email').value.trim(),$('password').value);}catch(e){console.error(e);$('error').textContent=e.code==='auth/invalid-credential'?'Correo o contraseña incorrectos.':'No se pudo iniciar sesión: '+(e.code||'error');}finally{$('loginButton').disabled=false;}});
 $('logout').addEventListener('click',()=>signOut(auth));
 function loadXlsx(){return new Promise((resolve,reject)=>{if(window.XLSX)return resolve();const script=document.createElement('script');script.src='https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';script.onload=()=>window.XLSX?resolve():reject(Error('No se pudo iniciar el lector de Excel'));script.onerror=()=>reject(Error('No se pudo descargar el lector de Excel. Revisá la conexión.'));document.head.appendChild(script);});}
@@ -170,7 +170,7 @@ function validateWorkbook(){const box=$('validation');box.classList.remove('hidd
 // sus registros diarios en kpis/{idMeli}/registros/{tipo_YYYY-MM-DD}.
 // Se comparan primero los valores existentes para evitar escrituras innecesarias.
 async function prepareImport(daily,creations){
-  if(!isAdmin||!auth.currentUser)throw Error('Se requiere una sesión de administrador.');
+  if(!isPM||!auth.currentUser)throw Error('Solo el PM puede importar bases.');
   const panel=$('importPanel');panel.classList.remove('hidden');
   $('confirmImport').disabled=true;$('importStats').classList.add('hidden');
   $('importSummary').textContent='Comparando el Excel con los registros guardados en Firebase…';
@@ -526,7 +526,7 @@ async function loadDashboardKpis(){
  $('kpiStatus').className='status';$('kpiStatus').textContent='Consultando los KPI publicados…';
  try{
   let items=[];
-  if(isAdmin){const ref=profileData?.rol==='tl'?query(collection(db,'kpi_publicados'),where('equipo','==',selectedTeam)):collection(db,'kpi_publicados');const snap=await getDocs(ref);items=snap.docs.map(d=>d.data());}
+  if(isAdmin){const ref=!isPM?query(collection(db,'kpi_publicados'),where('equipo','==',selectedTeam)):collection(db,'kpi_publicados');const snap=await getDocs(ref);items=snap.docs.map(d=>d.data());}
   else {const id=String(profileData?.idMeli||'').trim();if(!id){$('kpiStatus').className='status bad';$('kpiStatus').textContent='Tu usuario todavía no tiene un ID MELI asignado. Pedile al administrador que lo vincule en Firebase.';return;}const snap=await getDoc(doc(db,'kpi_publicados',id));if(snap.exists())items=[snap.data()];}
   applyPublishedData(items);
   $('kpiStatus').className='status '+(items.length?'good':'');
@@ -537,7 +537,7 @@ async function loadDashboardKpis(){
 // Los holds se compactan por fecha: el dashboard solo necesita sus cantidades diarias.
 let publishing=false;
 $('publishKpis').addEventListener('click',async()=>{
- if(!isAdmin||publishing||!auth.currentUser)return;
+ if(!isPM||publishing||!auth.currentUser)return;
  if(!confirm('¿Leer el historial de Firebase y publicar los KPI actualizados para todos los colaboradores? Esta operación puede consumir muchas lecturas.'))return;
  publishing=true;$('publishKpis').disabled=true;const status=$('publishStatus');status.className='status';status.textContent='Leyendo historial original (una sola pasada)…';
  try{
@@ -762,6 +762,7 @@ $('reloadKpis').addEventListener('click',()=>{renderKpis();$('kpiStatus').textCo
   'flujos-tiempos':['gestionPanel','tiemposPanel']
  };function selectAdminSection(section){
  if(!isAdmin)return;
+ if(section==='cargar'&&!isPM)return;
  const upload=section==='cargar';switchTab(upload);
  document.querySelectorAll('#adminSidebar .side-link').forEach(b=>{const on=b.dataset.section===section;b.classList.toggle('active',on);b.setAttribute('aria-current',on?'page':'false');});
  for(const id of ['pmComparison','summaryVisual','mainCards','weeklyPanel','holdsPanel','gestionPanel','tiemposPanel','teamPeoplePanel','peopleControl','pendingPanel']){
