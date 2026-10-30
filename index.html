@@ -476,15 +476,15 @@ function renderSummaryVisual(){
   const legend=document.createElement('div');legend.className='summary-legend';
   for(const s of series){const item=document.createElement('span'),dot=document.createElement('i');dot.style.background=s.color;item.append(dot,document.createTextNode(s.name));legend.appendChild(item);}
   const targetLabel=document.createElement('span');targetLabel.style.color='#e5484d';targetLabel.textContent='┄ Target: 100 tareas';legend.appendChild(targetLabel);trendEl.appendChild(legend);
-  const ns='http://www.w3.org/2000/svg',width=Math.max(1100,trendWeeks.length*92+90),height=410,left=45,right=30,top=20,bottom=40;
+  const ns='http://www.w3.org/2000/svg',width=Math.max(1100,trendWeeks.length*92+90),height=260,left=72,right=35,top=22,bottom=44;
   const plotW=width-left,plotH=height-top-bottom,maximum=Math.max(110,...series.flatMap(s=>s.values)),ceiling=Math.ceil(maximum*1.12);
   const svg=document.createElementNS(ns,'svg');svg.setAttribute('viewBox',`0 0 ${width} ${height}`);svg.setAttribute('preserveAspectRatio','none');svg.setAttribute('width',width);svg.setAttribute('height',height);svg.style.maxWidth='100%';svg.style.height='auto';svg.setAttribute('role','img');svg.setAttribute('aria-label','Promedio diario semanal de tareas y creaciones con referencia de 100 tareas');
   const add=(tag,attrs,text)=>{const e=document.createElementNS(ns,tag);for(const [k,v] of Object.entries(attrs))e.setAttribute(k,String(v));if(text!==undefined)e.textContent=text;svg.appendChild(e);return e;};
   const x=i=>left+(trendWeeks.length===1?plotW/2:i*(plotW-right)/(trendWeeks.length-1));
   const y=v=>top+plotH-v/ceiling*plotH;
-  for(let tick=0;tick<=4;tick++){const val=ceiling*tick/4,yy=y(val);add('line',{x1:left,y1:yy,x2:width-right,y2:yy,stroke:'currentColor','stroke-opacity':'.12'});add('text',{x:left-7,y:yy+4,'text-anchor':'end','font-size':11,fill:'currentColor'},Math.round(val));}
+  for(let tick=0;tick<=4;tick++){const val=ceiling*tick/4,yy=y(val);add('line',{x1:left,y1:yy,x2:width-right,y2:yy,stroke:'currentColor','stroke-opacity':'.12'});add('text',{x:left-7,y:yy+7,'text-anchor':'end','font-size':20,fill:'currentColor'},Math.round(val));}
   const ty=y(100);add('line',{x1:left,y1:ty,x2:width-right,y2:ty,stroke:'#e5484d','stroke-width':2,'stroke-dasharray':'7 6'});
-  for(const [i,w] of trendWeeks.entries())add('text',{x:x(i),y:height-13,'text-anchor':'middle','font-size':11,fill:'currentColor'},w.split('-').pop());
+  for(const [i,w] of trendWeeks.entries())add('text',{x:x(i),y:height-12,'text-anchor':'middle','font-size':20,fill:'currentColor'},w.split('-').pop());
   for(const s of series){const points=s.values.map((v,i)=>`${x(i)},${y(v)}`).join(' ');add('polyline',{points,fill:'none',stroke:s.color,'stroke-width':3,'stroke-linejoin':'round','stroke-linecap':'round'});s.values.forEach((v,i)=>{const dot=add('circle',{cx:x(i),cy:y(v),r:4,fill:s.color,stroke:'var(--card-bg, #fff)','stroke-width':1});const title=document.createElementNS(ns,'title');title.textContent=`${s.name} · ${trendWeeks[i]}: ${fmt(v)}`;dot.appendChild(title);});}
   const wrap=document.createElement('div');wrap.style.cssText='width:100%;overflow-x:auto';wrap.appendChild(svg);trendEl.appendChild(wrap);
  }
@@ -495,8 +495,8 @@ function renderSummaryVisual(){
   const holdEl=make('sumHolds');
   if(!holdWeeks.length){empty(holdEl);}else{
    const values=holdWeeks.map(w=>holds.get(w)||0);
-   const ns='http://www.w3.org/2000/svg',width=Math.max(1100,holdWeeks.length*92+90),height=410;
-   const left=43,right=25,top=28,bottom=43,plotW=width-left-right,plotH=height-top-bottom;
+   const ns='http://www.w3.org/2000/svg',width=Math.max(1100,holdWeeks.length*92+90),height=260;
+   const left=72,right=35,top=28,bottom=45,plotW=width-left-right,plotH=height-top-bottom;
    const max=Math.max(1,...values),ceiling=Math.max(1,Math.ceil(max*1.15));
    const svg=document.createElementNS(ns,'svg');
    svg.setAttribute('viewBox',`0 0 ${width} ${height}`);
@@ -509,15 +509,15 @@ function renderSummaryVisual(){
    for(let i=0;i<=4;i++){
     const value=ceiling*i/4,py=y(value);
     add('line',{x1:left,y1:py,x2:width-right,y2:py,stroke:'#dce5f1','stroke-dasharray':'4 5'});
-    add('text',{x:left-8,y:py+4,'text-anchor':'end',fill:'#718096','font-size':11},fmt(value));
+    add('text',{x:left-8,y:py+7,'text-anchor':'end',fill:'#718096','font-size':20},fmt(value));
    }
    if(values.length>1)add('polyline',{points:values.map((v,i)=>`${x(i)},${y(v)}`).join(' '),fill:'none',stroke:'#3483fa','stroke-width':3,'stroke-linejoin':'round','stroke-linecap':'round'});
    values.forEach((v,i)=>{
     const cx=x(i),cy=y(v);
     const point=add('circle',{cx,cy,r:5,fill:'#fff',stroke:'#3483fa','stroke-width':3});
     const tip=document.createElementNS(ns,'title');tip.textContent=`${holdWeeks[i]}: ${fmt(v)} holds`;point.appendChild(tip);
-    add('text',{x:cx,y:Math.max(13,cy-12),'text-anchor':'middle',fill:'#2467c5','font-size':11,'font-weight':700},fmt(v));
-    add('text',{x:cx,y:height-17,'text-anchor':'middle',fill:'#718096','font-size':11},holdWeeks[i].split('-').pop());
+    add('text',{x:cx,y:Math.max(19,cy-16),'text-anchor':'middle',fill:'#2467c5','font-size':20,'font-weight':700},fmt(v));
+    add('text',{x:cx,y:height-12,'text-anchor':'middle',fill:'#718096','font-size':20},holdWeeks[i].split('-').pop());
    });
    const scroll=document.createElement('div');scroll.className='line-chart-scroll';scroll.appendChild(svg);holdEl.appendChild(scroll);
   }
