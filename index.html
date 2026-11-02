@@ -201,7 +201,7 @@ body.dark-theme #employeePeriodFilters #kpiFlowControls{border-top-color:#33435b
 #employeePeriodFilters{margin-bottom:16px}
 
 /* V55: selector individual oculto en TL/PM; selección desde panel lateral. */
-.admin-mode #employeePeriodFilters #personFilterWrap{display:none!important}
+.admin-mode[data-admin-section="productividad-holds"] #employeePeriodFilters #personFilterWrap{display:none!important}
 /* V54: barra unificada de filtros administrativos. */
 .admin-mode #employeePeriodFilters{padding:16px 18px;margin-bottom:16px}
 .admin-mode #employeePeriodFilters .week-filters{grid-template-columns:repeat(3,minmax(0,1fr));gap:12px 14px;align-items:end}
@@ -1088,6 +1088,7 @@ function phEscape(s){return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<
  };function selectAdminSection(section){
  if(!isAdmin)return;
  if(section==='cargar'&&!isPM)return;
+ document.body.dataset.adminSection=section;
  const upload=section==='cargar';switchTab(upload);$('teamGreeting').classList.toggle('hidden',section!=='resumen');
  document.querySelectorAll('#adminSidebar .side-link').forEach(b=>{const on=b.dataset.section===section;b.classList.toggle('active',on);b.setAttribute('aria-current',on?'page':'false');});
  for(const id of ['pmComparison','summaryVisual','mainCards','weeklyPanel','holdsPanel','gestionPanel','tiemposPanel','teamPeoplePanel','peopleControl','pendingPanel','productivityV53']){
