@@ -422,12 +422,17 @@ function monday(date){const d=new Date(date+'T12:00:00');const offset=(d.getDay(
 const pad2=n=>String(n).padStart(2,'0');
 function isoWeek(date){const d=new Date(date+'T12:00:00');d.setDate(d.getDate()+4-(d.getDay()||7));const year=d.getFullYear();const first=new Date(year,0,1,12);const week=Math.ceil((((d-first)/86400000)+1)/7);return {year,week,key:`${year}-W${pad2(week)}`};}
 function mondayLabel(date){const d=new Date(date+'T12:00:00');d.setDate(d.getDate()-((d.getDay()+6)%7));return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;}
-const isVisiblePeriod=date=>typeof date==='string' && /^2026-(10|11|12)-\d{2}$/.test(date);
+const localToday=()=>{const d=new Date();return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;};
+const isVisiblePeriod=date=>typeof date==='string' && /^2026-(10|11|12)-\d{2}$/.test(date) && date<=localToday();
 function updateWeekMode(){const mode=$('weekMode').value;for(const [id,on] of [['monthWrap',mode==='month'],['quarterWrap',mode==='quarter'],['startWeekWrap',mode==='weeks'],['endWeekWrap',mode==='weeks']])$(id).classList.toggle('hidden',!on);}
 function initWeekFilters(){
   const years=[2026];
   const yearSel=$('weekYear'), oldYear=yearSel.value;yearSel.replaceChildren();for(const y of years){const o=document.createElement('option');o.value=y;o.textContent=y;yearSel.appendChild(o);}if(years.includes(Number(oldYear)))yearSel.value=oldYear;
-  const weekKeys=[...new Set(Array.from({length:92},(_,i)=>{const d=new Date(2026,9,1+i,12);return isoWeek(`${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`).key;}))].sort();
+  const today=localToday();
+  const monthSel=$('weekMonth'),previousMonth=monthSel.value;monthSel.replaceChildren();
+  for(const [n,label] of [[10,'Octubre'],[11,'Noviembre'],[12,'Diciembre']]){if(`2026-${pad2(n)}-01`>today)continue;const option=document.createElement('option');option.value=String(n);option.textContent=label;monthSel.appendChild(option);}
+  if([...monthSel.options].some(o=>o.value===previousMonth))monthSel.value=previousMonth;
+  const weekKeys=[...new Set(Array.from({length:92},(_,i)=>{const d=new Date(2026,9,1+i,12);const day=`${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;return day<=today?isoWeek(day).key:null;}).filter(Boolean))].sort();
   for(const id of ['weekStart','weekEnd']){const el=$(id),old=el.value;el.replaceChildren();for(const k of weekKeys){const o=document.createElement('option');o.value=k;o.textContent=k;el.appendChild(o);}if(weekKeys.includes(old))el.value=old;}
   if(weekKeys.length&&!$('weekStart').value)$('weekStart').value=weekKeys[0];if(weekKeys.length&&!$('weekEnd').value)$('weekEnd').value=weekKeys.at(-1);
   // Elegir el trimestre y mes más recientes disponibles al cargar el dashboard.
@@ -563,7 +568,7 @@ function renderWeeklyChart(){
   }
 }
 
-for(const id of ['weekMode','weekYear','weekMonth','weekQuarter','weekStart','weekEnd'])$(id).addEventListener('change',()=>{updateWeekMode();renderKpis();renderPMComparison();});
+for(const id of ['weekMode','weekYear','weekMonth','weekQuarter','weekStart','weekEnd'])$(id).addEventListener('change',()=>{initWeekFilters();updateWeekMode();renderKpis();renderPMComparison();});
 
 // Filtros generales por semana ISO: se aplican a todas las tarjetas y a la tabla de catalogadores.
 function initMainWeekFilters(){
