@@ -176,25 +176,29 @@ body.employee-mode #employeeFlowPercent{display:block;margin:12px 0 20px}
 .employee-mode #employeeHero{display:block;margin:0;padding:17px 21px;min-width:0}
 .employee-mode #employeeHero h2{font-size:22px;margin:4px 0}
 .employee-mode #employeeHero p{font-size:13px;margin:3px 0}
-.employee-mode #employeePeriodFilters{display:block;margin:0 0 16px;padding:14px 18px;background:#fff;border-radius:13px;box-shadow:0 5px 22px #14233a0b}
-.employee-mode #employeePeriodFilters .week-filters{margin:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
-.employee-mode #employeePeriodFilters .week-filters>div{min-width:0}
-.employee-mode #employeePeriodFilters select{width:100%}
-body.dark-theme.employee-mode #employeePeriodFilters{background:#18243a}
-@media(max-width:850px){.employee-mode .employee-top-row{grid-template-columns:1fr;gap:12px}.employee-mode #employeePeriodFilters .week-filters{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(max-width:480px){.employee-mode #employeePeriodFilters .week-filters{grid-template-columns:1fr}}
+body #employeePeriodFilters{display:block;margin:0 0 16px;padding:14px 18px;background:#fff;border-radius:13px;box-shadow:0 5px 22px #14233a0b}
+body #employeePeriodFilters .week-filters{margin:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+body #employeePeriodFilters .week-filters>div{min-width:0}
+body #employeePeriodFilters select{width:100%}
+body.dark-theme #employeePeriodFilters{background:#18243a}
+@media(max-width:850px){.employee-mode .employee-top-row{grid-template-columns:1fr;gap:12px}body #employeePeriodFilters .week-filters{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:480px){body #employeePeriodFilters .week-filters{grid-template-columns:1fr}}
 
 /* V46: cabecera completa, filtro de productividad integrado, sin detalle semanal para catalogadores. */
 .employee-mode #employeeTitleGroup{display:none!important}
 .employee-mode .employee-top-row{display:block;margin:8px 0 14px}
 .employee-mode #employeeHero{display:block;width:100%;box-sizing:border-box;padding:22px 26px}
 .employee-mode #employeeWeeklyTablePanel{display:none!important}
-.employee-mode #employeePeriodFilters{padding:16px 18px}
-.employee-mode #employeePeriodFilters #kpiFlowControls{display:flex;flex-wrap:wrap;align-items:center;gap:10px 20px;margin:14px 0 0;padding:13px 0 0;border:0;border-top:1px solid #e3e9f2;background:transparent;box-shadow:none;border-radius:0}
-.employee-mode #employeePeriodFilters #kpiFlowControls strong{white-space:nowrap}
-.employee-mode #employeePeriodFilters #kpiFlowControls label{display:inline-flex;align-items:center;gap:7px;margin:0}
-.employee-mode #employeePeriodFilters #kpiFlowControls small{flex-basis:100%;margin:0}
-body.dark-theme.employee-mode #employeePeriodFilters #kpiFlowControls{border-top-color:#33435b}
+body #employeePeriodFilters{padding:16px 18px}
+body #employeePeriodFilters #kpiFlowControls{display:flex;flex-wrap:wrap;align-items:center;gap:10px 20px;margin:14px 0 0;padding:13px 0 0;border:0;border-top:1px solid #e3e9f2;background:transparent;box-shadow:none;border-radius:0}
+body #employeePeriodFilters #kpiFlowControls strong{white-space:nowrap}
+body #employeePeriodFilters #kpiFlowControls label{display:inline-flex;align-items:center;gap:7px;margin:0}
+body #employeePeriodFilters #kpiFlowControls small{flex-basis:100%;margin:0}
+body.dark-theme #employeePeriodFilters #kpiFlowControls{border-top-color:#33435b}
+/* V50: el selector temporal es único para todos los roles. */
+#viewDashboard>.panel.filters #fromWeek,#viewDashboard>.panel.filters #toWeek{display:none}
+#viewDashboard>.panel.filters div:has(> #fromWeek),#viewDashboard>.panel.filters div:has(> #toWeek){display:none!important}
+#employeePeriodFilters{margin-bottom:16px}
 </style>
 <style>
 .settings-wrap{position:relative;display:inline-flex;align-items:center}
@@ -256,7 +260,7 @@ body.dark-theme .hours-premium-track{border-color:#42526b}
 <nav class="tabs"><button id="tabDashboard" class="tab active" type="button">📊 Dashboard</button><button id="tabUpload" class="tab hidden" type="button">📁 Cargar bases</button></nav></div>
 <section id="employeeHero" class="employee-only employee-hero"><span class="employee-tag">MI PANEL PERSONAL</span><h2 id="employeeGreeting">Mi rendimiento</h2><p>Tu productividad, creaciones, holds y horarios de gestión en un solo lugar.</p><p id="employeePeriodNote">Los indicadores corresponden al período seleccionado.</p></section></div>
 <div id="viewDashboard">
-<div id="employeePeriodFilters" class="employee-only"></div>
+<div id="employeePeriodFilters"></div>
 <div class="panel filters"><div id="pmTeamWrap" class="hidden"><label for="pmTeamFilter">Equipo / TL</label><select id="pmTeamFilter"><option value="">Todos los equipos</option><option>Matías Minczuk</option><option>José Puentes</option><option>Matías López</option><option>Celeste Cignoli</option></select></div><div id="personFilterWrap"><label for="personFilter">Catalogador</label><select id="personFilter"><option value="">Todos los catalogadores</option></select></div><div><label for="fromWeek">Desde semana</label><select id="fromWeek"></select></div><div><label for="toWeek">Hasta semana</label><select id="toWeek"></select></div><div class="filter-actions"><button id="resetFilters" type="button" class="tab">Limpiar filtros</button><button id="reloadKpis" type="button">↻ Actualizar</button></div></div>
 <details id="peopleControl" class="panel people-control" hidden><summary>☑ Catalogadores incluidos en el promedio del equipo</summary><p class="muted">Destildá a quienes estén en otros proyectos. No se borra su historial: podés consultarlos individualmente desde el selector de arriba.</p><div class="people-tools"><button id="selectAllPeople" type="button" class="tab">Seleccionar todos</button><button id="clearAllPeople" type="button" class="tab">Desmarcar todos</button></div><div id="peopleChecklist" class="people-list"></div><p id="peopleCount" class="people-count"></p><p class="muted">La selección se recuerda en este navegador. Afecta al promedio del equipo, el gráfico semanal y la tabla general.</p></details>
 <p id="publishStatus" class="status hidden" role="status">Sin consultar historial.</p>
@@ -276,7 +280,7 @@ body.dark-theme .hours-premium-track{border-color:#42526b}
  <article class="panel summary-visual"><h2>Cierres por franja horaria</h2><p class="summary-sub">Tareas finalizadas · Gestión</p><div id="sumHours" class="summary-chart"></div></article>
 </section>
 <section class="panel" id="weeklyPanel"><h2>Evolución semanal</h2><p class="muted">Promedio diario de productividad y creaciones por semana (lunes a domingo). Los filtros de esta sección son independientes de las fechas del resumen superior.</p>
-<div class="week-filters"><div><label for="weekMode">Período</label><select id="weekMode"><option value="quarter" selected>Trimestre</option></select></div><div><label for="weekYear">Año</label><select id="weekYear"></select></div><div id="monthWrap" class="hidden"><label for="weekMonth">Mes</label><select id="weekMonth"><option value="1">Enero</option><option value="2">Febrero</option><option value="3">Marzo</option><option value="4">Abril</option><option value="5">Mayo</option><option value="6">Junio</option><option value="7">Julio</option><option value="8">Agosto</option><option value="9">Septiembre</option><option value="10">Octubre</option><option value="11">Noviembre</option><option value="12">Diciembre</option></select></div><div id="quarterWrap"><label for="weekQuarter">Quarter</label><select id="weekQuarter"><option value="4" selected>Q4</option></select></div><div id="startWeekWrap" class="hidden"><label for="weekStart">Desde semana</label><select id="weekStart"></select></div><div id="endWeekWrap" class="hidden"><label for="weekEnd">Hasta semana</label><select id="weekEnd"></select></div></div>
+<div class="week-filters"><div><label for="weekMode">Período</label><select id="weekMode"><option value="quarter" selected>Trimestre</option><option value="month">Mes</option><option value="weeks">Semanas</option></select></div><div><label for="weekYear">Año</label><select id="weekYear"></select></div><div id="monthWrap" class="hidden"><label for="weekMonth">Mes</label><select id="weekMonth"><option value="10" selected>Octubre</option><option value="11">Noviembre</option><option value="12">Diciembre</option></select></div><div id="quarterWrap"><label for="weekQuarter">Quarter</label><select id="weekQuarter"><option value="4" selected>Q4</option></select></div><div id="startWeekWrap" class="hidden"><label for="weekStart">Desde semana</label><select id="weekStart"></select></div><div id="endWeekWrap" class="hidden"><label for="weekEnd">Hasta semana</label><select id="weekEnd"></select></div></div>
 <p id="weeklyStatus" class="muted"></p><div id="weeklyChart" class="weekly-chart"><p class="muted">Cargando gráfico…</p></div><div class="table-wrap week-table"><table><thead><tr><th>Semana</th><th>Período</th><th>Promedio diario de tareas</th><th>Promedio diario de creaciones</th><th>Jornadas tareas</th><th>Jornadas creaciones</th></tr></thead><tbody id="weeklyRows"></tbody></table></div><p class="week-chart-note">El promedio semanal se calcula como total de tareas o creaciones dividido por las jornadas registradas de ese indicador. En la vista general se promedian todas las jornadas registradas del equipo. Las semanas que cruzan un mes o un Q usan solo los días del período elegido.</p></section>
 <section class="panel employee-only" id="employeeCreationsPanel"><h2>Creaciones · promedio diario</h2><div id="employeeCreationsChart" class="weekly-chart"></div></section>
 <section class="panel" id="holdsPanel"><h2>⏸️ Evolución de tareas holdeadas</h2><p class="muted">Se cuenta cada fila del CSV, incluso cuando se repite el ID CDM, según la fecha de «Ultimo Hold». Se utilizan los mismos filtros de catalogador y período del gráfico superior.</p><div class="holds-stats"><div class="holds-stat"><span class="muted">Tareas holdeadas en el período</span><strong id="holdsTotal">—</strong></div><div class="holds-stat"><span class="muted">Semanas con holds</span><strong id="holdsWeeks">—</strong></div><div class="holds-stat"><span class="muted">Promedio semanal</span><strong id="holdsAverage">—</strong></div></div><p id="holdsStatus" class="muted">Consultando historial de holds…</p><div id="holdsChart" class="weekly-chart"></div><div class="table-wrap week-table"><table><thead><tr><th>Semana</th><th>Tareas holdeadas (filas del CSV)</th></tr></thead><tbody id="holdsWeeklyRows"></tbody></table></div><h3>Holds por catalogador</h3><div class="table-wrap"><table><thead><tr><th>Catalogador</th><th>ID MELI</th><th>Holds</th></tr></thead><tbody id="holdsPeopleRows"></tbody></table></div></section>
@@ -302,6 +306,7 @@ function arrangeEmployeePanels(){
  const weekly=$('weeklyPanel'),summary=$('summaryVisual'),holds=$('holdsPanel'),creations=$('employeeCreationsPanel'),gestion=$('gestionPanel'),times=$('tiemposPanel'),table=$('employeeWeeklyTablePanel');
  const wrap=weekly.parentNode;
  const periodFilters=weekly.querySelector('.week-filters')||$('employeePeriodFilters').querySelector('.week-filters');
+ if(periodFilters)$('employeePeriodFilters').appendChild(periodFilters);
  if(!isAdmin){
   if(periodFilters)$('employeePeriodFilters').appendChild(periodFilters);
   $('employeePeriodFilters').appendChild($('kpiFlowControls'));
@@ -309,8 +314,8 @@ function arrangeEmployeePanels(){
   weekly.after(creations);creations.after(holds);holds.after(gestion);gestion.after(times);times.after(summary);summary.after(table);
   const t=weekly.querySelector('.week-table');if(t)$('employeeWeeklyTableSlot').appendChild(t);
  }else{
-  if(periodFilters)weekly.querySelector('h2').after(periodFilters);
-  $('pmComparison').after($('kpiFlowControls'));
+  // Filtros compartidos arriba para TL, PM y catalogadores.
+  $('employeePeriodFilters').appendChild($('kpiFlowControls'));
   const t=$('employeeWeeklyTableSlot').querySelector('.week-table');if(t)weekly.querySelector('.weekly-chart').after(t);
   $('mainCards').after($('employeeFlowPercent'));$('employeeFlowPercent').after(summary);summary.after(weekly);weekly.after(holds);holds.after(gestion);gestion.after(times);
  }
@@ -422,7 +427,7 @@ function updateWeekMode(){const mode=$('weekMode').value;for(const [id,on] of [[
 function initWeekFilters(){
   const years=[2026];
   const yearSel=$('weekYear'), oldYear=yearSel.value;yearSel.replaceChildren();for(const y of years){const o=document.createElement('option');o.value=y;o.textContent=y;yearSel.appendChild(o);}if(years.includes(Number(oldYear)))yearSel.value=oldYear;
-  const weekKeys=[...new Set([...kpiCache,...gestionCache].filter(r=>isVisiblePeriod(r.fecha)).map(r=>isoWeek(r.fecha).key))].sort();
+  const weekKeys=[...new Set(Array.from({length:92},(_,i)=>{const d=new Date(2026,9,1+i,12);return isoWeek(`${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`).key;}))].sort();
   for(const id of ['weekStart','weekEnd']){const el=$(id),old=el.value;el.replaceChildren();for(const k of weekKeys){const o=document.createElement('option');o.value=k;o.textContent=k;el.appendChild(o);}if(weekKeys.includes(old))el.value=old;}
   if(weekKeys.length&&!$('weekStart').value)$('weekStart').value=weekKeys[0];if(weekKeys.length&&!$('weekEnd').value)$('weekEnd').value=weekKeys.at(-1);
   // Elegir el trimestre y mes más recientes disponibles al cargar el dashboard.
@@ -558,7 +563,7 @@ function renderWeeklyChart(){
   }
 }
 
-for(const id of ['weekMode','weekYear','weekMonth','weekQuarter','weekStart','weekEnd'])$(id).addEventListener('change',()=>{updateWeekMode();renderWeeklyChart();renderHolds();renderGestion();});
+for(const id of ['weekMode','weekYear','weekMonth','weekQuarter','weekStart','weekEnd'])$(id).addEventListener('change',()=>{updateWeekMode();renderKpis();renderPMComparison();});
 
 // Filtros generales por semana ISO: se aplican a todas las tarjetas y a la tabla de catalogadores.
 function initMainWeekFilters(){
@@ -577,7 +582,7 @@ function initMainWeekFilters(){
 // No invoca ninguna operación de Firebase.
 function renderSummaryVisual(){
  const who=$('personFilter').value,from=$('fromWeek').value,to=$('toWeek').value;
- const match=r=>isVisiblePeriod(r.fecha)&&(!who||r.id===who)&&includedRecord(r)&&(!from||isoWeek(r.fecha).key>=from)&&(!to||isoWeek(r.fecha).key<=to);
+ const match=r=>weeklyMatches(r.fecha)&&(!who||r.id===who)&&includedRecord(r);
  const tasks=new Map(),creations=new Map(),holds=new Map(),groups={CCC:0,DEMANDA:0,SOPORTE:0,KNOWN_VALUE:0,OTROS:0},bins=[0,0,0,0,0,0];
  const excludedDays=excludedFlowDays();
  for(const r of kpiCache.filter(r=>match(r)&&isKpiDay(r,excludedDays))){const map=r.tipo==='tareas'?tasks:r.tipo==='creaciones'?creations:null;const key=isoWeek(r.fecha).key;if(map){const item=map.get(key)||{sum:0,count:0,days:new Set()};item.sum+=Number(r.cantidad)||0;const dayKey=String(r.id)+'|'+String(r.fecha);if(!item.days.has(dayKey)){item.days.add(dayKey);item.count++;}map.set(key,item);}}
@@ -708,7 +713,7 @@ function renderSummaryVisual(){
 function renderHeaderKpi(){
  const who=$('personFilter').value,from=$('fromWeek').value,to=$('toWeek').value;
  const excludedDays=excludedFlowDays();
- const rows=kpiCache.filter(r=>isVisiblePeriod(r.fecha)&&r.tipo==='tareas'&&isKpiDay(r,excludedDays)&&(!who||r.id===who)&&includedRecord(r)&&(!from||isoWeek(r.fecha).key>=from)&&(!to||isoWeek(r.fecha).key<=to));
+ const rows=kpiCache.filter(r=>isVisiblePeriod(r.fecha)&&r.tipo==='tareas'&&isKpiDay(r,excludedDays)&&(!who||r.id===who)&&includedRecord(r)&&weeklyMatches(r.fecha));
  const total=rows.reduce((sum,r)=>sum+(Number(r.cantidad)||0),0);
  $('headerKpi').classList.remove('hidden');
  $('headerAverage').textContent=rows.length?fmt(total/rows.length):'—';
@@ -726,8 +731,8 @@ function renderHeaderKpi(){
 function renderKpis(){
   const who=$('personFilter').value,from=$('fromWeek').value,to=$('toWeek').value;
   if(from && to && from>to){$('kpiStatus').className='status bad';$('kpiStatus').textContent='La semana inicial no puede ser posterior a la final.';return;}
-  if(!isAdmin)$('employeePeriodNote').textContent=from||to?'Mostrando tus indicadores para las semanas seleccionadas.':'Mostrando Q4 de 2026.';
-  const filtered=kpiCache.filter(r=>isVisiblePeriod(r.fecha)&&(!who||r.id===who)&&includedRecord(r)&&(!from||isoWeek(r.fecha).key>=from)&&(!to||isoWeek(r.fecha).key<=to));
+  if(!isAdmin)$('employeePeriodNote').textContent='Mostrando tus indicadores del período seleccionado dentro de Q4 de 2026.';
+  const filtered=kpiCache.filter(r=>isVisiblePeriod(r.fecha)&&(!who||r.id===who)&&includedRecord(r)&&weeklyMatches(r.fecha));
   const excludedDays=excludedFlowDays();
   const computable=filtered.filter(r=>isKpiDay(r,excludedDays));
   const tasks=computable.filter(r=>r.tipo==='tareas'),creations=filtered.filter(r=>r.tipo==='creaciones');
@@ -748,7 +753,7 @@ function renderKpis(){
 // V16: las vistas consultan SOLO los documentos publicados; nunca el historial crudo.
 function applyPublishedData(items){
  publishedItems=items;renderPMComparison();applyTeamView();}
-function renderPMComparison(){if(!isPM)return;const body=$('pmComparisonRows');body.replaceChildren();for(const team of TEAMS){const items=publishedItems.filter(x=>validTeam(x.equipo)===team);const excluded=new Set(items.flatMap(x=>(x.gestion||[]).filter(g=>Object.entries(g.flujos||{}).some(([f,n])=>Number(n)>0&&(($('excludeKnown').checked&&gCategory(f)==='KNOWN_VALUE')||($('excludeSupport').checked&&gCategory(f)==='SOPORTE')))).map(g=>x.idMeli+'|'+g.fecha)));const tasks=items.flatMap(x=>(x.tareas||[]).filter(r=>r.tipo==='tareas'&&!excluded.has(x.idMeli+'|'+r.fecha)));const total=tasks.reduce((n,r)=>n+(Number(r.cantidad)||0),0);const tr=document.createElement('tr');for(const v of [team,items.length,tasks.length,tasks.length?fmt(total/tasks.length):'—',fmt(total)]){const td=document.createElement('td');td.textContent=String(v);tr.appendChild(td);}body.appendChild(tr);}}
+function renderPMComparison(){if(!isPM)return;const body=$('pmComparisonRows');body.replaceChildren();for(const team of TEAMS){const items=publishedItems.filter(x=>validTeam(x.equipo)===team);const excluded=new Set(items.flatMap(x=>(x.gestion||[]).filter(g=>Object.entries(g.flujos||{}).some(([f,n])=>Number(n)>0&&(($('excludeKnown').checked&&gCategory(f)==='KNOWN_VALUE')||($('excludeSupport').checked&&gCategory(f)==='SOPORTE')))).map(g=>x.idMeli+'|'+g.fecha)));const tasks=items.flatMap(x=>(x.tareas||[]).filter(r=>r.tipo==='tareas'&&weeklyMatches(r.fecha)&&!excluded.has(x.idMeli+'|'+r.fecha)));const total=tasks.reduce((n,r)=>n+(Number(r.cantidad)||0),0);const tr=document.createElement('tr');for(const v of [team,items.length,tasks.length,tasks.length?fmt(total/tasks.length):'—',fmt(total)]){const td=document.createElement('td');td.textContent=String(v);tr.appendChild(td);}body.appendChild(tr);}}
 $('pmTeamFilter').addEventListener('change',event=>{if(!isPM)return;selectedTeam=event.target.value;applyTeamView();});
 function applyTeamView(){
  const items=publishedItems.filter(x=>isPM?(!selectedTeam||validTeam(x.equipo)===selectedTeam):(!isAdmin||validTeam(x.equipo)===selectedTeam||(!x.equipo&&selectedTeam===TEAM)));
@@ -994,7 +999,7 @@ $('confirmGestionImport').addEventListener('click',async()=>{
 });
 
 for(const id of ['personFilter','fromWeek','toWeek'])$(id).addEventListener('change',renderKpis);
-$('resetFilters').addEventListener('click',()=>{$('personFilter').value='';$('fromWeek').value='';$('toWeek').value='';renderKpis();});
+$('resetFilters').addEventListener('click',()=>{$('personFilter').value='';$('weekMode').value='quarter';$('weekMonth').value='10';updateWeekMode();renderKpis();renderPMComparison();});
 $('reloadKpis').addEventListener('click',()=>{renderKpis();$('kpiStatus').textContent='Vista actualizada con los datos publicados que ya están cargados. No se consultó Firebase.';});
 
 
