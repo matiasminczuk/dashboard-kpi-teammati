@@ -1027,7 +1027,7 @@ $('reloadKpis').addEventListener('click',()=>{renderKpis();$('kpiStatus').textCo
   const el=$(id);if(!el)continue;
   el.dataset.adminHide=(!upload && !(adminSections[section]||[]).includes(id))?'true':'false';
  }
- if(isPM){$('pmOverview').dataset.adminHide=section==='resumen'?'false':'true';$('mainCards').dataset.adminHide='true';$('summaryVisual').dataset.adminHide='true';renderPmOverview();}else{$('pmOverview').dataset.adminHide='true';}
+ if(isPM){$('pmOverview').classList.toggle('hidden',section!=='resumen');$('pmOverview').dataset.adminHide=section==='resumen'?'false':'true';$('mainCards').dataset.adminHide='true';$('summaryVisual').dataset.adminHide='true';renderPmOverview();}else{$('pmOverview').classList.add('hidden');$('pmOverview').dataset.adminHide='true';}
  $('welcome').textContent=section==='cargar'?'Cargar bases':({resumen:'Resumen','productividad-holds':'Productividad / Holds','flujos-tiempos':'Flujos / Tiempos'}[section]||'Dashboard KPI');
 }
 document.querySelectorAll('#adminSidebar .side-link').forEach(button=>button.addEventListener('click',()=>selectAdminSection(button.dataset.section)));
