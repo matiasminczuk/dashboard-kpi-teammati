@@ -7,7 +7,9 @@ En **Configuración → Cargar bases → Calidad**, elegí el Excel o CSV y revi
 
 El archivo de referencia «Auditorías Octubre.xlsx» tiene cinco hojas de auditorías internas y de MELI, con resultados por colaborador, flujo y, cuando corresponde, acción. La efectividad es la suma de cada efectividad multiplicada por sus tareas auditadas, dividida por el total de tareas auditadas. Cada origen se consulta por separado. Los totales mensuales tienen prioridad sobre el detalle del mismo mes y grupo para evitar contar dos veces las tareas. La vista semanal requiere una fecha o semana en el origen. El conteo de errores requiere un valor explícito en todos los registros del agregado.
 
-La identificación utiliza el ID MELI o una coincidencia única de nombre o usuario registrado en Firebase. La clave de actualización combina el catalogador, el origen, el flujo, la acción, el período y el ID de auditoría cuando existe. Reimportar una fila idéntica mantiene su resultado. Una corrección actualiza la ficha y el archivo de origen queda archivado. Para incorporar una base archivada por el importador anterior, volvé a subir el archivo con su mes de referencia.
+La identificación utiliza el ID MELI o una coincidencia única de nombre o usuario registrado en Firebase. La clave de actualización combina el catalogador, el origen, el flujo, la acción, el período y el ID de auditoría cuando existe. Reimportar una fila idéntica mantiene su resultado. Una corrección actualiza la ficha y el archivo de origen queda archivado.
+
+Para publicar una base del importador anterior, abrí **Calidad → Usar una base ya cargada**. Elegí el archivo de Firebase, completá el mes si falta y revisá la vista previa. Al publicar se incorporan los registros faltantes y se conservan las correcciones ya publicadas.
 
 | Ruta de Firestore | Contenido y acceso |
 | --- | --- |

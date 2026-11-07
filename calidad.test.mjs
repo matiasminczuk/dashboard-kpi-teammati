@@ -1,12 +1,25 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {analyzeQuality, indexPeople, qualityPeriods, selectQualityPeriod, summary, bucketQuality, weekStart} from './calidad.mjs';
+import {analyzeQuality, restoreArchivedQuality, indexPeople, qualityPeriods, selectQualityPeriod, summary, bucketQuality, weekStart} from './calidad.mjs';
 
 const findPerson = indexPeople([
   {id: 'meli-a', name: 'Persona A', aliases: ['ext_a', 'compartido']},
   {id: 'meli-b', name: 'Persona B', aliases: ['ext_b', 'compartido']}
 ]);
 const header = ['Colaborador', 'Q Tareas auditadas', '% Efectividad'];
+
+test('recupera la base archivada en orden y rechaza bloques incompletos', () => {
+  const manifest = {estado:'completado', bloques:2, filasTotales:2,
+    hojas:[{nombre:'Auditorias Internas - SDC', filas:2}]};
+  const blocks = [
+    {indiceHoja:0, filaInicial:1, filas:[{fila:1,celdas:['ext_a','20','95,0%']}]},
+    {indiceHoja:0, filaInicial:0, filas:[{fila:0,celdas:header}]}
+  ];
+  const result = analyzeQuality(restoreArchivedQuality(manifest, blocks), findPerson, '2026-10');
+  assert.deepEqual(summary(result.entries.map(entry=>entry.record)), {audited:20, quality:0.95, errors:null});
+  assert.throws(()=>restoreArchivedQuality(manifest, blocks.slice(0,1)), /incompleta/);
+  assert.throws(()=>restoreArchivedQuality(manifest, [blocks[0],blocks[0]]), /Faltan bloques/);
+});
 
 test('interpreta hojas reales, normaliza porcentajes y rechaza aliases ambiguos', () => {
   const result = analyzeQuality([

@@ -148,6 +148,29 @@ export function analyzeQuality(sheets, resolvePerson, fallbackMonth) {
   return {entries: [...entries.values()], processed, duplicates, rejected, sheetColumns};
 }
 
+export function restoreArchivedQuality(manifest, blocks) {
+  if (manifest.estado !== 'completado' || !Array.isArray(manifest.hojas) || blocks.length !== manifest.bloques) {
+    throw new Error('La base archivada está incompleta.');
+  }
+  const sheets = manifest.hojas.map((sheet, index) => {
+    const rows = [];
+    const parts = blocks.filter(block => block.indiceHoja === index).sort((a, b) => a.filaInicial - b.filaInicial);
+    for (const block of parts) {
+      if (block.filaInicial !== rows.length || !Array.isArray(block.filas)) throw new Error('Faltan bloques de «' + sheet.nombre + '».');
+      for (const row of block.filas) {
+        if (row.fila !== rows.length || !Array.isArray(row.celdas)) throw new Error('Hay filas incompletas en «' + sheet.nombre + '».');
+        rows.push(row.celdas);
+      }
+    }
+    if (rows.length !== sheet.filas) throw new Error('La cantidad de filas no coincide en «' + sheet.nombre + '».');
+    return {name: sheet.nombre, rows};
+  });
+  if (sheets.reduce((total, sheet) => total + sheet.rows.length, 0) !== manifest.filasTotales) {
+    throw new Error('La cantidad total de filas archivadas no coincide.');
+  }
+  return sheets;
+}
+
 export function summary(records) {
   const audited = records.reduce((sum, row) => sum + row.audited, 0);
   const earned = records.reduce((sum, row) => sum + row.audited * row.effectiveness, 0);

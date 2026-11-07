@@ -866,6 +866,18 @@ body.employee-mode header.kpi-header .header-brand .brand-logo{
 body.auth-screen header.kpi-header>#themeToggle{
  position:absolute;top:12px;right:12px;width:40px;height:40px;border-radius:9px;
 }
+body.auth-screen header.kpi-header .header-brand .brand-logo{
+ gap:14px;padding:2px 0;min-height:48px;background:transparent;
+}
+body.auth-screen header.kpi-header .header-brand .brand-logo img{
+ width:144px!important;height:35px!important;mix-blend-mode:multiply;
+}
+body.auth-screen.dark-theme header.kpi-header .header-brand .brand-logo{
+ background:#fff;padding:3px 10px;
+}
+@media(max-width:440px){
+ body.auth-screen header.kpi-header .header-brand .brand-logo img{width:124px!important;height:31px!important}
+}
 #login{
  --auth-text:#172b4d;--auth-muted:#4b5c73;--auth-input:#fff;--auth-border:#8796aa;
  --auth-link:#0756c5;--auth-focus:#0756c5;--auth-error:#aa2626;
@@ -962,6 +974,10 @@ body.dark-theme #dashboard{--kpi-surface:var(--dark-surface);--kpi-border:var(--
 .quality-upload-fields{display:flex;align-items:end;gap:12px;flex-wrap:wrap}
 .quality-upload-fields>div{max-width:100%}
 .quality-upload-fields input{min-height:40px;padding:7px 9px}
+.quality-archive{margin-block:14px}
+.quality-archive select{max-width:100%;min-height:40px}
+.quality-archive button{margin-block:6px}
+#viewDashboard[data-quality-view="true"]>.quality-detail{margin-top:12px}
 #calidadIssues{margin:12px 0;max-height:220px;overflow:auto}
 #qualityGoalForm input{max-width:150px}
 #qualityGoalForm button{margin:6px}
@@ -1008,7 +1024,7 @@ body.dark-theme #dashboard{--kpi-surface:var(--dark-surface);--kpi-border:var(--
  </form>
  <div class="auth-footer"><span id="authFooterPrompt">¿Primera vez?</span><button id="authFooterAction" class="auth-link" type="button" data-auth-mode="register">Crear cuenta</button></div>
 </main>
-<main id="dashboard" class="hidden"><aside id="adminSidebar" class="admin-sidebar hidden" aria-label="Secciones de administración"><div class="sidebar-heading">PANEL DE CONTROL</div><button class="side-link active" data-section="resumen" type="button">⌂ &nbsp; Resumen</button><button class="side-link" data-section="productividad-holds" type="button">▤ &nbsp; Productividad / Holds</button><button class="side-link" data-section="flujos-tiempos" type="button">◷ &nbsp; Flujos / Tiempos</button><button class="side-link" data-section="cargar" type="button">▣ &nbsp; Cargar bases</button><button class="side-link" data-section="configuracion" type="button">⚙ &nbsp; Configuración</button></aside><div id="adminContent" class="admin-content"><div id="employeeTopRow" class="employee-top-row"><div id="employeeTitleGroup"><h1 id="welcome">Mi productividad</h1><p>Resumen de indicadores y evolución histórica</p>
+<main id="dashboard" class="hidden"><aside id="adminSidebar" class="admin-sidebar hidden" aria-label="Secciones de administración"><div class="sidebar-heading">PANEL DE CONTROL</div><button class="side-link active" data-section="resumen" type="button">⌂ &nbsp; Resumen</button><button class="side-link" data-section="productividad-holds" type="button">▤ &nbsp; Productividad / Holds</button><button class="side-link" data-section="flujos-tiempos" type="button">◷ &nbsp; Flujos / Tiempos</button><button class="side-link" data-section="calidad" type="button"><svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 16V9m6 7V4m6 12V7"/></svg> Calidad</button><button class="side-link" data-section="cargar" type="button">▣ &nbsp; Cargar bases</button><button class="side-link" data-section="configuracion" type="button">⚙ &nbsp; Configuración</button></aside><div id="adminContent" class="admin-content"><div id="employeeTopRow" class="employee-top-row"><div id="employeeTitleGroup"><h1 id="welcome">Mi productividad</h1><p>Resumen de indicadores y evolución histórica</p>
 <nav class="tabs"><button id="tabDashboard" class="tab active" type="button">📊 Dashboard</button><button id="tabUpload" class="tab hidden" type="button">📁 Cargar bases</button></nav></div>
 </div>
 <nav id="employeeNavigation" class="employee-only" aria-label="Mi panel"><button type="button" data-employee-view="panel" aria-pressed="true">Mi panel</button><button type="button" data-employee-view="holds" aria-pressed="false">Mis holds</button><button type="button" data-employee-view="flujos" aria-pressed="false">Flujos / Tiempos</button><button type="button" data-employee-view="configuracion" aria-pressed="false">Configuración</button></nav><div id="viewDashboard">
@@ -1035,7 +1051,7 @@ body.dark-theme #dashboard{--kpi-surface:var(--dark-surface);--kpi-border:var(--
   <div><label for="qualitySource">Origen</label><select id="qualitySource"><option value="interna">Auditorías internas</option><option value="meli">Auditorías de MELI</option></select></div>
   <div><label for="qualityFlow">Flujo</label><select id="qualityFlow"><option value="">Todos</option><option>SDC</option><option>CCC</option><option>FO</option><option>SCP</option></select></div>
  </div>
- <p id="qualityStatus" role="status"></p>
+ <p id="qualityStatus" role="status"></p><button id="qualityRecoverLink" class="quality-text-button" type="button" hidden>Usar una base ya cargada</button>
  <dl class="quality-totals"><div><dt>Efectividad ponderada</dt><dd id="qualityTotal">—</dd></div><div><dt>Tareas auditadas</dt><dd id="qualityAudited">—</dd></div><div><dt>Errores registrados</dt><dd id="qualityErrors">—</dd></div></dl>
  <div class="quality-chart-heading"><h3>Evolución</h3><div><label for="qualityCadence">Agrupar por</label><select id="qualityCadence"><option value="months">Mes</option><option value="weeks">Semana</option></select></div></div>
  <div id="qualityTrend" class="quality-trend"></div>
@@ -1076,7 +1092,7 @@ body.dark-theme #dashboard{--kpi-surface:var(--dark-surface);--kpi-border:var(--
 <div id="viewUpload" class="hidden"><div class="pm-overview-heading"><p class="pm-eyebrow">ACTUALIZACIÓN DE INFORMACIÓN</p><h1>Cargar bases</h1><p>Elegí una base, revisá la vista previa y confirmá los cambios.</p></div><nav class="upload-tabs" aria-label="Tipo de base"><button type="button" data-upload="productividad" aria-pressed="true">Productividad</button><button type="button" data-upload="holds" aria-pressed="false">Holds</button><button type="button" data-upload="finalizadas" aria-pressed="false">Finalizadas</button><button type="button" data-upload="calidad" aria-pressed="false">Calidad</button></nav><div id="publicationActions"></div><section class="panel" data-upload-panel="productividad"><h2>📁 Cargar bases de productividad</h2><p>Seleccioná el archivo completo <strong>Evolución Productividad.xlsm</strong> que recibís cada lunes.</p><div class="upload"><p>📗 <strong>Seleccionar archivo Excel</strong></p><input type="file" id="excelFile" accept=".xlsm,.xlsx"><p class="muted">Se leen los datos en tu navegador. El archivo se analiza primero; solo se guarda después de tu confirmación.</p></div><p id="fileStatus" class="status" role="status"></p><div id="preview" class="hidden"><div class="summary"><div>Hojas encontradas<strong id="sheetCount">—</strong></div><div>Registros en Base diaria<strong id="dailyCount">—</strong></div><div>Registros en Base creaciones<strong id="creationCount">—</strong></div></div><label for="sheetSelect">Vista previa de la hoja</label><select id="sheetSelect"></select><p class="muted" id="previewInfo"></p><div class="table-wrap"><table id="previewTable"></table></div><div id="validation" class="validation hidden" aria-live="polite"></div><div id="importPanel" class="importbox hidden"><h3>☁️ Confirmar actualización en Firebase</h3><p id="importSummary" class="muted">Preparando comparación con el historial guardado…</p><div id="importStats" class="summary hidden"></div><button id="confirmImport" type="button" disabled>Confirmar actualización</button><p id="importStatus" class="status" role="status"></p><p class="muted">Solo administradores. Los registros se identifican por ID MELI, fecha y tipo de indicador. No se eliminan semanas anteriores.</p></div></div></section><section class="panel hold-upload" data-upload-panel="holds" hidden><h2>⏸️ Cargar base de tareas holdeadas</h2><p>Importá el CSV de CDM por separado. No modifica la base de productividad.</p><div class="upload"><p><strong>Seleccionar archivo CSV de Holds</strong></p><input type="file" id="holdsFile" accept=".csv,text/csv"><p class="muted">Se analiza en tu navegador y se compara con Firebase antes de confirmar.</p></div><p id="holdsFileStatus" class="status"></p><div id="holdsImportPanel" class="importbox hidden"><h3>Vista previa de Holds</h3><div id="holdsImportStats" class="summary"></div><p id="holdsImportSummary" class="muted"></p><button type="button" id="confirmHoldsImport" disabled>Confirmar importación de Holds</button><p id="holdsImportStatus" class="status"></p><p class="hold-note">Las filas repetidas de un mismo CDM y fecha se contabilizan. Repetir la carga del mismo archivo conserva los registros agrupados sin duplicarlos.</p></div></section><section class="panel gestion-upload" data-upload-panel="finalizadas" hidden><h2>Cargar base de finalizadas</h2><p>Subí el CSV de tareas finalizadas para actualizar la distribución de flujos y los horarios. No modifica Productividad ni Holds.</p><div class="upload"><p><strong>Seleccionar CSV de finalizadas</strong></p><input type="file" id="gestionFile" accept=".csv,text/csv"><p class="muted">Se calcula por catalogador y día: primera hora de Asignación (Fecha inicio) y última hora de Finalización (Fecha fin). Los registros anteriores se recalculan con la versión 14; requiere confirmar la actualización.</p></div><p id="gestionFileStatus" class="status" role="status"></p><div id="gestionImportPanel" class="importbox hidden"><h3>Vista previa de Gestión</h3><div id="gestionImportStats" class="summary"></div><p id="gestionImportSummary" class="muted"></p><button id="confirmGestionImport" type="button" disabled>Confirmar importación de Gestión</button><p id="gestionImportStatus" class="status" role="status"></p></div></section><section class="panel" data-upload-panel="calidad" hidden>
  <h2>Cargar base de Calidad</h2><p>Usá un Excel o CSV con colaborador, cantidad auditada y efectividad. El flujo y origen pueden venir en columnas o en el nombre de la hoja.</p>
  <div class="quality-upload-fields"><div><label for="calidadFile">Archivo</label><input id="calidadFile" type="file" accept=".xlsx,.xlsm,.xls,.csv,text/csv"></div><div><label for="qualityImportMonth">Mes para filas sin fecha</label><input id="qualityImportMonth" type="month"></div></div>
- <p id="calidadFileStatus" class="status" role="status"></p>
+ <div class="quality-archive"><button id="qualityFindArchives" class="tab" type="button">Buscar bases ya cargadas</button><div id="qualityArchivePicker" hidden><label for="qualityArchive">Archivo guardado en Firebase</label><select id="qualityArchive"></select></div></div><p id="calidadFileStatus" class="status" role="status"></p>
  <div id="calidadPreview" class="hidden"><div class="summary" id="calidadStats"></div>
  <p id="calidadColumns"></p><div class="table-wrap"><table><thead><tr><th>Catalogador</th><th>Período</th><th>Origen</th><th>Flujo</th><th>Acción</th><th>Auditadas</th><th>Calidad</th><th>Estado</th></tr></thead><tbody id="calidadTable"></tbody></table></div>
  <details id="calidadIssues"><summary>Motivos de rechazo</summary><ul id="calidadIssueList"></ul></details>
@@ -1088,7 +1104,7 @@ body.dark-theme #dashboard{--kpi-surface:var(--dark-surface);--kpi-border:var(--
 import {initializeApp} from 'https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js';
 import {getAuth,onAuthStateChanged,signInWithEmailAndPassword,createUserWithEmailAndPassword,sendPasswordResetEmail,signOut,EmailAuthProvider,reauthenticateWithCredential,updatePassword} from 'https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js';
 import {getFirestore,doc,getDoc,getDocs,collection,query,where,writeBatch,serverTimestamp,runTransaction} from 'https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js';
-import {indexPeople,analyzeQuality,qualityPeriods,selectQualityPeriod,summary,bucketQuality} from './calidad.mjs';
+import {indexPeople,analyzeQuality,restoreArchivedQuality,qualityPeriods,selectQualityPeriod,summary,bucketQuality} from './calidad.mjs?v=archivo-1';
 const firebaseConfig={apiKey:'AIzaSyB7edb0wGmf86KVrca5zkBTju7wg_zVDFk',authDomain:'dashboard-kpi-teammati.firebaseapp.com',projectId:'dashboard-kpi-teammati',storageBucket:'dashboard-kpi-teammati.firebasestorage.app',messagingSenderId:'158470825794',appId:'1:158470825794:web:33eb0d3c862756b9d7cadb',measurementId:'G-7E8M7NSPV0'};
 const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app);
 const ACCESS_OWNER_UID='zzCZDpLLzvaGpxe3zuqAp2sVtB42';
@@ -1971,6 +1987,7 @@ function selectUploadBase(name){
 document.querySelectorAll('[data-upload]').forEach(button=>button.addEventListener('click',()=>selectUploadBase(button.dataset.upload)));
 let qualityState={people:[],target:null,error:'',loading:false};
 let calidadPlan=null,calidadBusy=false,qualityPreviewVersion=0;
+let qualityArchives=new Map();
 const qualityPercent=value=>value===null?'Sin datos':new Intl.NumberFormat('es-AR',{style:'percent',maximumFractionDigits:2}).format(value);
 const qualitySourceLabel=source=>source==='meli'?'MELI':'Internas';
 const sameQuality=(a,b)=>a&&['source','flow','action','audited','effectiveness','errors','start','unit'].every(key=>a[key]===b[key]);
@@ -1978,6 +1995,7 @@ const qualityKey=key=>encodeURIComponent(key);
 function clearQuality(){
  qualityState={people:[],target:null,error:'',loading:false};
  calidadPlan=null;qualityPreviewVersion++;
+ qualityArchives.clear();$('qualityArchive').replaceChildren();$('qualityArchivePicker').hidden=true;
  $('calidadFile').value='';$('qualityImportMonth').value='';
  $('calidadPreview').classList.add('hidden');
  $('confirmCalidadImport').disabled=true;
@@ -2137,6 +2155,7 @@ function renderQuality(){
  $('qualityScope').textContent=isAdmin?dashboardScope():$('employeePeriodNote').textContent;
  $('qualityStatus').textContent=qualityState.error||(qualityState.loading?'Consultando resultados…':!periods?'Elegí un período válido.':
   !now.length?(weekly?'Sin resultados semanales en este rango. Los totales mensuales se consultan por mes o trimestre.':'Sin datos para el origen, período y filtros elegidos.'):'');
+ $('qualityRecoverLink').hidden=!canImportBases();
  $('qualityTotal').textContent=qualityPercent(current.quality);
  $('qualityAudited').textContent=now.length?fmt(current.audited):'—';
  $('qualityErrors').textContent=current.errors===null?'Sin datos':fmt(current.errors);
@@ -2173,6 +2192,7 @@ function renderQuality(){
 }
 for(const id of ['qualitySource','qualityFlow','qualityCadence'])$(id).addEventListener('change',renderQuality);
 document.querySelectorAll('[data-open-quality]').forEach(button=>button.addEventListener('click',()=>{
+ if(isAdmin){selectAdminSection('calidad');$('qualityTitle').focus();return;}
  const detail=$('qualityDetail');detail.hidden=!detail.hidden;renderQuality();
  if(!detail.hidden)$('qualityTitle').focus();
 }));
@@ -2223,16 +2243,27 @@ function qualityPreview(plan){
 }
 async function analyzeQualityFile(){
  const revision=++qualityPreviewVersion,uid=auth.currentUser?.uid;
+ const archiveId=$('qualityArchive').value,archive=qualityArchives.get(archiveId);
  const file=$('calidadFile').files?.[0],month=$('qualityImportMonth').value;
  calidadPlan=null;$('calidadPreview').classList.add('hidden');$('confirmCalidadImport').disabled=true;
  $('calidadImportStatus').textContent='';
  const status=$('calidadFileStatus');status.className='status';status.textContent='';
- if(!file||!uid||!canImportBases())return;
- status.textContent='Leyendo archivo y buscando coincidencias…';
+ if((!file&&!archive)||!uid||!canImportBases())return;
+ status.textContent=archive?'Leyendo las hojas archivadas…':'Leyendo archivo y buscando coincidencias…';
  try{
-  await loadXlsx();
-  const bytes=await file.arrayBuffer(),book=XLSX.read(bytes,{type:'array',raw:true,cellDates:true});
-  const sheets=book.SheetNames.map(name=>({name,rows:XLSX.utils.sheet_to_json(book.Sheets[name],{header:1,defval:'',raw:true,blankrows:false})}));
+  let sheets,hash;
+  if(archive){
+   const snapshot=await getDocs(collection(db,'bases_calidad',archiveId,'hojas'));
+   sheets=restoreArchivedQuality(archive,snapshot.docs.map(document=>document.data()));
+   hash=archiveId;
+  }else{
+   await loadXlsx();
+   const bytes=await file.arrayBuffer(),book=XLSX.read(bytes,{type:'array',raw:true,cellDates:true});
+   sheets=book.SheetNames.map(name=>({name,rows:XLSX.utils.sheet_to_json(book.Sheets[name],{header:1,defval:'',raw:true,blankrows:false})}));
+   const digest=await crypto.subtle.digest('SHA-256',bytes);
+   const fileHash=Array.from(new Uint8Array(digest),value=>value.toString(16).padStart(2,'0')).join('');
+   hash=month?fileHash+'_'+month:fileHash;
+  }
   const roster=await qualityRoster();
   const analysis=analyzeQuality(sheets,roster,month);
   const ids=[...new Set(analysis.entries.map(entry=>entry.person.id))];
@@ -2241,12 +2272,10 @@ async function analyzeQualityFile(){
   const counts={nuevo:0,actualizado:0,igual:0};
   for(const entry of analysis.entries){
    const old=existing.get(entry.person.id)[qualityKey(entry.key)];
-   entry.state=!old?'nuevo':sameQuality(old,entry.record)?'igual':'actualizado';counts[entry.state]++;
+   entry.state=!old?'nuevo':archive||sameQuality(old,entry.record)?'igual':'actualizado';counts[entry.state]++;
   }
-  const digest=await crypto.subtle.digest('SHA-256',bytes);
-  const hash=Array.from(new Uint8Array(digest),value=>value.toString(16).padStart(2,'0')).join('');
   if(revision!==qualityPreviewVersion||auth.currentUser?.uid!==uid)return;
-  calidadPlan={fileName:file.name,hash:month?hash+'_'+month:hash,month,sheets,analysis,counts};
+  calidadPlan={fileName:archive?archive.archivo:file.name,hash,month,sheets,analysis,counts,archived:Boolean(archive)};
   qualityPreview(calidadPlan);
   status.textContent=analysis.entries.length?'Revisá los resultados antes de publicar. Se muestran hasta 30 filas.':'No hay filas listas para publicar. Revisá los motivos de rechazo.';
   $('confirmCalidadImport').disabled=!analysis.entries.length;
@@ -2255,18 +2284,58 @@ async function analyzeQualityFile(){
   status.className='status bad';status.textContent=error.code==='permission-denied'?'Firestore todavía no autoriza consultar los registros de Calidad.':'No se pudo analizar el archivo. '+error.message;
  }
 }
-$('calidadFile').addEventListener('change',analyzeQualityFile);
+$('calidadFile').addEventListener('change',()=>{
+ if($('calidadFile').files?.length)$('qualityArchive').value='';
+ analyzeQualityFile();
+});
+$('qualityArchive').addEventListener('change',()=>{
+ const archive=qualityArchives.get($('qualityArchive').value);
+ if(archive){
+  $('calidadFile').value='';
+  $('qualityImportMonth').value=archive.mesReferencia||'';
+ }
+ analyzeQualityFile();
+});
+async function findQualityArchives(){
+ if(calidadBusy||!canImportBases()||!auth.currentUser)return;
+ const uid=auth.currentUser.uid,button=$('qualityFindArchives'),status=$('calidadFileStatus');
+ button.disabled=true;status.className='status';status.textContent='Buscando bases guardadas…';
+ try{
+  const snapshot=await getDocs(collection(db,'bases_calidad'));
+  if(auth.currentUser?.uid!==uid)return;
+  const archives=snapshot.docs.filter(document=>document.data().estado==='completado')
+   .sort((a,b)=>(b.data().fecha?.seconds||0)-(a.data().fecha?.seconds||0));
+  qualityArchives=new Map(archives.map(document=>[document.id,document.data()]));
+  const select=$('qualityArchive'),previous=select.value;
+  select.replaceChildren(new Option('Elegí una base',''));
+  for(const [id,archive] of qualityArchives){
+   const label=[archive.archivo,archive.mesReferencia,archive.fecha?.toDate?.().toLocaleDateString('es-AR')].filter(Boolean).join(' · ');
+   select.add(new Option(label,id));
+  }
+  select.value=qualityArchives.has(previous)?previous:'';
+  $('qualityArchivePicker').hidden=!archives.length;
+  status.textContent=archives.length?'Elegí la base guardada. Si falta el período, indicá su mes de referencia.':'No hay bases de Calidad archivadas.';
+ }catch(error){
+  if(auth.currentUser?.uid===uid){status.className='status bad';status.textContent='No se pudieron consultar las bases archivadas.';}
+ }finally{button.disabled=false;}
+}
+$('qualityFindArchives').addEventListener('click',findQualityArchives);
+$('qualityRecoverLink').addEventListener('click',()=>{
+ $('openUpload').click();selectUploadBase('calidad');findQualityArchives();
+});
 $('qualityImportMonth').addEventListener('change',analyzeQualityFile);
 $('confirmCalidadImport').addEventListener('click',async()=>{
  if(calidadBusy||!calidadPlan?.analysis.entries.length||!canImportBases()||!auth.currentUser)return;
  const uid=auth.currentUser.uid,plan=calidadPlan,status=$('calidadImportStatus');
  const button=$('confirmCalidadImport');
  calidadBusy=true;button.disabled=true;$('calidadFile').disabled=true;$('qualityImportMonth').disabled=true;
- status.className='status';status.textContent='Guardando el archivo de origen…';
+ $('qualityArchive').disabled=true;$('qualityFindArchives').disabled=true;
+ status.className='status';status.textContent=plan.archived?'Recuperando los resultados archivados…':'Guardando el archivo de origen…';
  try{
   const manifest=doc(db,'bases_calidad',plan.hash);
   const existing=await getDoc(manifest);
-  if(!existing.exists()){
+  if(plan.archived&&!existing.exists())throw Error('La base archivada ya no está disponible.');
+  if(!plan.archived&&!existing.exists()){
    let chunks=0;
    for(const [index,sheet] of plan.sheets.entries()){
     for(let start=0;start<sheet.rows.length;start+=40){
@@ -2296,7 +2365,7 @@ $('confirmCalidadImport').addEventListener('click',async()=>{
     let fresh=0,changed=0;
     for(const entry of entries){
      const key=qualityKey(entry.key),old=registros[key];
-     if(sameQuality(old,entry.record))continue;
+     if((old&&plan.archived)||sameQuality(old,entry.record))continue;
      if(old)changed++;else fresh++;
      registros[key]={...entry.record,base:plan.hash};
     }
@@ -2310,7 +2379,8 @@ $('confirmCalidadImport').addEventListener('click',async()=>{
    status.textContent='Publicando Calidad · '+done+' de '+grouped.size+' fichas.';
   }
   const log=writeBatch(db);
-  log.set(doc(db,'importaciones','calidad_'+plan.hash),{archivo:plan.fileName,tipo:'calidad',hash:plan.hash,usuario:uid,
+  const logId='calidad_'+plan.hash+(plan.archived&&plan.month?'_'+plan.month:'');
+  log.set(doc(db,'importaciones',logId),{archivo:plan.fileName,tipo:'calidad',hash:plan.hash,usuario:uid,
    filas:plan.analysis.entries.length,fecha:serverTimestamp(),estado:'completado'},{merge:true});
   await log.commit();
   calidadPlan=null;status.className='status good';
@@ -2320,6 +2390,7 @@ $('confirmCalidadImport').addEventListener('click',async()=>{
   status.className='status bad';status.textContent='No se completó la publicación de Calidad. Podés reintentar el mismo archivo. '+error.message;
  }finally{
   calidadBusy=false;button.disabled=!calidadPlan;$('calidadFile').disabled=false;$('qualityImportMonth').disabled=false;
+  $('qualityArchive').disabled=false;$('qualityFindArchives').disabled=false;
  }
 });
 $('openUpload').addEventListener('click',()=>{if(!canImportBases())return;selectAdminSection('cargar');$('publicationActions').appendChild($('publishKpis'));$('publicationActions').appendChild($('publishStatus'));$('publishKpis').classList.remove('hidden');$('publishStatus').classList.remove('hidden');});
@@ -2366,6 +2437,10 @@ $('permissionForm').addEventListener('submit',async event=>{
  if(!isAdmin)return;
  if(section==='configuracion'){showConfiguration();return;}if(section==='cargar'&&!canImportBases())return;
  const upload=section==='cargar';switchTab(upload);
+ const quality=section==='calidad',detail=$('qualityDetail'),dashboard=$('viewDashboard');
+ dashboard.dataset.qualityView=String(quality);
+ detail.hidden=!quality;
+ if(quality)dashboard.prepend(detail);
  document.querySelectorAll('#adminSidebar .side-link').forEach(b=>{const on=b.dataset.section===section||(section==='cargar'&&b.dataset.section==='configuracion');b.classList.toggle('active',on);b.setAttribute('aria-current',on?'page':'false');});
   document.body.classList.toggle('pm-productivity',section==='productividad-holds');document.body.classList.toggle('pm-flows',section==='flujos-tiempos');document.body.classList.remove('pm-settings');
   for(const id of ['pmComparison','pmOverview','pmProductivity','pmFlowsIntro','summaryVisual','mainCards','weeklyPanel','holdsPanel','gestionPanel','tiemposPanel','teamPeoplePanel','peopleControl','pendingPanel']){
@@ -2374,8 +2449,9 @@ $('permissionForm').addEventListener('submit',async event=>{
  }
  if(isAdmin){$('pmOverview').classList.toggle('hidden',section!=='resumen');$('pmOverview').dataset.adminHide=section==='resumen'?'false':'true';$('mainCards').dataset.adminHide='true';$('summaryVisual').dataset.adminHide='true';renderPmOverview();}else{$('pmOverview').classList.add('hidden');$('pmOverview').dataset.adminHide='true';}
  if(isAdmin){if(section==='resumen')$('pmOverview').insertBefore($('pmFilterBar'),$('pmOverview').querySelector('.pm-metrics'));else if(section==='productividad-holds')$('pmProductivityFilters').appendChild($('pmFilterBar'));else if(section==='flujos-tiempos')$('pmFlowsFilters').appendChild($('pmFilterBar'));else $('viewDashboard').insertBefore($('pmFilterBar'),$('viewDashboard').firstChild);renderPmProductivity();}
+ if(quality){renderQuality();window.scrollTo(0,0);}
  requestAnimationFrame(centerSingleWeekCharts);
- $('welcome').textContent=section==='cargar'?'Cargar bases':({resumen:'Resumen','productividad-holds':'Productividad / Holds','flujos-tiempos':'Flujos / Tiempos'}[section]||'Dashboard KPI');
+ $('welcome').textContent=section==='cargar'?'Cargar bases':({resumen:'Resumen',calidad:'Calidad','productividad-holds':'Productividad / Holds','flujos-tiempos':'Flujos / Tiempos'}[section]||'Dashboard KPI');
 }
 document.querySelectorAll('#adminSidebar .side-link').forEach(button=>button.addEventListener('click',()=>selectAdminSection(button.dataset.section)));
 $('tabDashboard').addEventListener('click',()=>{if(isAdmin)selectAdminSection('resumen');});
