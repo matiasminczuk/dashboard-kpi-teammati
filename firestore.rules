@@ -1,0 +1,134 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function autenticado() {
+      return request.auth != null;
+    }
+
+    function perfil() {
+      return get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data;
+    }
+
+    function esAdmin() {
+      return autenticado() && perfil().rol == 'admin';
+    }
+
+    function esPM() {
+      return autenticado() && perfil().rol == 'pm';
+    }
+
+    function esAdministradorGeneral() {
+      return esAdmin() || esPM();
+    }
+
+    function propietarioUid() {
+      return 'zzCZDpLLzvaGpxe3zuqAp2sVtB42';
+    }
+
+    function esPropietario() {
+      return autenticado() && request.auth.uid == propietarioUid() && esPM();
+    }
+
+    function esSuperAdminConUid(uid) {
+      let ruta = /databases/$(database)/documents/permisos_dashboard/$(uid);
+      return exists(ruta)
+        && get(ruta).data.activo == true
+        && get(ruta).data.nivel == 'superadmin'
+        && get(ruta).data.otorgadoPor == propietarioUid()
+        && get(/databases/$(database)/documents/usuarios/$(uid)).data.rol == 'tl';
+    }
+
+    function esSuperAdmin() {
+      return autenticado() && esSuperAdminConUid(request.auth.uid);
+    }
+
+    function esDelegado() {
+      let ruta = /databases/$(database)/documents/permisos_dashboard/$(request.auth.uid);
+      return autenticado() && perfil().rol == 'tl' && exists(ruta)
+        && get(ruta).data.activo == true
+        && (esSuperAdmin()
+          || (get(ruta).data.nivel == 'delegado'
+            && (get(ruta).data.otorgadoPor == propietarioUid()
+              || esSuperAdminConUid(get(ruta).data.otorgadoPor))));
+    }
+
+    function puedeGestionarDatos() {
+      return esAdministradorGeneral() || esDelegado();
+    }
+
+    function puedeAdministrarPermisos() {
+      return esPropietario() || esSuperAdmin();
+    }
+
+    function esTLDelEquipo(equipoDocumento) {
+      return autenticado() && perfil().rol == 'tl' && perfil().equipo == equipoDocumento;
+    }
+
+    function esCatalogadorDelDocumento(documentoId) {
+      return autenticado() && perfil().rol == 'catalogador' && perfil().idMeli == documentoId;
+    }
+
+    function asignacionValida(uid) {
+      let datos = request.resource.data;
+      let ruta = /databases/$(database)/documents/permisos_dashboard/$(uid);
+      return autenticado() && uid != request.auth.uid && uid != propietarioUid()
+        && get(/databases/$(database)/documents/usuarios/$(uid)).data.rol == 'tl'
+        && datos.keys().hasAll(['nivel', 'activo', 'otorgadoPor', 'actualizadoEn'])
+        && datos.keys().hasOnly(['nivel', 'activo', 'otorgadoPor', 'actualizadoEn'])
+        && datos.nivel in ['superadmin', 'delegado']
+        && datos.activo is bool
+        && datos.otorgadoPor == request.auth.uid
+        && datos.actualizadoEn == request.time
+        && (esPropietario()
+          || (esSuperAdmin() && datos.nivel == 'delegado'
+            && (!exists(ruta) || get(ruta).data.nivel != 'superadmin')));
+    }
+
+    match /usuarios/{userId} {
+      allow read: if autenticado() && (request.auth.uid == userId || puedeGestionarDatos());
+      allow write: if false;
+    }
+
+    match /permisos_dashboard/{userId} {
+      allow get: if autenticado() && (request.auth.uid == userId
+        || puedeAdministrarPermisos()
+        || (exists(/databases/$(database)/documents/permisos_dashboard/$(request.auth.uid))
+          && get(/databases/$(database)/documents/permisos_dashboard/$(request.auth.uid)).data.otorgadoPor == userId));
+      allow list: if puedeAdministrarPermisos();
+      allow create, update: if asignacionValida(userId);
+      allow delete: if false;
+    }
+
+    match /kpis/{userId} {
+      allow read: if autenticado() && (request.auth.uid == userId || puedeGestionarDatos());
+      allow create, update: if puedeGestionarDatos();
+      allow delete: if esAdministradorGeneral();
+
+      match /semanas/{semanaId} {
+        allow read: if autenticado() && (request.auth.uid == userId || puedeGestionarDatos());
+        allow create, update: if puedeGestionarDatos();
+        allow delete: if esAdministradorGeneral();
+      }
+
+      match /registros/{registroId} {
+        allow read: if autenticado() && (request.auth.uid == userId || puedeGestionarDatos());
+        allow create, update: if puedeGestionarDatos();
+        allow delete: if esAdministradorGeneral();
+      }
+    }
+
+    match /importaciones/{importacionId} {
+      allow read, create, update: if puedeGestionarDatos();
+      allow delete: if esAdministradorGeneral();
+    }
+
+    match /kpi_publicados/{documentoId} {
+      allow read: if puedeGestionarDatos()
+        || esCatalogadorDelDocumento(documentoId)
+        || esTLDelEquipo(resource.data.equipo);
+      allow create, update: if puedeGestionarDatos();
+      allow delete: if esAdministradorGeneral();
+    }
+  }
+}
