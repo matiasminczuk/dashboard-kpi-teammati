@@ -1795,7 +1795,7 @@ $('confirmCalidadImport').addEventListener('click',async()=>{
   for(let si=0;si<plan.sheets.length;si++){
    const sh=plan.sheets[si];
    for(let start=0;start<sh.rows.length;start+=40){
-    const rows=sh.rows.slice(start,start+40);
+    const rows=sh.rows.slice(start,start+40).map((cells,offset)=>({fila:start+offset,celdas:cells}));
     const id=String(si).padStart(3,'0')+'_'+String(Math.floor(start/40)).padStart(6,'0');
     const batch=writeBatch(db);
     batch.set(doc(db,'bases_calidad',plan.hash,'hojas',id),{indiceHoja:si,nombreHoja:sh.name,filaInicial:start,filas:rows});
