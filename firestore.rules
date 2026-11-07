@@ -148,6 +148,19 @@ service cloud.firestore {
             && request.resource.data.valor >= 0 && request.resource.data.valor <= 100));
     }
 
+    match /calidad_config/productividad {
+      allow get: if autenticado() && perfil().rol in ['admin', 'pm', 'tl', 'catalogador'];
+      allow create, update: if esAdministradorGeneral()
+        && request.resource.data.keys().hasAll(['mixto', 'soporte'])
+        && request.resource.data.keys().hasOnly(['mixto', 'soporte'])
+        && metaProductividadValida(request.resource.data.mixto)
+        && metaProductividadValida(request.resource.data.soporte);
+    }
+
+    function metaProductividadValida(valor) {
+      return valor == null || (valor is number && valor > 0 && valor <= 100000);
+    }
+
     match /kpi_publicados/{documentoId} {
       allow read: if puedeGestionarDatos()
         || esCatalogadorDelDocumento(documentoId)
