@@ -132,6 +132,22 @@ service cloud.firestore {
       }
     }
 
+    match /calidad_publicada/{documentoId} {
+      allow read: if puedeGestionarDatos()
+        || esCatalogadorDelDocumento(documentoId)
+        || esTLDelEquipo(resource.data.equipo);
+      allow create, update: if puedeGestionarDatos();
+    }
+
+    match /calidad_config/objetivo {
+      allow get: if autenticado() && perfil().rol in ['admin', 'pm', 'tl', 'catalogador'];
+      allow create, update: if esAdministradorGeneral()
+        && request.resource.data.keys().hasOnly(['valor'])
+        && (request.resource.data.valor == null
+          || (request.resource.data.valor is number
+            && request.resource.data.valor >= 0 && request.resource.data.valor <= 100));
+    }
+
     match /kpi_publicados/{documentoId} {
       allow read: if puedeGestionarDatos()
         || esCatalogadorDelDocumento(documentoId)
