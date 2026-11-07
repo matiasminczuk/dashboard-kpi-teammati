@@ -974,6 +974,12 @@ body.dark-theme #dashboard{--kpi-surface:var(--dark-surface);--kpi-border:var(--
 .quality-upload-fields{display:flex;align-items:end;gap:12px;flex-wrap:wrap}
 .quality-upload-fields>div{max-width:100%}
 .quality-upload-fields input{min-height:40px;padding:7px 9px}
+.quality-flow-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:16px 0}
+.quality-flow-grid article{min-width:0;padding:14px;border:1px solid var(--kpi-border);border-radius:10px}
+.quality-flow-grid h3{margin:0 0 8px;font-size:.95rem}
+.quality-flow-grid p{margin:4px 0;color:var(--kpi-muted);font-size:.8rem}
+.quality-flow-grid strong{display:block;font-size:1.25rem;color:inherit;font-variant-numeric:tabular-nums}
+@media(max-width:800px){.quality-flow-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .quality-archive{margin-block:14px}
 .quality-archive select{max-width:100%;min-height:40px}
 .quality-archive button{margin-block:6px}
@@ -1052,6 +1058,7 @@ body.dark-theme #dashboard{--kpi-surface:var(--dark-surface);--kpi-border:var(--
   <div><label for="qualityFlow">Flujo</label><select id="qualityFlow"><option value="">Todos</option><option>SDC</option><option>CCC</option><option>FO</option><option>SCP</option></select></div>
  </div>
  <p id="qualityStatus" role="status"></p><button id="qualityRecoverLink" class="quality-text-button" type="button" hidden>Usar una base ya cargada</button>
+ <section class="quality-flow-grid" id="qualityFlowCards" aria-label="Efectividad por flujo y origen"></section>
  <dl class="quality-totals"><div><dt>Efectividad ponderada</dt><dd id="qualityTotal">—</dd></div><div><dt>Tareas auditadas</dt><dd id="qualityAudited">—</dd></div><div><dt>Errores registrados</dt><dd id="qualityErrors">—</dd></div></dl>
  <div class="quality-chart-heading"><h3>Evolución</h3><div><label for="qualityCadence">Agrupar por</label><select id="qualityCadence"><option value="months">Mes</option><option value="weeks">Semana</option></select></div></div>
  <div id="qualityTrend" class="quality-trend"></div>
@@ -1988,6 +1995,9 @@ document.querySelectorAll('[data-upload]').forEach(button=>button.addEventListen
 let qualityState={people:[],target:null,error:'',loading:false};
 let calidadPlan=null,calidadBusy=false,qualityPreviewVersion=0;
 let qualityArchives=new Map();
+const octoberQualityArchive='977234030f8903764abf70559fb8a7234caef730d15aaa4a42e12801b0c42c2a';
+const octoberQualityMonth='2026-10';
+let octoberQualityRecovery;
 const qualityPercent=value=>value===null?'Sin datos':new Intl.NumberFormat('es-AR',{style:'percent',maximumFractionDigits:2}).format(value);
 const qualitySourceLabel=source=>source==='meli'?'MELI':'Internas';
 const sameQuality=(a,b)=>a&&['source','flow','action','audited','effectiveness','errors','start','unit'].every(key=>a[key]===b[key]);
@@ -2088,9 +2098,21 @@ async function loadQuality(){
    const id=String(profileData?.idMeli||'').trim();
    data=id?getDoc(doc(db,'calidad_publicada',id)).then(d=>d.exists()?[{id,...d.data()}]:[]):Promise.resolve([]);
   }
-  const [people,goal]=await Promise.all([data,getDoc(doc(db,'calidad_config','objetivo'))]);
+  let [people,goal]=await Promise.all([data,getDoc(doc(db,'calidad_config','objetivo'))]);
+  let recoveryError='';
+  if(auth.currentUser?.uid===uid&&canImportBases()){
+   try{
+    if(await recoverOctoberQuality(uid)){
+     const refreshed=await getDocs(coll);
+     people=refreshed.docs.map(d=>({id:d.id,...d.data()}));
+    }
+   }catch(error){
+    console.error('Recuperación de Calidad:',error.code||error.message);
+    recoveryError='No se pudo recuperar octubre automáticamente. Podés usar la base ya cargada desde este panel.';
+   }
+  }
   if(auth.currentUser?.uid!==uid)return;
-  qualityState={people,target:goal.exists()?goal.data().valor??null:null,error:'',loading:false};
+  qualityState={people,target:goal.exists()?goal.data().valor??null:null,error:recoveryError,loading:false};
   $('qualityTarget').value=qualityState.target??'';
   appendQualityPeople();
  }catch(error){
@@ -2136,7 +2158,8 @@ function renderQuality(){
  const periods=qualitySelection(),source=$('qualitySource').value,flow=$('qualityFlow').value;
  const who=$('personFilter').value,team=isPM?$('pmTeamFilter').value:selectedTeam;
  const people=qualityState.people.filter(p=>(!isAdmin||(!team||p.equipo===team))&&(!who||p.id===who)&&includedRecord(p));
- const eligible=people.flatMap(p=>Object.values(p.registros||{}).filter(r=>r.source===source).map(r=>({...r,id:p.id,name:p.nombre||p.id,team:p.equipo})));
+ const scoped=people.flatMap(p=>Object.values(p.registros||{}).map(r=>({...r,id:p.id,name:p.nombre||p.id,team:p.equipo})));
+ const eligible=scoped.filter(row=>row.source===source);
  const weekly=$('weekMode').value==='weeks';
  const byPeriod=period=>period?selectQualityPeriod(eligible,period,weekly):[];
  const all=byPeriod(periods?.current),previousAll=byPeriod(periods?.previous);
@@ -2156,6 +2179,28 @@ function renderQuality(){
  $('qualityStatus').textContent=qualityState.error||(qualityState.loading?'Consultando resultados…':!periods?'Elegí un período válido.':
   !now.length?(weekly?'Sin resultados semanales en este rango. Los totales mensuales se consultan por mes o trimestre.':'Sin datos para el origen, período y filtros elegidos.'):'');
  $('qualityRecoverLink').hidden=!canImportBases();
+ const cards=$('qualityFlowCards');
+ const cardRows=periods?selectQualityPeriod(scoped,periods.current,weekly):[];
+ cards.replaceChildren();
+ for(const code of ['SDC','SCP','CCC','FO']){
+  const card=document.createElement('article'),title=document.createElement('h3');
+  title.textContent=code;card.appendChild(title);
+  const rows=cardRows.filter(row=>row.flow===code);
+  for(const origin of ['interna','meli']){
+   const total=summary(rows.filter(row=>row.source===origin));
+   if(total.quality===null)continue;
+   const label=document.createElement('p'),value=document.createElement('strong');
+   label.textContent=qualitySourceLabel(origin)+' · '+fmt(total.audited)+' auditadas';
+   value.textContent=qualityPercent(total.quality);
+   label.appendChild(value);card.appendChild(label);
+  }
+  if(!rows.length){
+   const empty=document.createElement('p');
+   empty.textContent=qualityState.loading?'Consultando…':'Sin datos para el período';
+   card.appendChild(empty);
+  }
+  cards.appendChild(card);
+ }
  $('qualityTotal').textContent=qualityPercent(current.quality);
  $('qualityAudited').textContent=now.length?fmt(current.audited):'—';
  $('qualityErrors').textContent=current.errors===null?'Sin datos':fmt(current.errors);
@@ -2171,7 +2216,7 @@ function renderQuality(){
   value.textContent=qualityPercent(bucket.quality);
   row.append(label,bar,value);graph.appendChild(row);
  }
- const flows=[...new Set(['SDC','CCC','FO',...all.map(r=>r.flow)])];
+ const flows=['SDC','SCP','CCC','FO'];
  const flowStats=flows.map(f=>({flow:f,...summary(all.filter(r=>r.flow===f))}));
  qualityTable('qualityFlows',flowStats.map(s=>[s.flow,s.audited?fmt(s.audited):'—',qualityPercent(s.quality),qualityGoal(s.quality)]),'Sin datos',4);
  const lowest=flowStats.filter(s=>s.quality!==null).sort((a,b)=>a.quality-b.quality)[0];
@@ -2324,6 +2369,65 @@ $('qualityRecoverLink').addEventListener('click',()=>{
  $('openUpload').click();selectUploadBase('calidad');findQualityArchives();
 });
 $('qualityImportMonth').addEventListener('change',analyzeQualityFile);
+function qualityPublicationId(plan){
+ return 'calidad_'+plan.hash+(plan.archived&&plan.month?'_'+plan.month:'');
+}
+async function publishQualityEntries(plan,uid,onProgress){
+  const grouped=new Map();
+  for(const entry of plan.analysis.entries){
+   if(!grouped.has(entry.person.id))grouped.set(entry.person.id,[]);
+   grouped.get(entry.person.id).push(entry);
+  }
+  let created=0,updated=0,done=0;
+  for(const [id,entries] of grouped){
+   if(auth.currentUser?.uid!==uid)throw Error('La sesión cambió durante la importación.');
+   const counts=await runTransaction(db,async transaction=>{
+    const ref=doc(db,'calidad_publicada',id),previous=await transaction.get(ref);
+    const registros={...(previous.exists()?previous.data().registros:{})};
+    let fresh=0,changed=0;
+    for(const entry of entries){
+     const key=qualityKey(entry.key),old=registros[key];
+     if((old&&plan.archived)||sameQuality(old,entry.record))continue;
+     if(old)changed++;else fresh++;
+     registros[key]={...entry.record,base:plan.hash};
+    }
+    const person=entries[0].person;
+    if(fresh||changed||previous.data()?.equipo!==person.team||previous.data()?.nombre!==person.name){
+     transaction.set(ref,{nombre:person.name,equipo:person.team,registros});
+    }
+    return {fresh,changed};
+   });
+   created+=counts.fresh;updated+=counts.changed;done++;
+   onProgress?.(done,grouped.size);
+  }
+  const log=writeBatch(db);
+  const logId=qualityPublicationId(plan);
+  log.set(doc(db,'importaciones',logId),{archivo:plan.fileName,tipo:'calidad',hash:plan.hash,usuario:uid,
+   filas:plan.analysis.entries.length,fecha:serverTimestamp(),estado:'completado'},{merge:true});
+  await log.commit();
+  return {created,updated};
+}
+async function recoverOctoberQuality(uid){
+ if(octoberQualityRecovery?.uid===uid)return octoberQualityRecovery.promise;
+ const promise=(async()=>{
+  const plan={hash:octoberQualityArchive,month:octoberQualityMonth,archived:true};
+  const log=await getDoc(doc(db,'importaciones',qualityPublicationId(plan)));
+  if(log.exists()&&log.data().estado==='completado')return false;
+  const manifest=await getDoc(doc(db,'bases_calidad',plan.hash));
+  if(!manifest.exists())return false;
+  plan.fileName=manifest.data().archivo;
+  const [snapshot,roster]=await Promise.all([getDocs(collection(db,'bases_calidad',plan.hash,'hojas')),qualityRoster()]);
+  const sheets=restoreArchivedQuality(manifest.data(),snapshot.docs.map(item=>item.data()));
+  plan.analysis=analyzeQuality(sheets,roster,plan.month);
+  if(!plan.analysis.entries.length)throw Error('La base de octubre no tiene registros vinculados a catalogadores.');
+  await publishQualityEntries(plan,uid);
+  return true;
+ })();
+ octoberQualityRecovery={uid,promise};
+ try{return await promise;}
+ finally{if(octoberQualityRecovery?.promise===promise)octoberQualityRecovery=null;}
+}
+
 $('confirmCalidadImport').addEventListener('click',async()=>{
  if(calidadBusy||!calidadPlan?.analysis.entries.length||!canImportBases()||!auth.currentUser)return;
  const uid=auth.currentUser.uid,plan=calidadPlan,status=$('calidadImportStatus');
@@ -2351,38 +2455,9 @@ $('confirmCalidadImport').addEventListener('click',async()=>{
     filasTotales:plan.sheets.reduce((n,sheet)=>n+sheet.rows.length,0),bloques:chunks,usuario:uid,fecha:serverTimestamp(),estado:'completado'});
    await batch.commit();
   }
-  const grouped=new Map();
-  for(const entry of plan.analysis.entries){
-   if(!grouped.has(entry.person.id))grouped.set(entry.person.id,[]);
-   grouped.get(entry.person.id).push(entry);
-  }
-  let created=0,updated=0,done=0;
-  for(const [id,entries] of grouped){
-   if(auth.currentUser?.uid!==uid)throw Error('La sesión cambió durante la importación.');
-   const counts=await runTransaction(db,async transaction=>{
-    const ref=doc(db,'calidad_publicada',id),previous=await transaction.get(ref);
-    const registros={...(previous.exists()?previous.data().registros:{})};
-    let fresh=0,changed=0;
-    for(const entry of entries){
-     const key=qualityKey(entry.key),old=registros[key];
-     if((old&&plan.archived)||sameQuality(old,entry.record))continue;
-     if(old)changed++;else fresh++;
-     registros[key]={...entry.record,base:plan.hash};
-    }
-    const person=entries[0].person;
-    if(fresh||changed||previous.data()?.equipo!==person.team||previous.data()?.nombre!==person.name){
-     transaction.set(ref,{nombre:person.name,equipo:person.team,registros});
-    }
-    return {fresh,changed};
-   });
-   created+=counts.fresh;updated+=counts.changed;done++;
-   status.textContent='Publicando Calidad · '+done+' de '+grouped.size+' fichas.';
-  }
-  const log=writeBatch(db);
-  const logId='calidad_'+plan.hash+(plan.archived&&plan.month?'_'+plan.month:'');
-  log.set(doc(db,'importaciones',logId),{archivo:plan.fileName,tipo:'calidad',hash:plan.hash,usuario:uid,
-   filas:plan.analysis.entries.length,fecha:serverTimestamp(),estado:'completado'},{merge:true});
-  await log.commit();
+  const {created,updated}=await publishQualityEntries(plan,uid,(done,total)=>{
+   status.textContent='Publicando Calidad · '+done+' de '+total+' fichas.';
+  });
   calidadPlan=null;status.className='status good';
   status.textContent='Calidad publicada · '+fmt(created)+' nuevas, '+fmt(updated)+' actualizadas, '+fmt(plan.analysis.entries.length-created-updated)+' sin cambios.';
   await loadQuality();
