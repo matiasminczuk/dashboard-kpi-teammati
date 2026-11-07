@@ -123,6 +123,15 @@ service cloud.firestore {
       allow delete: if esAdministradorGeneral();
     }
 
+    match /bases_calidad/{baseId} {
+      allow read, create, update: if puedeGestionarDatos();
+
+      // La carga guarda los bloques antes de completar el documento de la base.
+      match /hojas/{bloqueId} {
+        allow read, create, update: if puedeGestionarDatos();
+      }
+    }
+
     match /kpi_publicados/{documentoId} {
       allow read: if puedeGestionarDatos()
         || esCatalogadorDelDocumento(documentoId)
