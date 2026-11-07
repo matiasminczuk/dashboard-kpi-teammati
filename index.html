@@ -584,7 +584,7 @@ body.tl-design .pm-overview-heading h1{letter-spacing:-.5px}
 <style>
 /* Panel personal del colaborador. */
 body.employee-mode{background:#f4f6fa;color:#172b4d;font-family:Arial,sans-serif}
-body.employee-mode header.kpi-header{min-height:72px;padding:16px 28px;background:#ffe600;border-bottom:1px solid #e2cf00;box-sizing:border-box}
+body.employee-mode header.kpi-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px 28px;min-height:72px;padding:16px 28px;background:#ffe600;border-bottom:1px solid #e2cf00;box-sizing:border-box}
 body.employee-mode .meli-mark,body.employee-mode .brand-divider,body.employee-mode #headerKpi,body.employee-mode #pmHeaderQuality,body.employee-mode header .header-actions{display:none!important}
 body.employee-mode .brand-team strong{font-size:20px}
 body.employee-mode .brand-team small{font-size:13px}
@@ -595,7 +595,7 @@ body.employee-mode .employee-tag{color:#52647d;font-size:11px;letter-spacing:.1e
 body.employee-mode #employeeHero h2{font-size:30px;line-height:1.3;letter-spacing:-.6px;margin:7px 0 8px;color:#172b4d}
 body.employee-mode #employeeHero p{color:#52647d;font-size:14px;line-height:1.6;margin:4px 0}
 body.employee-mode #employeePeriodNote{font-size:13px;color:#0756c5}
-body.employee-mode #employeeNavigation{display:flex;gap:6px;padding:6px;background:#fff;border:1px solid #e2e7ef;border-radius:12px;margin-bottom:22px;overflow-x:auto}
+body.employee-mode #employeeNavigation{display:flex;flex:0 1 auto;max-width:100%;min-width:0;gap:6px;padding:6px;background:#fff;border:1px solid #e2e7ef;border-radius:12px;margin:0;overflow-x:auto;box-sizing:border-box}
 body.employee-mode #employeeNavigation button{background:transparent;color:#42526e;font-size:14px;white-space:nowrap;padding:12px 16px;border-radius:8px}
 body.employee-mode #employeeNavigation button[aria-pressed="true"]{background:#0756c5;color:#fff}
 body.employee-mode #employeePeriodFilters{padding:18px 20px;border:1px solid #e2e7ef;border-radius:12px;box-shadow:none;margin:0 0 16px}
@@ -665,6 +665,9 @@ body.employee-mode #kpiStatus.bad{padding:14px;background:#fff1d6;border:1px sol
 body.employee-mode :focus-visible{outline:3px solid #0756c5;outline-offset:3px}
 @media(max-width:1050px){body.employee-mode #mainCards,body.employee-mode #tiemposPanel>.gestion-cards{grid-template-columns:repeat(2,minmax(0,1fr))}body.employee-mode #gestionPanel>.gestion-cards{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:650px){body.employee-mode header.kpi-header{padding:16px}body.employee-mode #dashboard{padding:0 16px;margin:20px auto}body.employee-mode #employeeHero h2{font-size:25px}body.employee-mode #employeeNavigation button{font-size:13px;padding:11px 13px}body.employee-mode #employeePeriodFilters .week-filters{grid-template-columns:1fr}body.employee-mode #mainCards{gap:12px}body.employee-mode #mainCards .card{padding:18px;min-height:145px}body.employee-mode #mainCards .card:first-child{grid-column:1/-1}body.employee-mode #mainCards h1{font-size:30px}body.employee-mode #weeklyPanel,body.employee-mode #employeeCreationsPanel,body.employee-mode #holdsPanel,body.employee-mode #gestionPanel,body.employee-mode #tiemposPanel,body.employee-mode #employeeWeeklyTablePanel{padding:18px}body.employee-mode #gestionPanel>.gestion-cards{grid-template-columns:repeat(2,minmax(0,1fr))}body.employee-mode .gestion-two{grid-template-columns:1fr}body.employee-mode .holds-stats{grid-template-columns:1fr;gap:10px}body.employee-mode .holds-stat{display:flex;align-items:center;justify-content:space-between;gap:12px}body.employee-mode .holds-stat strong{margin:0}body.employee-mode .line-chart-section{padding:12px}body.employee-mode .line-chart-section:after{content:'Deslizá para recorrer las semanas';display:block;font-size:12px;color:#52647d;margin-top:8px}body.employee-mode th,body.employee-mode td{padding:12px}}
+</style>
+<style>
+@media(max-width:650px){body.employee-mode header.kpi-header{gap:14px}body.employee-mode #employeeNavigation{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));flex:1 1 100%;width:100%;overflow:visible}body.employee-mode #employeeNavigation button{width:100%;text-align:center}}
 </style>
 </head>
 <body>
@@ -1510,6 +1513,7 @@ $('reloadKpis').addEventListener('click',()=>{renderKpis();$('kpiStatus').textCo
 
 function setupEmployeeDesign(){
  document.querySelector('.brand-team small').textContent='Panel del colaborador';
+ document.querySelector('header.kpi-header').appendChild($('employeeNavigation'));
  const cards=$('mainCards').querySelectorAll('.card');
  ['Mi productividad diaria','Tareas registradas','Creaciones registradas','Jornadas computables'].forEach((label,index)=>{cards[index].querySelector('span').textContent=label;});
  cards[3].querySelector('small').textContent='Días computables del período';
