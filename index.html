@@ -848,16 +848,21 @@ body.auth-screen header.kpi-header{
  padding:30px 62px 8px;border:0;border-top:4px solid #ffe600;background:transparent;
 }
 body.auth-screen header.kpi-header > :not(.header-brand,#themeToggle){display:none!important}
-body.auth-screen .brand-logo{
+header.kpi-header .header-brand .brand-logo{
  display:flex;justify-content:center;align-items:center;gap:12px;
  width:auto;height:auto;min-height:46px;padding:6px 10px;background:#fff;border-radius:8px;
 }
-body.auth-screen .brand-logo img{
- position:static;width:116px;height:34px;transform:none;object-fit:contain;object-position:center;
+header.kpi-header .header-brand .brand-logo img{
+ position:static;width:116px!important;height:29px!important;transform:none;object-fit:cover;object-position:center;
 }
-body.auth-screen .brand-logo img:not(.kelsoft-logo){object-fit:cover;height:29px}
-body.auth-screen .brand-logo .kelsoft-logo{width:116px;height:27px;object-fit:cover}
-body.auth-screen .brand-logo img + img{border-inline-start:1px solid #d9e1eb;padding-inline-start:9px}
+header.kpi-header .header-brand .brand-logo img + img{border-inline-start:1px solid #d9e1eb;padding-inline-start:9px}
+body.employee-mode header.kpi-header .header-brand .brand-logo{
+ background:#fff!important;padding:3px 8px!important;min-height:0;
+}
+@media(max-width:520px){
+ header.kpi-header .header-brand .brand-logo{gap:8px}
+ header.kpi-header .header-brand .brand-logo img{width:96px!important;height:25px!important}
+}
 body.auth-screen header.kpi-header>#themeToggle{
  position:absolute;top:12px;right:12px;width:40px;height:40px;border-radius:9px;
 }
