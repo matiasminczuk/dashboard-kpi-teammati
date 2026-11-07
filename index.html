@@ -827,17 +827,46 @@ body.dark-theme.employee-mode .header-welcome p{color:var(--dark-muted)}
 @media(max-width:700px){body.employee-mode header.kpi-header{padding:10px 14px}body.employee-mode .brand-team strong{font-size:15px}body.employee-mode .brand-logo img{height:29px;max-width:105px}body.employee-mode .brand-logo img.kelsoft-logo{height:30px;max-width:120px}body.employee-mode #employeeNavigation{order:3;flex:1 1 100%;grid-template-columns:repeat(2,minmax(0,1fr));margin-left:0}body.employee-mode #employeeNavigation button{min-height:32px;font-size:11px}body.employee-mode header.kpi-header>#themeToggle{order:2;margin-left:auto}body.employee-mode .header-welcome{margin-top:15px;padding:0 16px}body.employee-mode .header-welcome h2{font-size:20px}}
 </style>
 <style>
-/* Ajuste final: logos horizontales y navegación a la altura de la luna (solo catalogadores) */
-body.employee-mode .header-brand{flex:0 0 auto!important}
-body.employee-mode .brand-team{display:flex!important;flex-wrap:nowrap!important;align-items:center!important}
-body.employee-mode .brand-logo{display:flex!important;flex-direction:row!important;align-items:center!important;gap:12px!important;background:transparent!important;padding:0!important;border:0!important;white-space:nowrap}
-body.employee-mode .brand-logo img{display:block!important;flex:0 0 auto!important;width:auto!important;height:34px!important;max-width:135px!important;background:transparent!important;border:0!important;padding:0!important;border-radius:0!important}
-body.employee-mode .brand-logo img.kelsoft-logo{height:34px!important;max-width:135px!important;background:transparent!important;padding:0!important}
-body.employee-mode #employeeNavigation{display:flex!important;grid-template-columns:none!important;flex:0 1 auto!important;align-items:center!important;justify-content:center!important;width:auto!important;height:35px!important;min-height:35px!important;max-height:35px!important;box-sizing:border-box!important;padding:2px!important;gap:2px!important;border-radius:9px!important;overflow:visible!important;margin-left:auto!important;order:initial!important}
-body.employee-mode #employeeNavigation button{display:flex!important;align-items:center!important;justify-content:center!important;height:29px!important;min-height:29px!important;padding:0 12px!important;font-size:12px!important;line-height:1!important;white-space:nowrap!important}
-body.employee-mode header.kpi-header>#themeToggle{width:35px!important;height:35px!important;min-height:35px!important;flex:0 0 35px!important;order:initial!important}
-@media(max-width:850px){body.employee-mode header.kpi-header{flex-wrap:wrap!important}body.employee-mode #employeeNavigation{order:3!important;margin-left:0!important}body.employee-mode .header-welcome{order:4!important}}
-@media(max-width:520px){body.employee-mode #employeeNavigation{width:100%!important;justify-content:space-between!important}body.employee-mode #employeeNavigation button{padding:0 6px!important;font-size:10px!important}body.employee-mode .brand-logo img{height:27px!important;max-width:100px!important}}
+/* Cabecera de catalogador: saludo y acciones en una misma retícula. */
+body.employee-mode header.kpi-header{
+ display:grid;grid-template-columns:auto minmax(0,1fr) minmax(350px,420px) 44px;
+ grid-template-areas:"brand welcome navigation theme";align-items:center;
+ gap:10px 14px;padding:10px clamp(12px,2vw,26px);min-height:70px;
+}
+body.employee-mode header.kpi-header .header-brand{grid-area:brand;justify-self:start;min-width:0}
+body.employee-mode header.kpi-header .auth-brand-lockup{width:clamp(200px,21vw,280px)}
+body.employee-mode header.kpi-header .header-welcome{
+ grid-area:welcome;display:block;min-width:0;max-width:none;margin:0;padding:0;
+ background:transparent;border:0;color:#172b4d;
+}
+body.employee-mode header.kpi-header .header-welcome h2{font-size:18px;line-height:1.2;margin:0}
+body.employee-mode header.kpi-header #headerWelcomeDescription{display:none}
+body.employee-mode header.kpi-header #employeePeriodNote{font-size:12px;margin-top:4px}
+body.dark-theme.employee-mode header.kpi-header .header-welcome{color:var(--dark-text)}
+body.employee-mode header.kpi-header #employeeNavigation{
+ grid-area:navigation;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));align-items:stretch;
+ align-self:center;min-height:44px;width:100%;margin:0;padding:3px;gap:3px;border-radius:9px;overflow:visible;
+}
+body.employee-mode header.kpi-header #employeeNavigation button{
+ display:grid;place-items:center;min-height:36px;min-width:0;width:100%;
+ padding:4px 5px;font-size:12px;line-height:1.15;text-align:center;white-space:normal;border-radius:6px;
+}
+body.employee-mode header.kpi-header>#themeToggle{
+ grid-area:theme;width:44px;height:44px;align-self:center;margin:0;padding:0;border-radius:9px;
+}
+@media(max-width:980px){
+ body.employee-mode header.kpi-header{
+  grid-template-columns:auto minmax(0,1fr) 44px;
+  grid-template-areas:"brand welcome welcome" "navigation navigation theme";
+ }
+}
+@media(max-width:580px){
+ body.employee-mode header.kpi-header{
+  grid-template-columns:minmax(0,1fr) 44px;
+  grid-template-areas:"brand brand" "welcome welcome" "navigation theme";
+ }
+ body.employee-mode header.kpi-header #employeeNavigation{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
 </style>
 <style>
 /* Acceso al dashboard. */
@@ -1250,7 +1279,7 @@ function arrangeEmployeePanels(){
   $('mainCards').after($('employeeFlowPercent'));$('employeeFlowPercent').after(summary);summary.after(weekly);weekly.after(holds);holds.after(gestion);gestion.after(times);
  }
 }
-function showDashboard(name,admin){document.body.classList.remove('auth-screen');isAdmin=admin;isPM=canImportBases();selectedTeam=isPM?'':validTeam(profileData?.equipo);publishedItems=[];kpiCache=[];holdsCache=[];gestionCache=[];excludedPeople=new Set();$('personFilter').replaceChildren(new Option(admin?'Todos los catalogadores':'Mi productividad',''));document.body.classList.toggle('admin-mode',admin);const welcome=$('employeeGreeting').closest('.header-welcome');const header=document.querySelector('header.kpi-header');if(!admin){header.insertAdjacentElement('afterend',welcome);}else{header.insertBefore(welcome,$('themeToggle'));}$('adminSidebar').classList.toggle('hidden',!admin);document.body.classList.toggle('employee-mode',!admin);$('employeeGreeting').textContent='¡Hola, '+name+'!';$('headerWelcomeDescription').textContent=admin?'Productividad, creaciones, holds y horarios de gestión.':'Tu productividad, creaciones, holds y horarios de gestión en un solo lugar.';$('welcome').textContent=admin?'Bienvenido, '+name:'Mi productividad';$('login').classList.add('hidden');$('dashboard').classList.remove('hidden');$('logout').classList.remove('hidden');$('tabUpload').classList.toggle('hidden',!isPM);$('publishKpis').classList.toggle('hidden',!isPM);$('pmTeamWrap').classList.toggle('hidden',!isPM);$('pmComparison').classList.toggle('hidden',!isPM);$('pmTeamFilter').value=isPM?'':selectedTeam;switchTab(false);arrangeEmployeePanels();if(admin)selectAdminSection('resumen');loadDashboardKpis().catch(console.error);loadQuality();}
+function showDashboard(name,admin){document.body.classList.remove('auth-screen');isAdmin=admin;isPM=canImportBases();selectedTeam=isPM?'':validTeam(profileData?.equipo);publishedItems=[];kpiCache=[];holdsCache=[];gestionCache=[];excludedPeople=new Set();$('personFilter').replaceChildren(new Option(admin?'Todos los catalogadores':'Mi productividad',''));document.body.classList.toggle('admin-mode',admin);const welcome=$('employeeGreeting').closest('.header-welcome');const header=document.querySelector('header.kpi-header');header.insertBefore(welcome,$('themeToggle'));$('adminSidebar').classList.toggle('hidden',!admin);document.body.classList.toggle('employee-mode',!admin);$('employeeGreeting').textContent='¡Hola, '+name+'!';$('headerWelcomeDescription').textContent=admin?'Productividad, creaciones, holds y horarios de gestión.':'Tu productividad, creaciones, holds y horarios de gestión en un solo lugar.';$('welcome').textContent=admin?'Bienvenido, '+name:'Mi productividad';$('login').classList.add('hidden');$('dashboard').classList.remove('hidden');$('logout').classList.remove('hidden');$('tabUpload').classList.toggle('hidden',!isPM);$('publishKpis').classList.toggle('hidden',!isPM);$('pmTeamWrap').classList.toggle('hidden',!isPM);$('pmComparison').classList.toggle('hidden',!isPM);$('pmTeamFilter').value=isPM?'':selectedTeam;switchTab(false);arrangeEmployeePanels();if(admin)selectAdminSection('resumen');loadDashboardKpis().catch(console.error);loadQuality();}
 function switchTab(upload){if(upload&&!canImportBases())return;$('viewSettings').classList.add('hidden');$('viewDashboard').classList.toggle('hidden',upload);$('viewUpload').classList.toggle('hidden',!upload);$('tabDashboard').classList.toggle('active',!upload);$('tabUpload').classList.toggle('active',upload);}
 $('tabDashboard').addEventListener('click',()=>switchTab(false));$('tabUpload').addEventListener('click',()=>switchTab(true));
 const authViews={
