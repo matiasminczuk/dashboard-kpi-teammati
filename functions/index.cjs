@@ -246,7 +246,7 @@ function newAuditNotice(uid, event, id, count = 1) {
     'auditorias', id);
 }
 
-const trigger = document => ({document, retry: true, timeoutSeconds: 300});
+const trigger = document => ({document, region: 'southamerica-east1', retry: true, timeoutSeconds: 300});
 exports.notificarImportacionAuditorias = onDocumentUpdated(trigger('importaciones_auditorias/{id}'), async event => {
   const data = event.data.after.data(), id = event.params.id;
   if (data.estado === 'error' && event.data.before.data().estado !== 'error') {
