@@ -2,7 +2,7 @@
 
 ## Importación y estados
 
-En **Configuración → Cargar bases → Auditorías**, seleccioná un Excel o CSV. Revisá las hojas y la fila de encabezados, ajustá la correspondencia de columnas, elegí un mes de referencia si el archivo carece de fecha o período y validá antes de confirmar. La vista previa informa qué filas se publicarían, cuáles quedarían sin asignar y cuáles se descartarían. La validación y la asignación se repiten en el servidor al confirmar.
+En **Configuración → Cargar bases → Auditorías**, seleccioná un Excel o CSV y pulsá **Cargar**. El sistema detecta las columnas, valida las filas y publica las auditorías con destinatario verificado. Si falta una columna obligatoria o un período, se abre **Ajustar columnas y hojas**. El detalle muestra las filas asignadas, sin asignar, duplicadas y rechazadas. El servidor vuelve a validar al guardar.
 
 El formato Netkel se reconoce por sus columnas. La clave usa fecha, flujo, identificador del colaborador, CDM, producto, ítem y variación. «Acción correcta» queda como resultado original. Los comentarios, el estado y la decisión de origen se guardan como referencia. Para otros formatos podés seleccionar una columna de ID de auditoría. Los IDs externos deben identificar una auditoría de forma estable entre archivos. Las claves duplicadas con datos distintos se reportan como conflicto. El mismo ID ya guardado conserva su auditoría original.
 

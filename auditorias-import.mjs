@@ -56,7 +56,8 @@ export function mapAuditRows(sheet, defaultPeriod, serialDate) {
   const required = ['idMeli', 'resultado'];
   if (!composite) required.push('externo');
   if (composite) required.push('fecha', 'flujo', 'cdm', 'producto', 'item', 'variante');
-  if (required.some(key => mapping[key] < 0)) throw Error(name + ' · Completá el mapeo de los campos requeridos.');
+  const missing = required.filter(key => mapping[key] < 0).map(key => labels[key]);
+  if (missing.length) throw Error(name + ' · Completá el mapeo de: ' + missing.join(', ') + '.');
   if (mapping.fecha < 0 && mapping.periodo < 0 && !defaultPeriod) throw Error(name + ' · Mapeá fecha o período, o indicá un mes de referencia.');
   return matrix.slice(headerRow + 1).flatMap((cells, index) => {
     if (!cells.some(cell => valueOf(cell))) return [];

@@ -49,11 +49,11 @@ export function setupAudits(api) {
   const auditPanel = $('viewAuditorias'), detail = $('auditDetail'), detailBody = $('auditDetailBody');
   const filter = $('auditFilters'), reports = $('auditReports'), upload = $('auditUploadPanel');
   const sheetSelect = $('auditSheet'), headerInput = $('auditHeaderRow'), mappingArea = $('auditMappings');
-  const previewButton = $('auditPreviewButton'), confirmButton = $('auditConfirm'), fileInput = $('auditFile');
+  const loadButton = $('auditLoad'), fileInput = $('auditFile'), fileSetup = $('auditFileSetup');
   const status = $('auditUploadStatus'), preview = $('auditPreview');
   let session, listeners = [], audits = [], all = [], unread = [], detailListener, historyListener;
   let inbox, inboxListener, visibleNotices = 100;
-  let selectedAudit, history = [], roster = new Map(), sheets = [], fileName, plan, fileVersion = 0, busy = false;
+  let selectedAudit, history = [], roster = new Map(), sheets = [], fileVersion = 0, busy = false;
   let notificationError = false, onlyUnread = false, listError = false, auditLoading = false, saving = false;
   const format = number => new Intl.NumberFormat('es-AR').format(number);
   const ctx = () => session;
@@ -85,12 +85,12 @@ export function setupAudits(api) {
     unreadCount.hidden = true;
     $('auditRows').replaceChildren();
     reports.replaceChildren();
-    roster = new Map(); audits = []; all = []; unread = []; sheets = []; plan = undefined; fileName = undefined;
+    roster = new Map(); audits = []; all = []; unread = []; sheets = [];
     notificationError = false; onlyUnread = false; listError = false; auditLoading = false;
     busy = false; saving = false;
-    importBusy(false); fileInput.value = '';
-    $('auditReferenceMonth').value = ''; $('auditFileSetup').hidden = true; preview.hidden = true;
-    for (const node of [preview,sheetSelect,mappingArea,$('auditSheetPreview')]) node.replaceChildren();
+    fileInput.value = ''; importBusy(false);
+    $('auditReferenceMonth').value = ''; fileSetup.hidden = true; fileSetup.open = false; preview.hidden = true;
+    for (const node of [$('auditPreviewResults'),sheetSelect,mappingArea,$('auditSheetPreview')]) node.replaceChildren();
     $('auditSheetInfo').textContent = '';
     status.textContent = '';
   }
@@ -369,7 +369,7 @@ export function setupAudits(api) {
     detailBody.append(form);
   }
 
-  function invalidate() {plan = undefined;preview.hidden = true;confirmButton.disabled = true;}
+  function invalidate() {preview.hidden = true;preview.open = false;}
   function mappingFor(sheet) {
     sheet.mapping = mapHeaders(sheet.matrix[sheet.headerRow] || []);
     sheet.composite = sheet.mapping.externo < 0 && hasNetkelColumns(sheet.mapping);
@@ -401,9 +401,10 @@ export function setupAudits(api) {
   }
   fileInput.onchange = async () => {
     const file = fileInput.files[0], current = ++fileVersion;
-    invalidate();$('auditFileSetup').hidden = true;sheets = [];
+    invalidate();fileSetup.hidden = true;fileSetup.open = false;sheets = [];
+    importBusy(false);status.textContent = '';
     if (!file || !session?.global) return;
-    fileName = file.name;
+    loadButton.disabled = true;
     status.textContent = 'Leyendo el archivo…';
     try {
       if (!/\.(xlsx|xls|csv)$/i.test(file.name) || file.size > 15_000_000) throw Error('Elegí un archivo .xlsx, .xls o .csv de hasta 15 MB.');
@@ -419,8 +420,9 @@ export function setupAudits(api) {
       });
       if (!sheets.length) throw Error('No se encontraron hojas.');
       sheetSelect.replaceChildren(...sheets.map((sheet,index) => new Option(sheet.name,String(index))));
-      $('auditFileSetup').hidden = false;renderSheet();
-      status.textContent = sheets.length + ' hojas detectadas. Revisá el mapeo de cada hoja que quieras importar.';
+      fileSetup.hidden = false;renderSheet();
+      loadButton.disabled = false;
+      status.textContent = '';
     } catch (error) {if (current === fileVersion) status.textContent = error.message;}
   };
   sheetSelect.onchange = renderSheet;
@@ -435,44 +437,47 @@ export function setupAudits(api) {
   function importBusy(value) {
     busy = value;
     upload.querySelectorAll('input, select, button').forEach(node => {node.disabled = value;});
-    if (!value) confirmButton.disabled = !plan;
+    loadButton.disabled = value || !sheets.length;
   }
   function renderPreview(result) {
     preview.hidden = false;
     const groups = [['Válidas y asignadas',result.validas],['Sin asignar',result.incidencias],
       ['Duplicadas',result.duplicadas],['Rechazadas',result.rechazadas]];
-    preview.replaceChildren();
+    const results = $('auditPreviewResults');
+    results.replaceChildren();
     for (const [label, entries] of groups) {
       const details = element('details');
       details.append(element('summary',label + ' · ' + format(entries.length)));
       const list = element('ul');
       for (const row of entries) list.append(element('li',[row.hoja,'Fila ' + row.fila,row.identificador,row.periodo,row.motivo].filter(Boolean).join(' · ')));
-      details.append(list);preview.append(details);
+      details.append(list);results.append(details);
     }
   }
-  previewButton.onclick = async () => {
-    if (!session?.global || busy) return;
+  loadButton.onclick = async () => {
+    if (!session?.global || busy || !sheets.length) return;
     const current = ctx();
     invalidate();importBusy(true);status.textContent = 'Validando columnas y cuentas de colaboradores…';
     try {
-      const filas = sheets.filter(sheet => sheet.include).flatMap(sheet => mapAuditRows(sheet,$('auditReferenceMonth').value, window.XLSX.SSF.parse_date_code));
-      const result = await api.call('auditoriasImportar',{archivo:fileName,filas,confirmar:false});
+      let filas;
+      try {
+        filas = sheets.filter(sheet => sheet.include).flatMap(sheet => mapAuditRows(sheet,$('auditReferenceMonth').value,window.XLSX.SSF.parse_date_code));
+        if (!filas.length) throw Error('Incluí una hoja con filas de auditorías.');
+      } catch (error) {
+        fileSetup.open = true;
+        status.textContent = error.message;
+        return;
+      }
+      const request = {archivo:fileInput.files[0].name,filas};
+      const validation = await api.call('auditoriasImportar',{...request,confirmar:false});
       if (ctx() !== current) return;
-      renderPreview(result);
-      if (result.validas.length || result.incidencias.length) plan = {archivo:fileName,filas};
-      status.textContent = plan ? 'Revisá el resultado antes de guardar. Las filas sin asignar quedan pendientes de revisión.' :
-        'No hay auditorías nuevas que puedan guardarse.';
-    } catch (error) {if (ctx() === current) status.textContent = error.code ? errorText(error) : error.message;}
-    finally {if (ctx() === current) importBusy(false);}
-  };
-  confirmButton.onclick = async () => {
-    if (!plan || busy || !session?.global || !window.confirm('¿Guardar la importación y publicar las auditorías con destinatario verificado?')) return;
-    const current = ctx();
-    importBusy(true);status.textContent = 'Guardando auditorías…';
-    try {
-      const result = await api.call('auditoriasImportar',{...plan,confirmar:true});
+      renderPreview(validation);
+      if (!validation.validas.length && !validation.incidencias.length && !validation.duplicadas.length) {
+        status.textContent = 'No se guardó ninguna auditoría. Revisá las filas rechazadas.';
+        return;
+      }
+      status.textContent = 'Guardando auditorías…';
+      const result = await api.call('auditoriasImportar',{...request,confirmar:true});
       if (ctx() !== current) return;
-      plan = undefined;
       status.textContent = (result.repetida ? 'Importación ya completada. ' : 'Importación completada. ') +
         format(result.publicadas) + ' publicadas · ' + format(result.pendientes) + ' sin asignar · ' +
         format(result.duplicadas) + ' duplicadas · ' + format(result.rechazadas) + ' rechazadas.';
