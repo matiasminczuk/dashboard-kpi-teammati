@@ -456,6 +456,7 @@ export function setupAudits(api) {
   loadButton.onclick = async () => {
     if (!session?.global || busy || !sheets.length) return;
     const current = ctx();
+    let savingImport = false;
     invalidate();importBusy(true);status.textContent = 'Validando columnas y cuentas de colaboradores…';
     try {
       let filas;
@@ -476,12 +477,23 @@ export function setupAudits(api) {
         return;
       }
       status.textContent = 'Guardando auditorías…';
+      savingImport = true;
       const result = await api.call('auditoriasImportar',{...request,confirmar:true});
       if (ctx() !== current) return;
       status.textContent = (result.repetida ? 'Importación ya completada. ' : 'Importación completada. ') +
         format(result.publicadas) + ' publicadas · ' + format(result.pendientes) + ' sin asignar · ' +
         format(result.duplicadas) + ' duplicadas · ' + format(result.rechazadas) + ' rechazadas.';
-    } catch (error) {if (ctx() === current) status.textContent = errorText(error) + ' Podés reintentar la misma importación.';}
+    } catch (error) {
+      if (ctx() !== current) return;
+      const code = error.code?.split('/').at(-1);
+      if (['not-found','unavailable','internal','deadline-exceeded'].includes(code)) {
+        status.textContent = savingImport
+          ? 'Firebase no confirmó el guardado. Podés reintentar el mismo archivo sin duplicar auditorías.'
+          : 'El servicio de importación no está disponible en Firebase. La carga no llegó al guardado. Consultá al administrador.';
+      } else {
+        status.textContent = errorText(error);
+      }
+    }
     finally {if (ctx() === current) importBusy(false);}
   };
   return {start,stop,closeView,openView};
