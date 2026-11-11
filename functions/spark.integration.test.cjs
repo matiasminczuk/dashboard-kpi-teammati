@@ -32,19 +32,27 @@ test('Spark importa y protege auditorías, estados y avisos sin Cloud Functions'
   const person = await account('employee',{rol:'catalogador',equipo:'A',idMeli:'001',usuario:'NET_TEST'});
   const outsider = await account('outsider',{rol:'catalogador',equipo:'B',idMeli:'002'});
   const row = (externo,fila,idMeli='NET_TEST') => ({externo,fila,idMeli,hoja:'Datos',fecha:'2026-10-02',resultado:'Original'});
-  const filas = [...Array.from({length:9},(_,i)=>row('a'+i,i+2)),row('a0',12),row('pendiente',13,'desconocido'),{...row('bad',14),fecha:'2026-02-30'}];
+  const filas = [...Array.from({length:9},(_,i)=>row('a'+i,i+2)),row('a0',12),row('pendiente',13,'desconocido'),
+    {...row('bad',14),fecha:'2026-02-30'}, {...row('sin-error',15),resultado:' NULL '}];
   const req = {archivo:'auditorias.csv',filas};
   const imported = confirm => pm.call('auditoriasImportar',{...req,confirmar:confirm});
   const preview = await imported(false);
   assert.deepEqual([preview.validas.length,preview.incidencias.length,preview.duplicadas.length,preview.rechazadas.length],[9,1,1,1]);
+  assert.equal(preview.sinError.length,1);
   await assert.rejects(tl.call('auditoriasImportar',{...req,confirmar:false}),{code:'permission-denied'});
   const result = await imported(true);
   assert.deepEqual([result.publicadas,result.pendientes,result.duplicadas,result.rechazadas],[9,1,1,1]);
+  assert.equal(result.sinError,1);
   assert.equal((await imported(true)).repetida,true);
   const audits = store.collection(person.db,'auditorias');
-  const mine = await store.getDocs(store.query(audits,store.where('colaboradorUid','==',person.uid)));
+  const ownScope = auditScope(person.api,person.profile)[0];
+  const mine = await store.getDocs(ownScope);
   assert.equal(mine.size,9);
   const [first,second] = mine.docs;
+  const cleanAudit = (await store.getDocs(store.query(store.collection(tl.db,'auditorias'),store.where('equipo','==','A'))))
+    .docs.find(doc=>doc.data().estado==='sin_error');
+  assert.ok(cleanAudit);
+  await assert.rejects(store.getDoc(store.doc(person.db,cleanAudit.ref.path)),{code:'permission-denied'});
   await assert.rejects(store.getDocs(audits),{code:'permission-denied'});
   await assert.rejects(store.getDoc(store.doc(outsider.db,first.ref.path)),{code:'permission-denied'});
   await assert.rejects(store.updateDoc(first.ref,{resultado:'Falso'}),{code:'permission-denied'});
@@ -94,7 +102,7 @@ test('Spark importa y protege auditorías, estados y avisos sin Cloud Functions'
     await pm.call('auditoriasActuar',{id:second.id,accion:'rechazar',texto:'Cierre PM'});
     assert.equal((await store.getDocFromServer(first.ref)).data().resultado,'Original');
     assert.equal((await store.getDocFromServer(second.ref)).data().estado,'cerrada_rechazada');
-    const metrics = auditReviewTotals((await store.getDocs(store.query(audits,store.where('colaboradorUid','==',person.uid)))).docs.map(doc=>doc.data()));
+    const metrics = auditReviewTotals([...(await store.getDocs(ownScope)).docs.map(doc=>doc.data()),cleanAudit.data()]);
     assert.deepEqual(metrics,{revisaron:0,sinRevisar:1,aprobadasTl:1,rechazadasTl:1,pendientesPm:0,aprobadasPm:1,rechazadasPm:1});
     await until(person,'auditoria_cierre');
     await assert.rejects(person.call('auditoriasActuar',{id:first.id,accion:'responder',texto:'Reabrir'}),/cambió de estado/);

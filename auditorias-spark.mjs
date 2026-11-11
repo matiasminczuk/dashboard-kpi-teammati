@@ -1,6 +1,8 @@
 const assignmentFields = ['colaboradorUid','colaboradorIdMeli','nombreColaborador','equipo','tlUid','nombreTL','incidencia'];
 const clean = value => String(value ?? '').trim();
 const fold = value => clean(value).toLowerCase();
+const noAuditError = row => fold(row.resultado) === 'null';
+const reviewStates = ['pendiente_colaborador','pendiente_tl','pendiente_pm','cerrada_aprobada','cerrada_rechazada'];
 const digest = async value => Array.from(new Uint8Array(await crypto.subtle.digest(
   'SHA-256', new TextEncoder().encode(JSON.stringify(value))
 )), byte => byte.toString(16).padStart(2,'0')).join('');
@@ -103,10 +105,11 @@ export function createSparkAudits(api) {
         const snapshots = await Promise.all(group.map(page => getDocs(query(audits,where(documentId(),'in',page.map(entry => entry.id))))));
         for (const snapshot of snapshots) for (const item of snapshot.docs) prior.set(item.id,item.data());
       }
-      const result = {validas:[],incidencias:[],duplicadas:[...duplicates],rechazadas:rejected};
+      const result = {validas:[],sinError:[],incidencias:[],duplicadas:[...duplicates],rechazadas:rejected};
       for (const {id:rowId,row,assigned} of entries) {
         const saved = prior.get(rowId);
         if (saved && saved.importacionId !== id) result.duplicadas.push(issue(row,'Auditoría ya registrada'));
+        else if (noAuditError(row)) result.sinError.push(issue(row));
         else if (assigned.incidencia) result.incidencias.push(issue(row,assigned.incidencia));
         else result.validas.push(issue(row));
       }
@@ -125,7 +128,7 @@ export function createSparkAudits(api) {
       return null;
     });
     if (completed) return {...completed,repetida:true};
-    const summary = {guardadas:0,publicadas:0,pendientes:0,duplicadas:plan.duplicates.length,rechazadas:plan.rejected.length};
+    const summary = {guardadas:0,publicadas:0,pendientes:0,sinError:0,duplicadas:plan.duplicates.length,rechazadas:plan.rejected.length};
     // Lotes pequeños para respetar el límite de lecturas de las reglas de Firestore.
     for (const group of pages(pages(plan.entries,4),5)) {
       const counts = await Promise.allSettled(group.map(page => runTransaction(db,async tx => {
@@ -133,19 +136,21 @@ export function createSparkAudits(api) {
         return page.map(({id,row,assigned},index) => {
           const saved = previous[index].data();
           if (saved) return saved.importacionId === plan.id ?
-            (saved.estado === 'sin_asignar' ? 'pendientes' : 'publicadas') : 'duplicadas';
+            (saved.estado === 'sin_error' ? 'sinError' : saved.estado === 'sin_asignar' ? 'pendientes' : 'publicadas') : 'duplicadas';
+          const withoutError = noAuditError(row);
           const isPending = Boolean(assigned.incidencia);
           tx.set(doc(audits,id),{...row,...assigned,importacionId:plan.id,cargadaPor:uid,creadaEn:serverTimestamp(),
-            publicadaEn:isPending ? null : serverTimestamp(),estado:isPending ? 'sin_asignar' : 'pendiente_colaborador'});
-          return isPending ? 'pendientes' : 'publicadas';
+            publicadaEn:isPending || withoutError ? null : serverTimestamp(),
+            estado:withoutError ? 'sin_error' : isPending ? 'sin_asignar' : 'pendiente_colaborador'});
+          return withoutError ? 'sinError' : isPending ? 'pendientes' : 'publicadas';
         });
       })));
       const failed = counts.find(result => result.status === 'rejected');
       if (failed) throw failed.reason;
       for (const result of counts) for (const key of result.value) summary[key]++;
-      onProgress?.(summary.publicadas + summary.pendientes + summary.duplicadas - plan.duplicates.length,plan.entries.length);
+      onProgress?.(summary.publicadas + summary.pendientes + summary.sinError + summary.duplicadas - plan.duplicates.length,plan.entries.length);
     }
-    summary.guardadas = summary.publicadas + summary.pendientes;
+    summary.guardadas = summary.publicadas + summary.pendientes + summary.sinError;
     await runTransaction(db,async tx => {
       const previous = await tx.get(manifest);
       if (previous.data()?.estado === 'procesando') tx.update(manifest,{estado:'completado',completadaEn:serverTimestamp(),resumen:summary,
@@ -194,7 +199,7 @@ export function auditReviewTotals(audits) {
   const people = new Map();
   const totals = {revisaron:0,sinRevisar:0,aprobadasTl:0,rechazadasTl:0,pendientesPm:0,aprobadasPm:0,rechazadasPm:0};
   for (const audit of audits) {
-    if (audit.estado === 'sin_asignar') continue;
+    if (!reviewStates.includes(audit.estado)) continue;
     const person = audit.colaboradorIdMeli || audit.colaboradorUid;
     if (person) people.set(String(person),(people.get(String(person)) ?? true) && Boolean(audit.respuesta));
     if (audit.decision?.accion === 'aprobar') totals.aprobadasTl++;
@@ -217,8 +222,9 @@ export function auditScope(api,profile,global = false) {
   if (global) return [base];
   if (profile.role === 'tl' && profile.team) return [query(base,where('equipo','==',profile.team))];
   if (profile.role !== 'catalogador') return [];
-  const targets = [query(base,where('colaboradorUid','==',profile.uid))];
-  if (profile.idMeli) targets.push(query(base,where('colaboradorUid','==',null),where('colaboradorIdMeli','==',String(profile.idMeli))));
+  const visible = where('estado','in',reviewStates);
+  const targets = [query(base,where('colaboradorUid','==',profile.uid),visible)];
+  if (profile.idMeli) targets.push(query(base,where('colaboradorUid','==',null),where('colaboradorIdMeli','==',String(profile.idMeli)),visible));
   return targets;
 }
 
@@ -262,6 +268,7 @@ export function observeSparkNotices(api, profile, watch, onChange) {
     const messages = [], groups = new Map();
     for (const record of snapshot.docs) {
       const audit = record.data();
+      if (audit.estado === 'sin_error') continue;
       if (pm) {
         if (audit.estado === 'pendiente_pm' && audit.decision?.fecha) messages.push(item('revision-pm-'+record.id,
           'auditoria_revision_pm','Auditoría pendiente del PM','El TL registró su decisión. Falta la revisión final.',

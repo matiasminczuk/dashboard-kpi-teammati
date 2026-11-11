@@ -1,8 +1,8 @@
 import {labels, mapHeaders, mapAuditRows, hasNetkelColumns} from './auditorias-import.mjs';
-import {auditReviewTotals, auditScope, observeSparkNotices, ownsAudit, watchAuditScope} from './auditorias-spark.mjs?v=revision-pm';
+import {auditReviewTotals, auditScope, observeSparkNotices, ownsAudit, watchAuditScope} from './auditorias-spark.mjs?v=solo-errores';
 
 const states = {
-  sin_asignar:'Sin asignar', pendiente_colaborador:'Pendiente del colaborador',
+  sin_asignar:'Sin asignar', sin_error:'Sin error', pendiente_colaborador:'Pendiente del colaborador',
   pendiente_tl:'Pendiente del TL', pendiente_pm:'Pendiente del PM', cerrada_aprobada:'Cerrada · aprobada',
   cerrada_rechazada:'Cerrada · rechazada'
 };
@@ -106,6 +106,7 @@ export function setupAudits(api) {
     reports.hidden = !profile.global;
     filter.querySelectorAll('[data-audit-global]').forEach(node => {node.hidden = !profile.global;});
     $('auditFilterPerson').closest('label').hidden = profile.role === 'catalogador';
+    filter.querySelectorAll('[data-audit-staff]').forEach(node => {node.hidden = profile.role === 'catalogador';});
     filter.reset();
     inbox = api.collection(api.db, 'usuarios', profile.uid, 'notificaciones');
     watchInbox();
@@ -297,7 +298,8 @@ export function setupAudits(api) {
       const row = element('details');
       row.append(element('summary', item.archivo + ' · ' + dateText(item.fecha) + ' · ' + item.estado));
       if (summary) row.append(element('p', format(summary.publicadas) + ' publicadas · ' + format(summary.pendientes) +
-        ' sin asignar · ' + format(summary.duplicadas) + ' duplicadas · ' + format(summary.rechazadas) + ' rechazadas'));
+        ' sin asignar · ' + format(summary.sinError || 0) + ' sin error · ' +
+        format(summary.duplicadas) + ' duplicadas · ' + format(summary.rechazadas) + ' rechazadas'));
       const issues = [...(item.incidenciasArchivo || []), ...(item.duplicadosArchivo || [])];
       if (issues.length) {
         const list = element('ul');
@@ -354,6 +356,7 @@ export function setupAudits(api) {
       ...[['Product ID',audit.producto],['Item ID',audit.item],['Variation ID',audit.variante],
         ['Referencia de origen',audit.referencia],['Comentario de origen',audit.comentarioOrigen],
         ['Decisión de origen',audit.decisionOrigen],['Estado de origen',audit.estadoOrigen],
+        ['Estado antes de marcar sin error',states[audit.estadoPrevioSinError]],
         ['Motivo de origen',audit.motivoOrigen],['Incidencia',audit.incidencia]].filter(([,value]) => value && value !== 'null')
     ]);
     detailBody.replaceChildren(fields);
@@ -490,7 +493,7 @@ export function setupAudits(api) {
   }
   function renderPreview(result) {
     preview.hidden = false;
-    const groups = [['Válidas y asignadas',result.validas],['Sin asignar',result.incidencias],
+    const groups = [['Con error y asignadas',result.validas],['Sin error',result.sinError || []],['Sin asignar',result.incidencias],
       ['Duplicadas',result.duplicadas],['Rechazadas',result.rechazadas]];
     const results = $('auditPreviewResults');
     results.replaceChildren();
@@ -521,7 +524,7 @@ export function setupAudits(api) {
       const validation = await api.call('auditoriasImportar',{...request,confirmar:false});
       if (ctx() !== current) return;
       renderPreview(validation);
-      if (!validation.validas.length && !validation.incidencias.length && !validation.duplicadas.length) {
+      if (!validation.validas.length && !validation.sinError.length && !validation.incidencias.length && !validation.duplicadas.length) {
         status.textContent = 'No se guardó ninguna auditoría. Revisá las filas rechazadas.';
         return;
       }
@@ -532,7 +535,8 @@ export function setupAudits(api) {
       }});
       if (ctx() !== current) return;
       status.textContent = (result.repetida ? 'Importación ya completada. ' : 'Importación completada. ') +
-        format(result.publicadas) + ' publicadas · ' + format(result.pendientes) + ' sin asignar · ' +
+        format(result.publicadas) + ' publicadas para revisión · ' + format(result.pendientes) + ' sin asignar · ' +
+        format(result.sinError || 0) + ' sin error · ' +
         format(result.duplicadas) + ' duplicadas · ' + format(result.rechazadas) + ' rechazadas.';
     } catch (error) {
       if (ctx() !== current) return;

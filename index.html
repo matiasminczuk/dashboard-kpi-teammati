@@ -1267,7 +1267,7 @@ body.employee-mode :is(#qualityOverviewCards,#qualityFlowCards) .quality-goal{gr
   <label>Colaborador<select id="auditFilterPerson" name="idMeli"></select></label>
   <label>Período<select id="auditFilterPeriod" name="periodo"></select></label>
   <label>Flujo<select id="auditFilterFlow" name="flujo"></select></label>
-  <label>Estado<select name="estado"><option value="">Todos</option><option value="sin_asignar">Sin asignar</option><option value="pendiente_colaborador">Pendiente del colaborador</option><option value="pendiente_tl">Pendiente del TL</option><option value="pendiente_pm">Pendiente del PM</option><option value="cerrada_aprobada">Cerrada · aprobada</option><option value="cerrada_rechazada">Cerrada · rechazada</option></select></label>
+  <label>Estado<select name="estado"><option value="">Todos</option><option value="sin_asignar">Sin asignar</option><option value="sin_error" data-audit-staff>Sin error</option><option value="pendiente_colaborador">Pendiente del colaborador</option><option value="pendiente_tl">Pendiente del TL</option><option value="pendiente_pm">Pendiente del PM</option><option value="cerrada_aprobada">Cerrada · aprobada</option><option value="cerrada_rechazada">Cerrada · rechazada</option></select></label>
  </form>
  <dl id="auditMetrics" aria-label="Indicadores de auditorías" hidden></dl>
  <p id="auditListStatus" class="muted" role="status"></p>
@@ -1319,8 +1319,8 @@ import {getFirestore,doc,getDoc,getDocs,collection,query,where,writeBatch,server
 import {indexPeople,analyzeQuality,restoreArchivedQuality,qualityPeriods,selectQualityPeriod,summary,bucketQuality} from './calidad.mjs?v=archivo-1';
 const firebaseConfig={apiKey:'AIzaSyB7edb0wGmf86KVrca5zkBTju7wg_zVDFk',authDomain:'dashboard-kpi-teammati.firebaseapp.com',projectId:'dashboard-kpi-teammati',storageBucket:'dashboard-kpi-teammati.firebasestorage.app',messagingSenderId:'158470825794',appId:'1:158470825794:web:33eb0d3c862756b9d7cadb',measurementId:'G-7E8M7NSPV0'};
 const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app);
-import {setupAudits} from './auditorias-ui.mjs?v=revision-pm';
-import {createSparkAudits} from './auditorias-spark.mjs?v=revision-pm';
+import {setupAudits} from './auditorias-ui.mjs?v=solo-errores';
+import {createSparkAudits} from './auditorias-spark.mjs?v=solo-errores';
 const sparkAuditCall=createSparkAudits({db,doc,getDocs,collection,query,where,documentId,runTransaction,serverTimestamp,
  currentUid:()=>auth.currentUser?.uid,currentMeli:()=>profileData?.idMeli,currentRole:()=>profileData?.rol});
 const auditFeatures = setupAudits({

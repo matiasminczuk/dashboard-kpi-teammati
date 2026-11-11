@@ -173,7 +173,8 @@ service cloud.firestore {
     // Auditorías e historial. Cloud Functions valida las escrituras y transiciones.
     function puedeLeerAuditoria(datos) {
       return puedeGestionarDatos() || (autenticado()
-        && ((perfil().rol == 'catalogador' && auditOwner(datos))
+        && ((perfil().rol == 'catalogador' && auditOwner(datos)
+          && datos.estado in ['pendiente_colaborador','pendiente_tl','pendiente_pm','cerrada_aprobada','cerrada_rechazada'])
           || (perfil().rol == 'tl' && datos.equipo != '' && datos.equipo == perfil().equipo)));
     }
 
@@ -240,9 +241,15 @@ service cloud.firestore {
     function auditCreate(id, data) {
       return id.matches('^[a-f0-9]{64}$') && auditFields(data)
         && get(/databases/$(database)/documents/importaciones_auditorias/$(data.importacionId)).data.estado == 'procesando'
-        && ((data.estado == 'sin_asignar' && auditText(data.incidencia,250) && data.incidencia.size() > 0
-          && data.publicadaEn == null && !data.keys().hasAny(['colaboradorUid','colaboradorIdMeli','nombreColaborador','equipo','tlUid','nombreTL']))
-          || (data.estado == 'pendiente_colaborador' && data.publicadaEn == request.time && auditAssignment(data)));
+        && (data.resultado.trim().lower() == 'null'
+          ? (data.estado == 'sin_error' && data.publicadaEn == null && (auditUnassigned(data) || auditAssignment(data)))
+          : ((data.estado == 'sin_asignar' && data.publicadaEn == null && auditUnassigned(data))
+            || (data.estado == 'pendiente_colaborador' && data.publicadaEn == request.time && auditAssignment(data))));
+    }
+
+    function auditUnassigned(data) {
+      return auditText(data.incidencia,250) && data.incidencia.size() > 0
+        && !data.keys().hasAny(['colaboradorUid','colaboradorIdMeli','nombreColaborador','equipo','tlUid','nombreTL']);
     }
 
     function auditAction(entry, actions, requiredText) {
@@ -289,7 +296,8 @@ service cloud.firestore {
     match /auditorias/{auditoriaId} {
       allow get, list: if puedeLeerAuditoria(resource.data);
       allow create: if puedeGestionarDatos() && auditCreate(auditoriaId,request.resource.data);
-      allow update: if autenticado() && auditChange(resource.data,request.resource.data);
+      allow update: if autenticado() && resource.data.resultado.trim().lower() != 'null'
+        && auditChange(resource.data,request.resource.data);
       allow delete: if false;
 
       match /historial/{eventoId} {
@@ -308,7 +316,7 @@ service cloud.firestore {
       allow update: if puedeGestionarDatos() && resource.data.estado == 'procesando'
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['estado','completadaEn','resumen','incidenciasArchivo','duplicadosArchivo'])
         && request.resource.data.estado == 'completado' && request.resource.data.completadaEn == request.time
-        && request.resource.data.resumen is map && request.resource.data.resumen.size() <= 5
+        && request.resource.data.resumen is map && request.resource.data.resumen.size() <= 6
         && request.resource.data.incidenciasArchivo is list && request.resource.data.incidenciasArchivo.size() <= 200
         && request.resource.data.duplicadosArchivo is list && request.resource.data.duplicadosArchivo.size() <= 200;
       allow delete: if false;
