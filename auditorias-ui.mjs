@@ -1,4 +1,5 @@
 import {labels, mapHeaders, mapAuditRows, hasNetkelColumns} from './auditorias-import.mjs';
+import {observeSparkNotices} from './auditorias-spark.mjs';
 
 const states = {
   sin_asignar:'Sin asignar', pendiente_colaborador:'Pendiente del colaborador',
@@ -53,6 +54,7 @@ export function setupAudits(api) {
   const status = $('auditUploadStatus'), preview = $('auditPreview');
   let session, listeners = [], audits = [], all = [], unread = [], detailListener, historyListener;
   let inbox, inboxListener, visibleNotices = 100;
+  let sparkItems = [], sparkRead = new Map();
   let selectedAudit, history = [], roster = new Map(), sheets = [], fileVersion = 0, busy = false;
   let notificationError = false, onlyUnread = false, listError = false, auditLoading = false, saving = false;
   const format = number => new Intl.NumberFormat('es-AR').format(number);
@@ -87,6 +89,7 @@ export function setupAudits(api) {
     reports.replaceChildren();
     roster = new Map(); audits = []; all = []; unread = []; sheets = [];
     notificationError = false; onlyUnread = false; listError = false; auditLoading = false;
+    sparkItems = []; sparkRead = new Map();
     busy = false; saving = false;
     fileInput.value = ''; importBusy(false);
     $('auditReferenceMonth').value = ''; fileSetup.hidden = true; fileSetup.open = false; preview.hidden = true;
@@ -113,6 +116,14 @@ export function setupAudits(api) {
     listeners.push(watch(api.query(inbox, api.where('leidaEn','==',null)), snap => {
       unread = snap.docs; renderNotifications();
     }, () => {notificationError = true; renderNotifications();}));
+    listeners.push(watch(api.collection(api.db,'usuarios',profile.uid,'lecturas_avisos'),snap => {
+      sparkRead = new Map(snap.docs.map(record => [record.id,record.data().leidaEn]));
+      renderNotifications();
+    }, () => {notificationError = true; renderNotifications();}));
+    listeners.push(...observeSparkNotices(api,profile,watch,items => {
+      sparkItems = items;
+      renderNotifications();
+    }));
     renderNotifications();
   }
   function watchInbox() {
@@ -152,8 +163,18 @@ export function setupAudits(api) {
     else {stopDetail(); $('auditTitle').focus(); window.scrollTo(0,0);}
   }
 
+  function sparkDocuments() {
+    if (!session) return [];
+    return sparkItems.map(item => ({
+      spark:true,ref:api.doc(api.db,'usuarios',session.uid,'lecturas_avisos',item.id),
+      data:()=>({...item,leidaEn:sparkRead.get(item.id) || null})
+    }));
+  }
+  function unreadDocuments(spark = sparkDocuments()) {
+    return [...unread,...spark.filter(record => !record.data().leidaEn)];
+  }
   function renderNotifications() {
-    const count = unread.length;
+    const spark = sparkDocuments(), pending = unreadDocuments(spark), count = pending.length;
     unreadCount.hidden = count === 0;
     unreadCount.textContent = count > 99 ? '99+' : String(count);
     bell.setAttribute('aria-label', count ? 'Notificaciones · ' + count + ' sin leer' : 'Notificaciones');
@@ -161,7 +182,9 @@ export function setupAudits(api) {
     $('notificationReadAll').disabled = !count;
     $('notificationsAll').setAttribute('aria-pressed', String(!onlyUnread));
     $('notificationsUnread').setAttribute('aria-pressed', String(onlyUnread));
-    const entries = onlyUnread ? [...unread].sort((a,b) => (b.data().creadoEn?.seconds || 0) - (a.data().creadoEn?.seconds || 0)) : all.slice(0,visibleNotices);
+    const sorted = (onlyUnread ? pending : [...all,...spark]).sort((a,b) =>
+      (b.data().creadoEn?.toMillis?.() || 0) - (a.data().creadoEn?.toMillis?.() || 0));
+    const entries = onlyUnread ? sorted : sorted.slice(0,visibleNotices);
     const list = $('notificationItems');
     list.replaceChildren();
     if (!entries.length) list.append(element('p', notificationError ? 'No se pudieron cargar las notificaciones.' :
@@ -174,7 +197,7 @@ export function setupAudits(api) {
         element('strong', item.titulo), element('span', item.mensaje), element('time', dateText(item.creadoEn), 'notification-meta'));
       list.append(row);
     }
-    if (!onlyUnread && all.length > visibleNotices) list.append(button('Ver anteriores', event => {
+    if (!onlyUnread && sorted.length > visibleNotices) list.append(button('Ver anteriores', event => {
       event.currentTarget.disabled = true;
       visibleNotices += 100;
       watchInbox();
@@ -183,7 +206,11 @@ export function setupAudits(api) {
   async function markRead(entries) {
     for (let i = 0; i < entries.length; i += 350) {
       const batch = api.writeBatch(api.db);
-      for (const doc of entries.slice(i, i + 350)) batch.update(doc.ref,{leidaEn:api.serverTimestamp()});
+      for (const doc of entries.slice(i, i + 350)) {
+        const read = {leidaEn:api.serverTimestamp()};
+        if (doc.spark) batch.set(doc.ref,read);
+        else batch.update(doc.ref,read);
+      }
       await batch.commit();
     }
   }
@@ -204,9 +231,9 @@ export function setupAudits(api) {
     const current = ctx();
     $('notificationReadAll').disabled = true;
     $('notificationStatus').textContent = '';
-    try {await markRead([...unread]);}
+    try {await markRead(unreadDocuments());}
     catch {if (ctx() === current) $('notificationStatus').textContent = 'No se pudieron marcar todas como leídas.';}
-    finally {if (ctx() === current) $('notificationReadAll').disabled = !unread.length;}
+    finally {if (ctx() === current) $('notificationReadAll').disabled = !unreadDocuments().length;}
   };
   function positionNotifications() {
     const anchor = bell.getBoundingClientRect();
@@ -286,6 +313,7 @@ export function setupAudits(api) {
       const previous = selectedAudit;
       selectedAudit = {...snapshot.data(), id};
       if (previous?.estado !== selectedAudit.estado) renderDetail(selectedAudit);
+      else renderHistory();
       if (!historyListener) historyListener = watch(api.query(api.collection(ref,'historial'),api.orderBy('fecha')),
         snap => {history = snap.docs.map(item => item.data()); renderHistory();},
         () => {$('auditHistory')?.replaceChildren(element('li','No se pudo leer el historial.'));});
@@ -295,7 +323,14 @@ export function setupAudits(api) {
   function renderHistory() {
     const list = $('auditHistory');
     if (!list) return;
-    list.replaceChildren(...history.map(item => element('li', dateText(item.fecha) + ' · ' + item.tipo +
+    const audit = selectedAudit;
+    const events = history.length || !audit ? history : [
+      {tipo:'importada',uid:audit.cargadaPor,fecha:audit.creadaEn},
+      ...(audit.publicadaEn ? ['asignada','publicada'].map(tipo => ({tipo,uid:audit.asignadaPor || audit.cargadaPor,fecha:audit.publicadaEn})) : []),
+      ...(audit.respuesta ? [{...audit.respuesta,tipo:'respuesta'}] : []),
+      ...(audit.decision ? [{...audit.decision,tipo:'decisión'}] : [])
+    ].filter(item => item.fecha);
+    list.replaceChildren(...events.map(item => element('li', dateText(item.fecha) + ' · ' + item.tipo +
       (item.accion ? ' (' + item.accion + ')' : '') + ' · ' + nameOf(roster.get(item.uid),item.uid))));
   }
 
@@ -478,7 +513,9 @@ export function setupAudits(api) {
       }
       status.textContent = 'Guardando auditorías…';
       savingImport = true;
-      const result = await api.call('auditoriasImportar',{...request,confirmar:true});
+      const result = await api.call('auditoriasImportar',{...request,confirmar:true,onProgress(done,total){
+        if (ctx() === current) status.textContent = 'Procesando auditorías… ' + format(done) + ' de ' + format(total) + '.';
+      }});
       if (ctx() !== current) return;
       status.textContent = (result.repetida ? 'Importación ya completada. ' : 'Importación completada. ') +
         format(result.publicadas) + ' publicadas · ' + format(result.pendientes) + ' sin asignar · ' +
@@ -491,7 +528,7 @@ export function setupAudits(api) {
           ? 'Firebase no confirmó el guardado. Podés reintentar el mismo archivo sin duplicar auditorías.'
           : 'El servicio de importación no está disponible en Firebase. La carga no llegó al guardado. Consultá al administrador.';
       } else {
-        status.textContent = errorText(error);
+        status.textContent = error.code ? errorText(error) : error.message;
       }
     }
     finally {if (ctx() === current) importBusy(false);}

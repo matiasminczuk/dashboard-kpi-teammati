@@ -1,0 +1,308 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function autenticado() {
+      return request.auth != null;
+    }
+
+    function perfil() {
+      return get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data;
+    }
+
+    function esAdmin() {
+      return autenticado() && perfil().rol == 'admin';
+    }
+
+    function esPM() {
+      return autenticado() && perfil().rol == 'pm';
+    }
+
+    function esAdministradorGeneral() {
+      return esAdmin() || esPM();
+    }
+
+    function propietarioUid() {
+      return 'zzCZDpLLzvaGpxe3zuqAp2sVtB42';
+    }
+
+    function esPropietario() {
+      return autenticado() && request.auth.uid == propietarioUid() && esPM();
+    }
+
+    function esSuperAdminConUid(uid) {
+      let ruta = /databases/$(database)/documents/permisos_dashboard/$(uid);
+      return exists(ruta)
+        && get(ruta).data.activo == true
+        && get(ruta).data.nivel == 'superadmin'
+        && get(ruta).data.otorgadoPor == propietarioUid()
+        && get(/databases/$(database)/documents/usuarios/$(uid)).data.rol == 'tl';
+    }
+
+    function esSuperAdmin() {
+      return autenticado() && esSuperAdminConUid(request.auth.uid);
+    }
+
+    function esDelegado() {
+      let ruta = /databases/$(database)/documents/permisos_dashboard/$(request.auth.uid);
+      return autenticado() && perfil().rol == 'tl' && exists(ruta)
+        && get(ruta).data.activo == true
+        && (esSuperAdmin()
+          || (get(ruta).data.nivel == 'delegado'
+            && (get(ruta).data.otorgadoPor == propietarioUid()
+              || esSuperAdminConUid(get(ruta).data.otorgadoPor))));
+    }
+
+    function puedeGestionarDatos() {
+      return esAdministradorGeneral() || esDelegado();
+    }
+
+    function puedeAdministrarPermisos() {
+      return esPropietario() || esSuperAdmin();
+    }
+
+    function esTLDelEquipo(equipoDocumento) {
+      return autenticado() && perfil().rol == 'tl' && perfil().equipo == equipoDocumento;
+    }
+
+    function esCatalogadorDelDocumento(documentoId) {
+      return autenticado() && perfil().rol == 'catalogador' && perfil().idMeli == documentoId;
+    }
+
+    function asignacionValida(uid) {
+      let datos = request.resource.data;
+      let ruta = /databases/$(database)/documents/permisos_dashboard/$(uid);
+      return autenticado() && uid != request.auth.uid && uid != propietarioUid()
+        && get(/databases/$(database)/documents/usuarios/$(uid)).data.rol == 'tl'
+        && datos.keys().hasAll(['nivel', 'activo', 'otorgadoPor', 'actualizadoEn'])
+        && datos.keys().hasOnly(['nivel', 'activo', 'otorgadoPor', 'actualizadoEn'])
+        && datos.nivel in ['superadmin', 'delegado']
+        && datos.activo is bool
+        && datos.otorgadoPor == request.auth.uid
+        && datos.actualizadoEn == request.time
+        && (esPropietario()
+          || (esSuperAdmin() && datos.nivel == 'delegado'
+            && (!exists(ruta) || get(ruta).data.nivel != 'superadmin')));
+    }
+
+    match /usuarios/{userId} {
+      allow read: if autenticado() && (request.auth.uid == userId || puedeGestionarDatos());
+      allow write: if false;
+    }
+
+    match /permisos_dashboard/{userId} {
+      allow get: if autenticado() && (request.auth.uid == userId
+        || puedeAdministrarPermisos()
+        || (exists(/databases/$(database)/documents/permisos_dashboard/$(request.auth.uid))
+          && get(/databases/$(database)/documents/permisos_dashboard/$(request.auth.uid)).data.otorgadoPor == userId));
+      allow list: if puedeAdministrarPermisos();
+      allow create, update: if asignacionValida(userId);
+      allow delete: if false;
+    }
+
+    match /kpis/{userId} {
+      allow read: if autenticado() && (request.auth.uid == userId || puedeGestionarDatos());
+      allow create, update: if puedeGestionarDatos();
+      allow delete: if esAdministradorGeneral();
+
+      match /semanas/{semanaId} {
+        allow read: if autenticado() && (request.auth.uid == userId || puedeGestionarDatos());
+        allow create, update: if puedeGestionarDatos();
+        allow delete: if esAdministradorGeneral();
+      }
+
+      match /registros/{registroId} {
+        allow read: if autenticado() && (request.auth.uid == userId || puedeGestionarDatos());
+        allow create, update: if puedeGestionarDatos();
+        allow delete: if esAdministradorGeneral();
+      }
+    }
+
+    match /importaciones/{importacionId} {
+      allow read, create, update: if puedeGestionarDatos();
+      allow delete: if esAdministradorGeneral();
+    }
+
+    match /bases_calidad/{baseId} {
+      allow read, create, update: if puedeGestionarDatos();
+
+      // La carga guarda los bloques antes de completar el documento de la base.
+      match /hojas/{bloqueId} {
+        allow read, create, update: if puedeGestionarDatos();
+      }
+    }
+
+    match /calidad_publicada/{documentoId} {
+      allow read: if puedeGestionarDatos()
+        || esCatalogadorDelDocumento(documentoId)
+        || esTLDelEquipo(resource.data.equipo);
+      allow create, update: if puedeGestionarDatos();
+    }
+
+    match /calidad_config/objetivo {
+      allow get: if autenticado() && perfil().rol in ['admin', 'pm', 'tl', 'catalogador'];
+      allow create, update: if esAdministradorGeneral()
+        && request.resource.data.keys().hasOnly(['valor','actualizadoEn'])
+        && (!('actualizadoEn' in request.resource.data) || request.resource.data.actualizadoEn == request.time)
+        && (request.resource.data.valor == null
+          || (request.resource.data.valor is number
+            && request.resource.data.valor >= 0 && request.resource.data.valor <= 100));
+    }
+
+    match /calidad_config/productividad {
+      allow get: if autenticado() && perfil().rol in ['admin', 'pm', 'tl', 'catalogador'];
+      allow create, update: if esAdministradorGeneral()
+        && request.resource.data.keys().hasAll(['mixto', 'soporte'])
+        && request.resource.data.keys().hasOnly(['mixto', 'soporte', 'actualizadoEn'])
+        && (!('actualizadoEn' in request.resource.data) || request.resource.data.actualizadoEn == request.time)
+        && metaProductividadValida(request.resource.data.mixto)
+        && metaProductividadValida(request.resource.data.soporte);
+    }
+
+    function metaProductividadValida(valor) {
+      return valor == null || (valor is number && valor > 0 && valor <= 100000);
+    }
+
+    match /kpi_publicados/{documentoId} {
+      allow read: if puedeGestionarDatos()
+        || esCatalogadorDelDocumento(documentoId)
+        || esTLDelEquipo(resource.data.equipo);
+      allow create, update: if puedeGestionarDatos();
+      allow delete: if esAdministradorGeneral();
+    }
+    // Auditorías e historial. Cloud Functions valida las escrituras y transiciones.
+    function puedeLeerAuditoria(datos) {
+      return puedeGestionarDatos() || (autenticado()
+        && ((perfil().rol == 'catalogador' && datos.colaboradorUid == request.auth.uid)
+          || (perfil().rol == 'tl' && datos.equipo != '' && datos.equipo == perfil().equipo)));
+    }
+
+    function auditText(value, max) { return value is string && value.size() <= max; }
+
+    function auditAssignment(data) {
+      let recipient = get(/databases/$(database)/documents/usuarios/$(data.colaboradorUid)).data;
+      let lead = get(/databases/$(database)/documents/usuarios/$(data.tlUid)).data;
+      return auditText(data.colaboradorUid, 128) && auditText(data.tlUid, 128)
+        && data.equipo is string && data.equipo.size() > 0 && data.equipo.size() <= 150
+        && recipient.rol == 'catalogador' && recipient.idMeli == data.colaboradorIdMeli
+        && (auditText(data.colaboradorIdMeli, 100) || data.colaboradorIdMeli is int)
+        && recipient.equipo == data.equipo && lead.rol == 'tl' && lead.equipo == data.equipo
+        && (data.nombreTL == null || auditText(data.nombreTL, 150))
+        && (data.nombreColaborador == null || auditText(data.nombreColaborador, 150))
+        && data.incidencia == null;
+    }
+
+    function auditFields(data) {
+      return data.keys().hasOnly([
+        'externo','idMeli','fecha','periodo','tipo','flujo','resultado','observaciones','hoja','auditor',
+        'cdm','producto','item','variante','comentarioOrigen','referencia','decisionOrigen','estadoOrigen',
+        'motivoOrigen','fila','importacionId','cargadaPor','creadaEn','publicadaEn','estado',
+        'colaboradorUid','colaboradorIdMeli','nombreColaborador','equipo','tlUid','nombreTL','incidencia'
+      ])
+        && auditText(data.externo,400) && data.externo.size() > 0
+        && auditText(data.idMeli,100) && data.idMeli.size() > 0
+        && auditText(data.resultado,1000) && data.resultado.size() > 0
+        && (data.fecha == '' || (auditText(data.fecha,10) && data.fecha.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')))
+        && auditText(data.periodo,7) && data.periodo.matches('^[0-9]{4}-(0[1-9]|1[0-2])$')
+        && auditText(data.tipo,120) && auditText(data.flujo,120) && auditText(data.observaciones,2500)
+        && auditText(data.hoja,150) && auditText(data.auditor,120) && auditText(data.cdm,100)
+        && auditText(data.producto,100) && auditText(data.item,100) && auditText(data.variante,100)
+        && auditText(data.comentarioOrigen,2500) && auditText(data.referencia,500)
+        && auditText(data.decisionOrigen,150) && auditText(data.estadoOrigen,150) && auditText(data.motivoOrigen,2500)
+        && data.fila is int && data.fila > 0 && data.importacionId.matches('^[a-f0-9]{64}$')
+        && data.cargadaPor == request.auth.uid && data.creadaEn == request.time;
+    }
+
+    function auditCreate(id, data) {
+      return id.matches('^[a-f0-9]{64}$') && auditFields(data)
+        && get(/databases/$(database)/documents/importaciones_auditorias/$(data.importacionId)).data.estado == 'procesando'
+        && ((data.estado == 'sin_asignar' && auditText(data.incidencia,250) && data.incidencia.size() > 0
+          && data.publicadaEn == null && !data.keys().hasAny(['colaboradorUid','colaboradorIdMeli','nombreColaborador','equipo','tlUid','nombreTL']))
+          || (data.estado == 'pendiente_colaborador' && data.publicadaEn == request.time && auditAssignment(data)));
+    }
+
+    function auditAction(entry, actions, requiredText) {
+      return entry is map && entry.keys().hasOnly(['accion','texto','uid','fecha'])
+        && entry.accion in actions && auditText(entry.texto,3000)
+        && (!requiredText || entry.texto.size() > 0)
+        && entry.uid == request.auth.uid && entry.fecha == request.time;
+    }
+
+    function auditLeadActive(data) {
+      let lead = get(/databases/$(database)/documents/usuarios/$(data.tlUid)).data;
+      return lead.rol == 'tl' && lead.equipo == data.equipo;
+    }
+
+    function auditChange(old, data) {
+      let fields = data.diff(old).affectedKeys();
+      return (old.estado == 'sin_asignar' && puedeGestionarDatos()
+        && fields.hasOnly(['estado','colaboradorUid','colaboradorIdMeli','nombreColaborador','equipo',
+          'tlUid','nombreTL','incidencia','publicadaEn','asignacionManual','asignadaPor'])
+        && data.estado == 'pendiente_colaborador' && data.asignacionManual == true
+        && data.asignadaPor == request.auth.uid && data.publicadaEn == request.time && auditAssignment(data))
+        || (old.estado == 'pendiente_colaborador' && perfil().rol == 'catalogador'
+          && old.colaboradorUid == request.auth.uid && fields.hasOnly(['estado','respuesta'])
+          && data.estado == 'pendiente_tl' && auditLeadActive(old) && auditAction(data.respuesta,['responder','devolver'],true))
+        || (old.estado == 'pendiente_tl' && esTLDelEquipo(old.equipo) && old.tlUid == request.auth.uid
+          && fields.hasOnly(['estado','decision']) && auditAction(data.decision,['aprobar','rechazar'],false)
+          && ((data.decision.accion == 'aprobar' && data.estado == 'cerrada_aprobada')
+            || (data.decision.accion == 'rechazar' && data.estado == 'cerrada_rechazada')));
+    }
+
+    match /usuarios/{uid}/lecturas_avisos/{aviso} {
+      function buzonSpark() {
+        return autenticado() && request.auth.uid == uid && perfil().rol in ['admin','pm','tl','catalogador'];
+      }
+      allow get, list: if buzonSpark();
+      allow create, update: if buzonSpark() && auditText(aviso,250)
+        && request.resource.data.keys().hasOnly(['leidaEn']) && request.resource.data.leidaEn == request.time;
+      allow delete: if false;
+    }
+
+    match /auditorias/{auditoriaId} {
+      allow get, list: if puedeLeerAuditoria(resource.data);
+      allow create: if puedeGestionarDatos() && auditCreate(auditoriaId,request.resource.data);
+      allow update: if autenticado() && auditChange(resource.data,request.resource.data);
+      allow delete: if false;
+
+      match /historial/{eventoId} {
+        allow get, list: if puedeLeerAuditoria(
+          get(/databases/$(database)/documents/auditorias/$(auditoriaId)).data);
+        allow write: if false;
+      }
+    }
+
+    match /importaciones_auditorias/{importacionId} {
+      allow get, list: if puedeGestionarDatos();
+      allow create: if puedeGestionarDatos() && importacionId.matches('^[a-f0-9]{64}$')
+        && request.resource.data.keys().hasOnly(['archivo','usuario','fecha','estado'])
+        && auditText(request.resource.data.archivo,250) && request.resource.data.usuario == request.auth.uid
+        && request.resource.data.fecha == request.time && request.resource.data.estado == 'procesando';
+      allow update: if puedeGestionarDatos() && resource.data.estado == 'procesando'
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['estado','completadaEn','resumen','incidenciasArchivo','duplicadosArchivo'])
+        && request.resource.data.estado == 'completado' && request.resource.data.completadaEn == request.time
+        && request.resource.data.resumen is map && request.resource.data.resumen.size() <= 5
+        && request.resource.data.incidenciasArchivo is list && request.resource.data.incidenciasArchivo.size() <= 200
+        && request.resource.data.duplicadosArchivo is list && request.resource.data.duplicadosArchivo.size() <= 200;
+      allow delete: if false;
+    }
+
+    // Cada documento pertenece al UID de su ruta. Solo la fecha de lectura puede cambiar.
+    function lecturaValida(uid) {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['leidaEn'])
+        && resource.data.destinatario == uid
+        && (request.resource.data.leidaEn == request.time
+          || request.resource.data.leidaEn == resource.data.leidaEn);
+    }
+
+    match /usuarios/{uid}/notificaciones/{notificacionId} {
+      function buzonPropio() {
+        return autenticado() && request.auth.uid == uid && perfil().rol in ['admin', 'pm', 'tl', 'catalogador'];
+      }
+      allow get, list: if buzonPropio();
+      allow update: if buzonPropio() && lecturaValida(uid);
+      allow create, delete: if false;
+    }
+
+  }
+}

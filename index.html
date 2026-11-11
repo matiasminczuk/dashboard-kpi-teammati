@@ -1314,17 +1314,17 @@ body.employee-mode :is(#qualityOverviewCards,#qualityFlowCards) .quality-goal{gr
 <script type="module">
 import {initializeApp} from 'https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js';
 import {getAuth,onAuthStateChanged,signInWithEmailAndPassword,createUserWithEmailAndPassword,sendPasswordResetEmail,signOut,EmailAuthProvider,reauthenticateWithCredential,updatePassword} from 'https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js';
-import {getFirestore,doc,getDoc,getDocs,collection,query,where,writeBatch,serverTimestamp,runTransaction,onSnapshot,orderBy,limit} from 'https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js';
+import {getFirestore,doc,getDoc,getDocs,collection,query,where,writeBatch,serverTimestamp,runTransaction,onSnapshot,orderBy,limit,documentId} from 'https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js';
 import {indexPeople,analyzeQuality,restoreArchivedQuality,qualityPeriods,selectQualityPeriod,summary,bucketQuality} from './calidad.mjs?v=archivo-1';
 const firebaseConfig={apiKey:'AIzaSyB7edb0wGmf86KVrca5zkBTju7wg_zVDFk',authDomain:'dashboard-kpi-teammati.firebaseapp.com',projectId:'dashboard-kpi-teammati',storageBucket:'dashboard-kpi-teammati.firebasestorage.app',messagingSenderId:'158470825794',appId:'1:158470825794:web:33eb0d3c862756b9d7cadb',measurementId:'G-7E8M7NSPV0'};
 const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app);
-import {getFunctions,httpsCallable} from 'https://www.gstatic.com/firebasejs/12.6.0/firebase-functions.js';
-import {setupAudits} from './auditorias-ui.mjs?v=estado-importacion';
-const auditFunctions = getFunctions(app,'us-central1');
+import {setupAudits} from './auditorias-ui.mjs?v=spark';
+import {createSparkAudits} from './auditorias-spark.mjs';
+const sparkAuditCall=createSparkAudits({db,doc,getDocs,collection,query,where,documentId,runTransaction,serverTimestamp,currentUid:()=>auth.currentUser?.uid});
 const auditFeatures = setupAudits({
  db, doc, getDocs, collection, query, where, writeBatch, serverTimestamp, onSnapshot, orderBy, limit,
  loadXlsx:()=>loadXlsx(),
- call:async (name,data)=>(await httpsCallable(auditFunctions,name,{timeout:310000})(data)).data,
+ call:sparkAuditCall,
  openAuditView(){
   for(const id of ['viewDashboard','viewUpload','viewSettings'])$(id).classList.add('hidden');
   document.body.classList.remove('pm-settings','pm-productivity','pm-flows');
@@ -2026,6 +2026,9 @@ $('publishKpis').addEventListener('click',async()=>{
    if(auth.currentUser?.uid!==uid)throw Error('La sesión cambió durante la publicación.');
    const payload={idMeli:id,nombre:name,equipo:validTeam(person.data().equipo),tareas,holds,gestion,version:16};
    payload.notificacionVersion=await notificationDigest(payload);
+   payload.notificacionSecciones=Object.fromEntries(await Promise.all(
+    Object.entries({productividad:tareas,holds,finalizadas:gestion}).map(async ([seccion,datos])=>[seccion,await notificationDigest(datos)])
+   ));
    payload.publicadoEn=serverTimestamp();
    versions.push([id,payload.notificacionVersion]);
    if(new Blob([JSON.stringify({...payload,publicadoEn:null})]).size>850000)throw Error('El resumen de '+name+' supera el tamaño seguro de Firestore. No se publicó su ficha.');
@@ -2361,7 +2364,7 @@ $('productivityGoalForm').addEventListener('submit',async event=>{
  if(Object.values(goals).some(value=>value!==null&&(!Number.isFinite(value)||value<=0||value>100000)))return;
  button.disabled=true;
  try{
-  const batch=writeBatch(db);batch.set(productivityGoalRef(),goals);await batch.commit();
+  const batch=writeBatch(db);batch.set(productivityGoalRef(),{...goals,actualizadoEn:serverTimestamp()});await batch.commit();
   if(auth.currentUser?.uid!==uid)return;
   productivityGoals=goals;status.textContent='Metas guardadas.';renderGestion();
  }catch(error){
@@ -2410,7 +2413,7 @@ onAuthStateChanged(auth,async user=>{
   const nombrePerfil=[profile.nombre,profile.Nombre,profile.nombreCompleto,profile.nombre_completo,profile.displayName,profile.name].find(value=>typeof value==='string'&&value.trim());
   const nombreMostrado=nombrePerfil?.trim()||(rol==='tl'?validTeam(profile.equipo):'')||user.displayName||user.email?.split('@')[0]||'Catalogador';
   showDashboard(nombreMostrado,['admin','pm','tl'].includes(rol));
-  auditFeatures.start({uid:user.uid,role:rol,team:profile.equipo,global:canImportBases()});
+  auditFeatures.start({uid:user.uid,role:rol,team:profile.equipo,idMeli:String(profile.idMeli??'').trim(),global:canImportBases()});
  }catch(error){
   if(auth.currentUser?.uid!==user.uid)return;
   console.error(error);showLogin();$('error').textContent='No se pudo cargar tu perfil. Contactá al administrador.';await signOut(auth);
@@ -2641,7 +2644,7 @@ $('qualityGoalForm').addEventListener('submit',async event=>{
  const button=event.submitter;
  if(button)button.disabled=true;
  try{
-  const batch=writeBatch(db);batch.set(doc(db,'calidad_config','objetivo'),{valor:value});await batch.commit();
+  const batch=writeBatch(db);batch.set(doc(db,'calidad_config','objetivo'),{valor:value,actualizadoEn:serverTimestamp()});await batch.commit();
   if(auth.currentUser?.uid!==uid)return;
   qualityState.target=value;$('qualityGoalStatus').textContent='Objetivo guardado.';renderQuality();
  }catch(error){$('qualityGoalStatus').textContent='No se pudo guardar el objetivo de Calidad.';}
@@ -2786,7 +2789,7 @@ async function publishQualityEntries(plan,uid,onProgress){
     }
     const person=entries[0].person;
     if(fresh||changed||previous.data()?.equipo!==person.team||previous.data()?.nombre!==person.name){
-     transaction.set(ref,{nombre:person.name,equipo:person.team,registros});
+     transaction.set(ref,{nombre:person.name,equipo:person.team,registros,publicadoEn:serverTimestamp()});
     }
     return {fresh,changed};
    });
