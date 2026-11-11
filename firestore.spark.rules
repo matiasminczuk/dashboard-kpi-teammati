@@ -269,8 +269,11 @@ service cloud.firestore {
           && data.estado == 'pendiente_tl' && auditLeadActive(old) && auditAction(data.respuesta,['responder','devolver'],true))
         || (old.estado == 'pendiente_tl' && esTLDelEquipo(old.equipo) && old.tlUid == request.auth.uid
           && fields.hasOnly(['estado','decision']) && auditAction(data.decision,['aprobar','rechazar'],false)
-          && ((data.decision.accion == 'aprobar' && data.estado == 'cerrada_aprobada')
-            || (data.decision.accion == 'rechazar' && data.estado == 'cerrada_rechazada')));
+          && data.estado == 'pendiente_pm')
+        || (old.estado == 'pendiente_pm' && esAdministradorGeneral()
+          && fields.hasOnly(['estado','decisionPm']) && auditAction(data.decisionPm,['aprobar','rechazar'],false)
+          && ((data.decisionPm.accion == 'aprobar' && data.estado == 'cerrada_aprobada')
+            || (data.decisionPm.accion == 'rechazar' && data.estado == 'cerrada_rechazada')));
     }
 
     match /usuarios/{uid}/lecturas_avisos/{aviso} {

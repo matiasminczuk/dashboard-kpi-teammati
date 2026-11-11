@@ -71,7 +71,7 @@ function issue(row, motivo) {
 }
 
 export function createSparkAudits(api) {
-  const {db,collection,doc,getDocs,query,where,documentId,runTransaction,serverTimestamp,currentUid,currentMeli} = api;
+  const {db,collection,doc,getDocs,query,where,documentId,runTransaction,serverTimestamp,currentUid,currentMeli,currentRole} = api;
   const audits = collection(db,'auditorias');
   const roster = async path => new Map((await getDocs(collection(db,path))).docs.map(item => [item.id,item.data()]));
   let pending;
@@ -176,16 +176,35 @@ export function createSparkAudits(api) {
       const audit = (await tx.get(ref)).data(), accion = input.accion, texto = clean(input.texto);
       const responding = ['responder','devolver'].includes(accion);
       const deciding = ['aprobar','rechazar'].includes(accion);
+      const pmReview = deciding && audit?.estado === 'pendiente_pm' && ['pm','admin'].includes(currentRole?.());
       if (texto.length > 3000 || (responding && !texto)) throw Error('Completá la respuesta.');
       if (!(responding && audit?.estado === 'pendiente_colaborador' && ownsAudit(audit,uid,currentMeli?.())) &&
-          !(deciding && audit?.estado === 'pendiente_tl' && audit.tlUid === uid)) {
+          !(deciding && audit?.estado === 'pendiente_tl' && audit.tlUid === uid) && !pmReview) {
         throw Error('La auditoría cambió de estado o tu cuenta no puede realizar esta acción.');
       }
-      const estado = responding ? 'pendiente_tl' : accion === 'aprobar' ? 'cerrada_aprobada' : 'cerrada_rechazada';
-      tx.update(ref,{estado,[responding ? 'respuesta' : 'decision']:{accion,texto,uid,fecha:serverTimestamp()}});
+      const estado = responding ? 'pendiente_tl' : !pmReview ? 'pendiente_pm' :
+        accion === 'aprobar' ? 'cerrada_aprobada' : 'cerrada_rechazada';
+      tx.update(ref,{estado,[responding ? 'respuesta' : pmReview ? 'decisionPm' : 'decision']:{accion,texto,uid,fecha:serverTimestamp()}});
       return {estado};
     });
   };
+}
+
+export function auditReviewTotals(audits) {
+  const people = new Map();
+  const totals = {revisaron:0,sinRevisar:0,aprobadasTl:0,rechazadasTl:0,pendientesPm:0,aprobadasPm:0,rechazadasPm:0};
+  for (const audit of audits) {
+    if (audit.estado === 'sin_asignar') continue;
+    const person = audit.colaboradorIdMeli || audit.colaboradorUid;
+    if (person) people.set(String(person),(people.get(String(person)) ?? true) && Boolean(audit.respuesta));
+    if (audit.decision?.accion === 'aprobar') totals.aprobadasTl++;
+    if (audit.decision?.accion === 'rechazar') totals.rechazadasTl++;
+    if (audit.estado === 'pendiente_pm') totals.pendientesPm++;
+    if (audit.estado === 'cerrada_aprobada') totals.aprobadasPm += Number(Boolean(audit.decisionPm));
+    if (audit.estado === 'cerrada_rechazada') totals.rechazadasPm += Number(Boolean(audit.decisionPm));
+  }
+  for (const reviewed of people.values()) totals[reviewed ? 'revisaron' : 'sinRevisar']++;
+  return totals;
 }
 
 export function ownsAudit(audit, uid, idMeli) {
@@ -233,14 +252,22 @@ export function observeSparkNotices(api, profile, watch, onChange) {
   };
   const stops = [];
   const role = profile.role;
+  const pm = ['pm','admin'].includes(role);
   const watchAudits = (_target,next,fail) => {
+    if (pm) return watch(query(collection(db,'auditorias'),where('estado','==','pendiente_pm')),next,fail);
     const listeners = watchAuditScope(api,profile,watch,next,fail);
     return () => listeners.forEach(stop => stop());
   };
-  if (role === 'catalogador' || role === 'tl') stops.push(add('audits',null,snapshot => {
+  if (role === 'catalogador' || role === 'tl' || pm) stops.push(add('audits',null,snapshot => {
     const messages = [], groups = new Map();
     for (const record of snapshot.docs) {
       const audit = record.data();
+      if (pm) {
+        if (audit.estado === 'pendiente_pm' && audit.decision?.fecha) messages.push(item('revision-pm-'+record.id,
+          'auditoria_revision_pm','Auditoría pendiente del PM','El TL registró su decisión. Falta la revisión final.',
+          'auditorias',audit.decision.fecha,record.id));
+        continue;
+      }
       if (role === 'tl') {
         if (audit.tlUid === profile.uid && audit.respuesta?.fecha) messages.push(item('respuesta-'+record.id,'auditoria_respuesta',
           audit.estado === 'pendiente_tl' ? 'Auditoría pendiente de decisión' : 'Respuesta de auditoría',
@@ -252,10 +279,10 @@ export function observeSparkNotices(api, profile, watch, onChange) {
         if (!groups.has(key)) groups.set(key,[]);
         groups.get(key).push(record);
       }
-      if (audit.decision?.fecha) messages.push(item('cierre-'+record.id,'auditoria_cierre','Auditoría cerrada',
-        audit.decision.accion === 'aprobar' ? 'Tu TL aprobó tu respuesta. La auditoría quedó cerrada.' :
-          'Tu TL rechazó tu respuesta. La auditoría quedó cerrada.',
-        'auditorias',audit.decision.fecha,record.id));
+      const final = audit.decisionPm || (audit.estado.startsWith('cerrada_') ? audit.decision : null);
+      if (final?.fecha) messages.push(item('cierre-'+record.id,'auditoria_cierre','Auditoría cerrada',
+        final.accion === 'aprobar' ? 'Tu auditoría se cerró con una aprobación.' : 'Tu auditoría se cerró con un rechazo.',
+        'auditorias',final.fecha,record.id));
     }
     for (const [key,records] of groups) {
       const single = records.length === 1;

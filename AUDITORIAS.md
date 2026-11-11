@@ -4,7 +4,9 @@ En **Configuración → Cargar bases → Auditorías**, seleccioná el Excel o C
 
 El formato Netkel usa una clave con fecha, flujo, identificador del colaborador, CDM, producto, ítem y variación. «Acción correcta» queda como resultado original. Los comentarios, estado y decisión de origen se conservan como referencia. Para otros formatos podés mapear un ID de auditoría estable entre archivos.
 
-La asignación automática requiere un identificador exacto en las cuentas o el padrón de KPI y un TL único del equipo. Cuando el padrón identifica al colaborador antes de que tenga una cuenta habilitada, la auditoría queda vinculada a su ID MELI. El acceso se habilita al vincular una cuenta de colaborador a ese mismo ID. Si hay ambigüedad, la auditoría queda pendiente de asignación. Los gestores autorizados pueden elegir explícitamente al colaborador y al TL de su equipo. El colaborador puede responder o devolver su auditoría. El TL asignado la aprueba o rechaza, con cierre definitivo y resultado original preservado.
+La asignación automática requiere un identificador exacto en las cuentas o el padrón de KPI y un TL único del equipo. Cuando el padrón identifica al colaborador antes de que tenga una cuenta habilitada, la auditoría queda vinculada a su ID MELI. El acceso se habilita al vincular una cuenta de colaborador a ese mismo ID. Si hay ambigüedad, la auditoría queda pendiente de asignación. Los gestores autorizados pueden elegir explícitamente al colaborador y al TL de su equipo. El colaborador puede responder o devolver su auditoría. La decisión del TL la envía al PM, quien registra la resolución final. Se conservan ambas decisiones y el resultado original. Las auditorías cerradas con el circuito anterior conservan su estado.
+
+Los indicadores cuentan como al día a los colaboradores que respondieron todas las auditorías de la selección. Los filtros de equipo, colaborador, período y flujo se aplican a esos indicadores. El filtro de estado se aplica a la tabla. PM ve el total autorizado y TL los datos de su equipo.
 
 ## Datos y reglas
 

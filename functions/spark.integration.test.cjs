@@ -7,7 +7,7 @@ const apps = [];
 let admin;
 const live = Boolean(process.env.FIRESTORE_EMULATOR_HOST && process.env.FIREBASE_AUTH_EMULATOR_HOST);
 test('Spark importa y protege auditorías, estados y avisos sin Cloud Functions',{skip:!live,timeout:90000},async()=>{
-  const {createSparkAudits,observeSparkNotices,auditScope} = await import('../auditorias-spark.mjs');
+  const {createSparkAudits,observeSparkNotices,auditScope,auditReviewTotals} = await import('../auditorias-spark.mjs');
   const projectId = 'demo-dashboard-kpi';
   admin = require('firebase-admin/app').initializeApp({projectId});
   const backend = require('firebase-admin/firestore').getFirestore(admin);
@@ -22,7 +22,7 @@ test('Spark importa y protege auditorías, estados y avisos sin Cloud Functions'
     const [host,port] = process.env.FIRESTORE_EMULATOR_HOST.split(':');
     store.connectFirestoreEmulator(db,host,Number(port));
     await backend.collection('usuarios').doc(user.uid).set(profile);
-    const api = {...store,db,currentUid:()=>login.currentUser?.uid,currentMeli:()=>profile.idMeli};
+    const api = {...store,db,currentUid:()=>login.currentUser?.uid,currentMeli:()=>profile.idMeli,currentRole:()=>profile.rol};
     return {uid:user.uid,db,profile:{uid:user.uid,role:profile.rol,team:profile.equipo,idMeli:profile.idMeli,global:profile.rol==='pm'},
       api, call:createSparkAudits(api)};
   }
@@ -81,11 +81,21 @@ test('Spark importa y protege auditorías, estados y avisos sin Cloud Functions'
     assert.equal((await until(tl,'auditoria_respuesta')).auditoriaId,first.id);
     assert.equal(inbox.get(another.uid)?.some(item=>item.tipo==='auditoria_respuesta'),false);
     await assert.rejects(another.call('auditoriasActuar',{id:first.id,accion:'aprobar',texto:''}),{code:'permission-denied'});
-    await tl.call('auditoriasActuar',{id:first.id,accion:'aprobar',texto:''});
+    await assert.rejects(pm.call('auditoriasActuar',{id:first.id,accion:'aprobar',texto:''}),/cambió de estado/);
+    assert.equal((await tl.call('auditoriasActuar',{id:first.id,accion:'aprobar',texto:''})).estado,'pendiente_pm');
+    assert.equal((await until(pm,'auditoria_revision_pm')).auditoriaId,first.id);
+    assert.equal(inbox.get(person.uid)?.some(item=>item.tipo==='auditoria_cierre'),false);
+    const tlCopy = store.doc(tl.db,first.ref.path);
+    await assert.rejects(store.updateDoc(tlCopy,{estado:'cerrada_aprobada',
+      decisionPm:{accion:'aprobar',texto:'Falso',uid:tl.uid,fecha:store.serverTimestamp()}}),{code:'permission-denied'});
+    await pm.call('auditoriasActuar',{id:first.id,accion:'aprobar',texto:''});
     await person.call('auditoriasActuar',{id:second.id,accion:'devolver',texto:'Revisar'});
     await tl.call('auditoriasActuar',{id:second.id,accion:'rechazar',texto:'Decisión'});
+    await pm.call('auditoriasActuar',{id:second.id,accion:'rechazar',texto:'Cierre PM'});
     assert.equal((await store.getDocFromServer(first.ref)).data().resultado,'Original');
     assert.equal((await store.getDocFromServer(second.ref)).data().estado,'cerrada_rechazada');
+    const metrics = auditReviewTotals((await store.getDocs(store.query(audits,store.where('colaboradorUid','==',person.uid)))).docs.map(doc=>doc.data()));
+    assert.deepEqual(metrics,{revisaron:0,sinRevisar:1,aprobadasTl:1,rechazadasTl:1,pendientesPm:0,aprobadasPm:1,rechazadasPm:1});
     await until(person,'auditoria_cierre');
     await assert.rejects(person.call('auditoriasActuar',{id:first.id,accion:'responder',texto:'Reabrir'}),/cambió de estado/);
 

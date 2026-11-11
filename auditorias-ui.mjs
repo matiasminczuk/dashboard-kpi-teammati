@@ -1,12 +1,13 @@
 import {labels, mapHeaders, mapAuditRows, hasNetkelColumns} from './auditorias-import.mjs';
-import {auditScope, observeSparkNotices, ownsAudit, watchAuditScope} from './auditorias-spark.mjs?v=asignacion-meli';
+import {auditReviewTotals, auditScope, observeSparkNotices, ownsAudit, watchAuditScope} from './auditorias-spark.mjs?v=revision-pm';
 
 const states = {
   sin_asignar:'Sin asignar', pendiente_colaborador:'Pendiente del colaborador',
-  pendiente_tl:'Pendiente del TL', cerrada_aprobada:'Cerrada · aprobada',
+  pendiente_tl:'Pendiente del TL', pendiente_pm:'Pendiente del PM', cerrada_aprobada:'Cerrada · aprobada',
   cerrada_rechazada:'Cerrada · rechazada'
 };
 const actions = {responder:'Enviar respuesta', devolver:'Devolver al TL', aprobar:'Aprobar y cerrar', rechazar:'Rechazar y cerrar'};
+const recordedActions = {responder:'Respondió', devolver:'Devolvió al TL', aprobar:'Aprobó', rechazar:'Rechazó'};
 const eventLabels = {productividad:'Productividad', holds:'Holds', gestion:'Finalizadas', calidad:'Calidad',
   calidad_carga:'Calidad', kpi_publicacion:'Productividad', holds_publicados:'Holds',
   finalizadas_publicadas:'Finalizadas', meta:'Objetivos'};
@@ -79,6 +80,8 @@ export function setupAudits(api) {
     $('notificationStatus').textContent = '';
     unreadCount.hidden = true;
     $('auditRows').replaceChildren();
+    $('auditMetrics').replaceChildren();
+    $('auditMetrics').hidden = true;
     reports.replaceChildren();
     roster = new Map(); audits = []; all = []; unread = []; sheets = [];
     notificationError = false; onlyUnread = false; listError = false; auditLoading = false;
@@ -255,6 +258,19 @@ export function setupAudits(api) {
     options($('auditFilterPeriod'), distinct('periodo').reverse(), 'Todos');
     options($('auditFilterFlow'), distinct('flujo'), 'Todos');
     const criteria = [...filter.querySelectorAll('select')].filter(node => !node.closest('[hidden]') && node.value);
+    const metrics = $('auditMetrics');
+    metrics.hidden = session.role === 'catalogador' || auditLoading || listError;
+    if (!metrics.hidden) {
+      const selected = criteria.filter(node => node.name !== 'estado');
+      const totals = auditReviewTotals(audits.filter(audit =>
+        (session.role !== 'tl' || audit.equipo === session.team) && selected.every(node => audit[node.name] === node.value)));
+      lines(metrics,[
+        ['Colaboradores al día',format(totals.revisaron)],['Colaboradores con revisiones pendientes',format(totals.sinRevisar)],
+        ['Aprobadas por TL',format(totals.aprobadasTl)],['Rechazadas por TL',format(totals.rechazadasTl)],
+        ['Pendientes del PM',format(totals.pendientesPm)],['Cierre aprobado por PM',format(totals.aprobadasPm)],
+        ['Cierre rechazado por PM',format(totals.rechazadasPm)]
+      ]);
+    }
     const visible = audits.filter(audit => criteria.every(node => audit[node.name] === node.value)).sort((a,b) =>
       (b.fecha || b.periodo).localeCompare(a.fecha || a.periodo) || a.externo.localeCompare(b.externo));
     const list = $('auditRows');
@@ -320,7 +336,8 @@ export function setupAudits(api) {
       {tipo:'importada',uid:audit.cargadaPor,fecha:audit.creadaEn},
       ...(audit.publicadaEn ? ['asignada','publicada'].map(tipo => ({tipo,uid:audit.asignadaPor || audit.cargadaPor,fecha:audit.publicadaEn})) : []),
       ...(audit.respuesta ? [{...audit.respuesta,tipo:'respuesta'}] : []),
-      ...(audit.decision ? [{...audit.decision,tipo:'decisión'}] : [])
+      ...(audit.decision ? [{...audit.decision,tipo:'decisión del TL'}] : []),
+      ...(audit.decisionPm ? [{...audit.decisionPm,tipo:'decisión final del PM'}] : [])
     ].filter(item => item.fecha);
     list.replaceChildren(...events.map(item => element('li', dateText(item.fecha) + ' · ' + item.tipo +
       (item.accion ? ' (' + item.accion + ')' : '') + ' · ' + nameOf(roster.get(item.uid),item.uid))));
@@ -340,13 +357,14 @@ export function setupAudits(api) {
         ['Motivo de origen',audit.motivoOrigen],['Incidencia',audit.incidencia]].filter(([,value]) => value && value !== 'null')
     ]);
     detailBody.replaceChildren(fields);
-    for (const [label, entry] of [['Respuesta del colaborador',audit.respuesta],['Decisión del TL',audit.decision]]) {
-      if (entry) detailBody.append(element('h4',label), element('p',actions[entry.accion] + ' · ' +
+    for (const [label, entry] of [['Respuesta del colaborador',audit.respuesta],['Decisión del TL',audit.decision],['Decisión final del PM',audit.decisionPm]]) {
+      if (entry) detailBody.append(element('h4',label), element('p',recordedActions[entry.accion] + ' · ' +
         dateText(entry.fecha)), element('p',entry.texto || 'Sin comentario.', 'audit-message'));
     }
     const canRespond = session.role === 'catalogador' && ownsAudit(audit,session.uid,session.idMeli) && audit.estado === 'pendiente_colaborador';
     const canDecide = session.role === 'tl' && audit.tlUid === session.uid && audit.equipo === session.team && audit.estado === 'pendiente_tl';
-    if (canRespond || canDecide) renderActions(audit, canRespond);
+    const canClose = ['pm','admin'].includes(session.role) && audit.estado === 'pendiente_pm';
+    if (canRespond || canDecide || canClose) renderActions(audit, canRespond, canClose);
     if (session.global && audit.estado === 'sin_asignar') renderAssignment(audit);
     const list = element('ol',undefined,'audit-history');list.id = 'auditHistory';
     detailBody.append(element('h4','Historial'), list);
@@ -361,7 +379,7 @@ export function setupAudits(api) {
     catch (error) {if (ctx() === current) feedback.textContent = errorText(error);}
     finally {if (ctx() === current) {saving = false;buttons.forEach(node => {node.disabled = false;});}}
   }
-  function renderActions(audit, responding) {
+  function renderActions(audit, responding, closing) {
     const form = element('div',undefined,'audit-action');
     const textarea = element('textarea');textarea.id = 'auditResponse';textarea.maxLength = 3000;textarea.rows = 3;
     const label = element('label', responding ? 'Tu respuesta' : 'Comentario de la decisión (opcional)');
@@ -369,9 +387,12 @@ export function setupAudits(api) {
     const feedback = element('p');feedback.setAttribute('role','status');
     const buttons = element('div',undefined,'audit-actions');
     for (const action of responding ? ['responder','devolver'] : ['aprobar','rechazar']) {
-      buttons.append(button(actions[action], () => {
+      const label = responding || closing ? actions[action] :
+        action === 'aprobar' ? 'Aprobar y enviar al PM' : 'Rechazar y enviar al PM';
+      buttons.append(button(label, () => {
         if (responding && !textarea.value.trim()) {feedback.textContent = 'Escribí una respuesta antes de enviarla.'; textarea.focus();return;}
-        if (!responding && !window.confirm(actions[action] + ' definitivamente esta auditoría?')) return;
+        if (!responding && !window.confirm(closing ? '¿Confirmás el cierre definitivo de esta auditoría?' :
+          '¿Confirmás tu decisión y el envío al PM?')) return;
         void perform(form, () => api.call('auditoriasActuar',{id:audit.id, accion:action, texto:textarea.value.trim()}));
       }));
     }
