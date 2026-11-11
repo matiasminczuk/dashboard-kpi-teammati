@@ -7,11 +7,30 @@ const digest = async value => Array.from(new Uint8Array(await crypto.subtle.dige
 const pages = (items, size) => Array.from({length:Math.ceil(items.length / size)}, (_, index) =>
   items.slice(index * size, (index + 1) * size));
 
-function assign(identifier, profiles, selectedUid, selectedLead) {
-  const eligible = [...profiles].filter(([,profile]) => profile.rol === 'catalogador' && clean(profile.idMeli) && clean(profile.equipo));
+export function assignAudit(identifier, profiles, selectedUid, selectedLead, kpis = new Map()) {
+  const catalog = [...profiles].filter(([,profile]) => profile.rol === 'catalogador' && clean(profile.idMeli));
+  const eligible = catalog.filter(([,profile]) => clean(profile.equipo));
   const matches = eligible.filter(([,profile]) => [
-    profile.idMeli, profile.usuario, profile.username, profile.email?.split?.('@')[0], profile.correo?.split?.('@')[0]
+    profile.idMeli, profile.usuario, profile.username, profile.nombre, profile.nombreCompleto, profile.email?.split?.('@')[0], profile.correo?.split?.('@')[0]
   ].some(value => fold(value) === fold(identifier)));
+  if (!selectedUid) {
+    const kpiMatches = [...kpis].filter(([id,p]) =>
+      [id,p.idMeli,p.nombre,p.usuario,p.username].some(value => fold(value) === fold(identifier)));
+    const ids = new Set([...kpiMatches.map(([id]) => id),...matches.map(([,p]) => clean(p.idMeli))]);
+    if (ids.size > 1) return {incidencia:'Identificador asociado a varios ID MELI'};
+    if (kpiMatches.length === 1) {
+      const [id,kpi] = kpiMatches[0];
+      const accounts = catalog.filter(([,p]) => clean(p.idMeli) === id);
+      const leads = [...profiles].filter(([,p]) => p.rol === 'tl' && p.equipo === kpi.equipo);
+      if (accounts.length > 1 || accounts.some(([,p]) => clean(p.equipo) && p.equipo !== kpi.equipo)) {
+        return {incidencia:'La cuenta y el registro de KPI requieren revisión'};
+      }
+      if (!clean(kpi.equipo) || leads.length !== 1) return {incidencia:'El equipo no tiene un TL único verificado'};
+      return {colaboradorUid:accounts[0]?.[1].equipo === kpi.equipo ? accounts[0][0] : null,colaboradorIdMeli:id,
+        nombreColaborador:clean(kpi.nombre).slice(0,150) || null,equipo:kpi.equipo,
+        tlUid:leads[0][0],nombreTL:clean(leads[0][1].nombre).slice(0,150) || null,incidencia:null};
+    }
+  }
   const recipient = selectedUid ? eligible.find(([uid]) => uid === selectedUid) : matches.length === 1 ? matches[0] : null;
   if (!recipient) return {incidencia:matches.length > 1 ? 'Identificador asociado a varias cuentas' : 'Identificador sin cuenta verificada'};
   const [uid,profile] = recipient;
@@ -52,15 +71,16 @@ function issue(row, motivo) {
 }
 
 export function createSparkAudits(api) {
-  const {db,collection,doc,getDocs,query,where,documentId,runTransaction,serverTimestamp,currentUid} = api;
+  const {db,collection,doc,getDocs,query,where,documentId,runTransaction,serverTimestamp,currentUid,currentMeli} = api;
   const audits = collection(db,'auditorias');
-  const profileMap = async () => new Map((await getDocs(collection(db,'usuarios'))).docs.map(item => [item.id,item.data()]));
+  const roster = async path => new Map((await getDocs(collection(db,path))).docs.map(item => [item.id,item.data()]));
   let pending;
   async function importFile({archivo,filas,confirmar,onProgress}, uid) {
     if (!confirmar) {
       pending = undefined;
       if (!filas.length || filas.length > 5000) throw Error('Seleccioná entre 1 y 5.000 filas.');
-      const profiles = await profileMap(), groups = new Map(), rejected = [], duplicates = [];
+      const [profiles,kpis] = await Promise.all([roster('usuarios'),roster('kpis')]);
+      const groups = new Map(), rejected = [], duplicates = [];
       for (const source of filas) {
         try {
           const row = normalize(source);
@@ -75,7 +95,7 @@ export function createSparkAudits(api) {
           return null;
         }
         duplicates.push(...rows.slice(1).map(row => issue(row,'Fila repetida')));
-        return {id:await digest(key),row:rows[0],assigned:assign(rows[0].idMeli,profiles)};
+        return {id:await digest(key),row:rows[0],assigned:assignAudit(rows[0].idMeli,profiles,undefined,undefined,kpis)};
       }))).filter(Boolean);
       const id = await digest([archivo,filas]);
       const prior = new Map();
@@ -140,11 +160,11 @@ export function createSparkAudits(api) {
     if (operation === 'auditoriasImportar') return importFile(input,uid);
     const ref = doc(audits,input.id);
     if (operation === 'auditoriasAsignar') {
-      const profiles = await profileMap();
+      const profiles = await roster('usuarios');
       return runTransaction(db,async tx => {
         const audit = (await tx.get(ref)).data();
         if (audit?.estado !== 'sin_asignar') throw Error('La auditoría ya no está pendiente de asignación.');
-        const assigned = assign(audit.idMeli,profiles,input.colaboradorUid,input.tlUid);
+        const assigned = assignAudit(audit.idMeli,profiles,input.colaboradorUid,input.tlUid);
         if (assigned.incidencia) throw Error(assigned.incidencia);
         tx.update(ref,{...Object.fromEntries(assignmentFields.map(key => [key,assigned[key]])),
           estado:'pendiente_colaborador',asignacionManual:true,publicadaEn:serverTimestamp(),asignadaPor:uid});
@@ -157,7 +177,7 @@ export function createSparkAudits(api) {
       const responding = ['responder','devolver'].includes(accion);
       const deciding = ['aprobar','rechazar'].includes(accion);
       if (texto.length > 3000 || (responding && !texto)) throw Error('Completá la respuesta.');
-      if (!(responding && audit?.estado === 'pendiente_colaborador' && audit.colaboradorUid === uid) &&
+      if (!(responding && audit?.estado === 'pendiente_colaborador' && ownsAudit(audit,uid,currentMeli?.())) &&
           !(deciding && audit?.estado === 'pendiente_tl' && audit.tlUid === uid)) {
         throw Error('La auditoría cambió de estado o tu cuenta no puede realizar esta acción.');
       }
@@ -168,15 +188,39 @@ export function createSparkAudits(api) {
   };
 }
 
+export function ownsAudit(audit, uid, idMeli) {
+  return audit.colaboradorUid === uid ||
+    (audit.colaboradorUid === null && Boolean(idMeli) && audit.colaboradorIdMeli === String(idMeli));
+}
+
+export function auditScope(api,profile,global = false) {
+  const {db,collection,query,where} = api, base = collection(db,'auditorias');
+  if (global) return [base];
+  if (profile.role === 'tl' && profile.team) return [query(base,where('equipo','==',profile.team))];
+  if (profile.role !== 'catalogador') return [];
+  const targets = [query(base,where('colaboradorUid','==',profile.uid))];
+  if (profile.idMeli) targets.push(query(base,where('colaboradorUid','==',null),where('colaboradorIdMeli','==',String(profile.idMeli))));
+  return targets;
+}
+
+export function watchAuditScope(api,profile,watch,next,fail,global = false) {
+  const snapshots = new Map();
+  const targets = auditScope(api,profile,global);
+  return targets.map((target,index) => watch(target,snapshot => {
+    snapshots.set(index,snapshot.docs);
+    if (snapshots.size === targets.length) next({docs:[...snapshots.values()].flat()});
+  },fail));
+}
+
 export function observeSparkNotices(api, profile, watch, onChange) {
   const {db,collection,doc,query,where,orderBy,limit} = api;
   const sources = new Map();
   const timestampKey = value => value ? value.seconds + '-' + value.nanoseconds : '';
   const item = (id,tipo,titulo,mensaje,destino,creadoEn,auditoriaId=null) =>
     ({id,tipo,titulo,mensaje,destino,creadoEn,auditoriaId});
-  const add = (source,target,read) => {
+  const add = (source,target,read,observe = watch) => {
     let sequence = 0;
-    const stop = watch(target,async snapshot => {
+    const stop = observe(target,async snapshot => {
       const current = ++sequence;
       try {
         const entries = await read(snapshot);
@@ -187,11 +231,13 @@ export function observeSparkNotices(api, profile, watch, onChange) {
     }, () => {});
     return () => {sequence++;stop();};
   };
-  const stops = [], base = collection(db,'auditorias');
+  const stops = [];
   const role = profile.role;
-  const auditQuery = role === 'catalogador' ? query(base,where('colaboradorUid','==',profile.uid)) :
-    role === 'tl' && profile.team ? query(base,where('equipo','==',profile.team)) : null;
-  if (auditQuery) stops.push(add('audits',auditQuery,snapshot => {
+  const watchAudits = (_target,next,fail) => {
+    const listeners = watchAuditScope(api,profile,watch,next,fail);
+    return () => listeners.forEach(stop => stop());
+  };
+  if (role === 'catalogador' || role === 'tl') stops.push(add('audits',null,snapshot => {
     const messages = [], groups = new Map();
     for (const record of snapshot.docs) {
       const audit = record.data();
@@ -218,7 +264,7 @@ export function observeSparkNotices(api, profile, watch, onChange) {
         'auditorias',records[0].data().publicadaEn,single ? records[0].id : null));
     }
     return messages;
-  }));
+  },watchAudits));
   if (profile.global) {
     stops.push(add('reports',query(collection(db,'importaciones_auditorias'),orderBy('fecha','desc'),limit(30)),snapshot =>
       snapshot.docs.flatMap(record => {

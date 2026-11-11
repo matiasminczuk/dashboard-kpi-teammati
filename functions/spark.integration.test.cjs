@@ -7,7 +7,7 @@ const apps = [];
 let admin;
 const live = Boolean(process.env.FIRESTORE_EMULATOR_HOST && process.env.FIREBASE_AUTH_EMULATOR_HOST);
 test('Spark importa y protege auditorías, estados y avisos sin Cloud Functions',{skip:!live,timeout:90000},async()=>{
-  const {createSparkAudits,observeSparkNotices} = await import('../auditorias-spark.mjs');
+  const {createSparkAudits,observeSparkNotices,auditScope} = await import('../auditorias-spark.mjs');
   const projectId = 'demo-dashboard-kpi';
   admin = require('firebase-admin/app').initializeApp({projectId});
   const backend = require('firebase-admin/firestore').getFirestore(admin);
@@ -22,7 +22,7 @@ test('Spark importa y protege auditorías, estados y avisos sin Cloud Functions'
     const [host,port] = process.env.FIRESTORE_EMULATOR_HOST.split(':');
     store.connectFirestoreEmulator(db,host,Number(port));
     await backend.collection('usuarios').doc(user.uid).set(profile);
-    const api = {...store,db,currentUid:()=>login.currentUser?.uid};
+    const api = {...store,db,currentUid:()=>login.currentUser?.uid,currentMeli:()=>profile.idMeli};
     return {uid:user.uid,db,profile:{uid:user.uid,role:profile.rol,team:profile.equipo,idMeli:profile.idMeli,global:profile.rol==='pm'},
       api, call:createSparkAudits(api)};
   }
@@ -104,6 +104,17 @@ test('Spark importa y protege auditorías, estados y avisos sin Cloud Functions'
     await until(person,'meta');
     await assert.rejects(store.setDoc(store.doc(person.db,'calidad_config','objetivo'),{valor:1,actualizadoEn:store.serverTimestamp()}),
       {code:'permission-denied'});
+    await backend.collection('kpis').doc('3').set({idMeli:'3',equipo:'A',nombre:'ext_cuenta_futura'});
+    const delayed = {archivo:'cuenta-futura.csv',filas:[row('cuenta-futura',2,'ext_cuenta_futura')]};
+    assert.equal((await pm.call('auditoriasImportar',{...delayed,confirmar:false})).validas.length,1);
+    assert.equal((await pm.call('auditoriasImportar',{...delayed,confirmar:true})).publicadas,1);
+    const newcomer = await account('newcomer',{rol:'catalogador',equipo:'A',idMeli:3});
+    const assigned = await Promise.all(auditScope(newcomer.api,newcomer.profile).map(target=>store.getDocs(target)));
+    assert.equal(assigned[1].size,1);
+    const futureAudit = assigned[1].docs[0];
+    assert.equal(futureAudit.data().colaboradorUid,null);
+    await assert.rejects(store.getDoc(store.doc(outsider.db,futureAudit.ref.path)),{code:'permission-denied'});
+    await newcomer.call('auditoriasActuar',{id:futureAudit.id,accion:'responder',texto:'Cuenta habilitada'});
   } finally {stops.forEach(stop=>stop());}
 });
 

@@ -173,20 +173,44 @@ service cloud.firestore {
     // Auditorías e historial. Cloud Functions valida las escrituras y transiciones.
     function puedeLeerAuditoria(datos) {
       return puedeGestionarDatos() || (autenticado()
-        && ((perfil().rol == 'catalogador' && datos.colaboradorUid == request.auth.uid)
+        && ((perfil().rol == 'catalogador' && auditOwner(datos))
           || (perfil().rol == 'tl' && datos.equipo != '' && datos.equipo == perfil().equipo)));
     }
 
     function auditText(value, max) { return value is string && value.size() <= max; }
 
-    function auditAssignment(data) {
+    function auditProfileId(profile) {
+      return profile.idMeli is int ? string(profile.idMeli) : profile.idMeli.trim();
+    }
+
+    function auditOwner(data) {
+      return data.colaboradorUid == request.auth.uid
+        || (data.colaboradorUid == null && data.colaboradorIdMeli == auditProfileId(perfil()));
+    }
+
+    function auditAccountAssignment(data) {
       let recipient = get(/databases/$(database)/documents/usuarios/$(data.colaboradorUid)).data;
+      return recipient.rol == 'catalogador' && recipient.equipo == data.equipo
+        && (recipient.idMeli == data.colaboradorIdMeli || auditProfileId(recipient) == data.colaboradorIdMeli);
+    }
+
+    function auditKpiAssignment(data) {
+      let kpi = get(/databases/$(database)/documents/kpis/$(data.colaboradorIdMeli)).data;
+      let id = data.idMeli.trim().lower();
+      return kpi.equipo == data.equipo && (data.colaboradorIdMeli.lower() == id
+        || ('idMeli' in kpi && auditProfileId(kpi).lower() == id)
+        || kpi.get('nombre','').trim().lower() == id || kpi.get('usuario','').trim().lower() == id
+        || kpi.get('username','').trim().lower() == id);
+    }
+
+    function auditAssignment(data) {
       let lead = get(/databases/$(database)/documents/usuarios/$(data.tlUid)).data;
-      return auditText(data.colaboradorUid, 128) && auditText(data.tlUid, 128)
+      return auditText(data.tlUid, 128)
         && data.equipo is string && data.equipo.size() > 0 && data.equipo.size() <= 150
-        && recipient.rol == 'catalogador' && recipient.idMeli == data.colaboradorIdMeli
         && (auditText(data.colaboradorIdMeli, 100) || data.colaboradorIdMeli is int)
-        && recipient.equipo == data.equipo && lead.rol == 'tl' && lead.equipo == data.equipo
+        && lead.rol == 'tl' && lead.equipo == data.equipo
+        && ((auditText(data.colaboradorUid,128) && auditAccountAssignment(data))
+          || (data.colaboradorUid == null && auditText(data.colaboradorIdMeli,100) && auditKpiAssignment(data)))
         && (data.nombreTL == null || auditText(data.nombreTL, 150))
         && (data.nombreColaborador == null || auditText(data.nombreColaborador, 150))
         && data.incidencia == null;
@@ -241,7 +265,7 @@ service cloud.firestore {
         && data.estado == 'pendiente_colaborador' && data.asignacionManual == true
         && data.asignadaPor == request.auth.uid && data.publicadaEn == request.time && auditAssignment(data))
         || (old.estado == 'pendiente_colaborador' && perfil().rol == 'catalogador'
-          && old.colaboradorUid == request.auth.uid && fields.hasOnly(['estado','respuesta'])
+          && auditOwner(old) && fields.hasOnly(['estado','respuesta'])
           && data.estado == 'pendiente_tl' && auditLeadActive(old) && auditAction(data.respuesta,['responder','devolver'],true))
         || (old.estado == 'pendiente_tl' && esTLDelEquipo(old.equipo) && old.tlUid == request.auth.uid
           && fields.hasOnly(['estado','decision']) && auditAction(data.decision,['aprobar','rechazar'],false)

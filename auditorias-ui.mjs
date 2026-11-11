@@ -1,5 +1,5 @@
 import {labels, mapHeaders, mapAuditRows, hasNetkelColumns} from './auditorias-import.mjs';
-import {observeSparkNotices} from './auditorias-spark.mjs';
+import {auditScope, observeSparkNotices, ownsAudit, watchAuditScope} from './auditorias-spark.mjs?v=asignacion-meli';
 
 const states = {
   sin_asignar:'Sin asignar', pendiente_colaborador:'Pendiente del colaborador',
@@ -59,13 +59,6 @@ export function setupAudits(api) {
   let notificationError = false, onlyUnread = false, listError = false, auditLoading = false, saving = false;
   const format = number => new Intl.NumberFormat('es-AR').format(number);
   const ctx = () => session;
-  const auditList = () => {
-    const base = api.collection(api.db, 'auditorias');
-    if (session.global) return base;
-    if (session.role === 'tl' && session.team) return api.query(base, api.where('equipo','==',session.team));
-    if (session.role === 'catalogador') return api.query(base, api.where('colaboradorUid','==',session.uid));
-    return null;
-  };
 
   function stopDetail() {
     detailListener?.(); historyListener?.(); detailListener = historyListener = undefined;
@@ -135,12 +128,11 @@ export function setupAudits(api) {
   function listenAudits() {
     if (session.auditListening) return;
     session.auditListening = true;
-    const scope = auditList();
-    auditLoading = Boolean(scope);
-    if (scope) listeners.push(watch(scope, snap => {
+    auditLoading = auditScope(api,session,session.global).length > 0;
+    listeners.push(...watchAuditScope(api,session,watch,snap => {
       audits = snap.docs.map(doc => ({...doc.data(), id:doc.id}));
       auditLoading = false; listError = false; renderAuditList();
-    }, () => {auditLoading = false; listError = true; renderAuditList();}));
+    }, () => {auditLoading = false; listError = true; renderAuditList();},session.global));
     if (!session.global) return;
     const current = ctx();
     api.getDocs(api.collection(api.db,'usuarios')).then(snap => {
@@ -338,6 +330,7 @@ export function setupAudits(api) {
     const fields = element('dl', undefined, 'audit-fields');
     lines(fields, [
       ['Auditoría',audit.cdm || audit.externo], ['Colaborador',[audit.nombreColaborador,audit.idMeli].filter(Boolean).join(' · ')], ['Equipo',audit.equipo],
+      ...(audit.colaboradorIdMeli ? [['ID MELI',String(audit.colaboradorIdMeli)]] : []),
       ['TL',nameOf(roster.get(audit.tlUid),audit.nombreTL || audit.tlUid)], ['Estado',states[audit.estado]], ['Fecha',audit.fecha],
       ['Período',audit.periodo], ['Flujo',audit.flujo], ['Tipo',audit.tipo], ['Auditor',audit.auditor],
       ['Resultado original',audit.resultado], ['Observaciones',audit.observaciones],
@@ -351,7 +344,7 @@ export function setupAudits(api) {
       if (entry) detailBody.append(element('h4',label), element('p',actions[entry.accion] + ' · ' +
         dateText(entry.fecha)), element('p',entry.texto || 'Sin comentario.', 'audit-message'));
     }
-    const canRespond = session.role === 'catalogador' && audit.colaboradorUid === session.uid && audit.estado === 'pendiente_colaborador';
+    const canRespond = session.role === 'catalogador' && ownsAudit(audit,session.uid,session.idMeli) && audit.estado === 'pendiente_colaborador';
     const canDecide = session.role === 'tl' && audit.tlUid === session.uid && audit.equipo === session.team && audit.estado === 'pendiente_tl';
     if (canRespond || canDecide) renderActions(audit, canRespond);
     if (session.global && audit.estado === 'sin_asignar') renderAssignment(audit);
