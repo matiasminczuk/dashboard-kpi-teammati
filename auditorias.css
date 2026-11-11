@@ -1,10 +1,10 @@
 #notificationControl[hidden], #viewAuditorias[hidden], #viewAuditorias [hidden], #auditUploadPanel [hidden], #notificationBadge[hidden] { display:none }
 #notificationControl { grid-area:bell; align-self:center }
 #notificationsToggle {
- position:relative; display:grid; place-items:center; width:44px; height:44px; padding:0;
- color:#262000; border:1px solid #cbbb00; border-radius:9px; background:#ffe600;
+ position:relative; display:grid; place-items:center; width:48px; height:48px; padding:0;
+ border-color:#e2e7ef; border-radius:12px; box-sizing:border-box;
 }
-#notificationsToggle:hover { background:#f4d900 }
+body.employee-mode #notificationsToggle { width:44px; height:44px; border-radius:9px }
 #notificationsToggle:focus-visible { outline:2px solid currentColor; outline-offset:2px }
 #notificationsToggle svg { width:22px; height:22px; fill:none; stroke:currentColor; stroke-width:1.65; stroke-linecap:round; stroke-linejoin:round }
 #notificationBadge {
@@ -12,7 +12,6 @@
  display:grid; place-items:center; background:#bf182c; color:white; border-radius:999px;
  font:700 10px/1 system-ui,sans-serif; font-variant-numeric:tabular-nums;
 }
-body.dark-theme #notificationsToggle { background:#213046; border-color:#40526e; color:#edf4ff }
 #notificationsPanel {
  --notice-bg:#fff; --notice-text:#172b4d; --notice-muted:#42526e; --notice-border:#dce4ef; --notice-unread:#edf5ff;
  position:fixed; inset:var(--notification-top,70px) var(--notification-end,12px) auto auto; margin:0;
@@ -71,19 +70,22 @@ body.dark-theme #notificationsPanel {
 #auditPreview ul, #auditReports ul { max-height:280px; overflow:auto }
 body.employee-mode header.kpi-header {
  grid-template-columns:auto minmax(0,1fr) minmax(345px,445px) 44px 44px;
- grid-template-areas:"brand welcome navigation bell theme";
+ grid-template-areas:"brand welcome navigation theme bell";
 }
 body.employee-mode header.kpi-header #employeeNavigation { grid-template-columns:repeat(5,minmax(0,1fr)) }
+@media(max-width:1050px) {
+ body.pm-design header.kpi-header #notificationControl { order:1 }
+}
 @media(max-width:1040px) {
  body.employee-mode header.kpi-header {
   grid-template-columns:auto minmax(0,1fr) 44px 44px;
-  grid-template-areas:"brand welcome welcome welcome" "navigation navigation bell theme";
+  grid-template-areas:"brand welcome welcome welcome" "navigation navigation theme bell";
  }
 }
 @media(max-width:580px) {
  body.employee-mode header.kpi-header {
   grid-template-columns:minmax(0,1fr) 44px 44px;
-  grid-template-areas:"brand bell theme" "welcome welcome welcome" "navigation navigation navigation";
+  grid-template-areas:"brand theme bell" "welcome welcome welcome" "navigation navigation navigation";
  }
  body.employee-mode header.kpi-header #employeeNavigation { grid-template-columns:repeat(3,minmax(0,1fr)) }
  body.employee-mode header.kpi-header .auth-brand-lockup { width:min(200px,100%) }
