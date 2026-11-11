@@ -1140,10 +1140,11 @@ body.employee-mode :is(#qualityOverviewCards,#qualityFlowCards) .quality-goal{gr
  body.employee-mode :is(#weeklyPanel,#employeeCreationsPanel,#holdsPanel,#gestionPanel,#tiemposPanel){padding:12px}
 }
 </style>
-<link rel="stylesheet" href="./auditorias.css?v=revision-pm">
+<link rel="stylesheet" href="./auditorias.css?v=barra-y-filtro">
 </head>
 <body class="auth-screen">
-<header class="kpi-header"><div class="header-brand"><img class="auth-brand-lockup" src="./assets/logo-acceso.png" width="1200" height="200" alt="Grupo Kelsoft y Mercado Libre"></div><div id="pmHeaderFilters" class="pm-header-filters" hidden><label>Equipo<span id="pmTeamSlot"></span></label><div id="tlTeamScope" class="tl-team-scope" role="group" aria-label="Equipo asignado" hidden><span>Equipo asignado</span><strong id="tlTeamName"></strong></div><div class="pm-period-control"><span class="pm-filter-caption">Período</span><button type="button" id="pmPeriodToggle" class="pm-period-toggle" aria-expanded="false">Q4 2026 <span>⌄</span></button><div id="pmPeriodPopover" class="pm-period-popover" hidden><div class="pm-period-tabs"><button type="button" data-pm-mode="quarter" class="active">Trimestre</button><button type="button" data-pm-mode="month">Mes</button><button type="button" data-pm-mode="weeks">Semanas</button></div><div id="pmQuarterArea"><label>Trimestre<select id="pmQuarterChoice"></select></label></div><div id="pmMonthArea" hidden><label>Mes<select id="pmMonthChoice"></select></label></div><div id="pmWeeksArea" hidden><div class="pm-week-pair"><label>Desde semana<select id="pmWeekFrom"></select></label><label>Hasta semana<select id="pmWeekTo"></select></label></div><div class="pm-period-shortcuts"><button type="button" data-pm-last="1">Última semana</button><button type="button" data-pm-last="4">Últimas 4</button><button type="button" data-pm-last="8">Últimas 8</button></div></div></div></div><label>Catalogador<span id="pmPersonSlot"></span></label></div><div id="headerKpi" class="header-kpi hidden" aria-live="polite"><span class="header-kpi-title">Productividad promedio</span><div class="header-kpi-bottom"><strong id="headerAverage">—</strong><div id="headerTrend" class="header-trend neutral"><span id="headerArrow">—</span><span><b id="headerDelta">Sin comparación</b><small id="headerCompare">Semanas disponibles</small></span></div></div></div><div class="header-actions"><button id="publishKpis" class="hidden" type="button">☁️ Publicar actualización</button><div class="settings-wrap"><button id="settingsButton" type="button" aria-expanded="false" aria-controls="settingsMenu">⚙️ Configuración</button><div id="settingsMenu" class="settings-menu hidden"><button id="changePasswordButton" type="button">🔑 Cambiar contraseña</button></div></div><button id="logout" class="hidden">Cerrar sesión</button></div><div class="header-welcome"><h2 id="employeeGreeting"></h2><p id="headerWelcomeDescription"></p><p id="employeePeriodNote"></p></div><button id="themeToggle" type="button" aria-label="Activar modo oscuro" title="Activar modo oscuro"><svg class="theme-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 14a9 9 0 0 1-10.8-10.8A9 9 0 1 0 20.8 14Z"/></svg><svg class="theme-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4m0-14.2-1.4 1.4M6.3 17.7l-1.4 1.4"/></svg></button><div id="notificationControl" hidden>
+<button id="employeeHeaderReveal" type="button" aria-label="Mostrar barra de navegación" aria-controls="dashboardHeader" aria-expanded="false"><span aria-hidden="true"></span></button>
+<header id="dashboardHeader" class="kpi-header"><div class="header-brand"><img class="auth-brand-lockup" src="./assets/logo-acceso.png" width="1200" height="200" alt="Grupo Kelsoft y Mercado Libre"></div><div id="pmHeaderFilters" class="pm-header-filters" hidden><label>Equipo<span id="pmTeamSlot"></span></label><div id="tlTeamScope" class="tl-team-scope" role="group" aria-label="Equipo asignado" hidden><span>Equipo asignado</span><strong id="tlTeamName"></strong></div><div class="pm-period-control"><span class="pm-filter-caption">Período</span><button type="button" id="pmPeriodToggle" class="pm-period-toggle" aria-expanded="false">Q4 2026 <span>⌄</span></button><div id="pmPeriodPopover" class="pm-period-popover" hidden><div class="pm-period-tabs"><button type="button" data-pm-mode="quarter" class="active">Trimestre</button><button type="button" data-pm-mode="month">Mes</button><button type="button" data-pm-mode="weeks">Semanas</button></div><div id="pmQuarterArea"><label>Trimestre<select id="pmQuarterChoice"></select></label></div><div id="pmMonthArea" hidden><label>Mes<select id="pmMonthChoice"></select></label></div><div id="pmWeeksArea" hidden><div class="pm-week-pair"><label>Desde semana<select id="pmWeekFrom"></select></label><label>Hasta semana<select id="pmWeekTo"></select></label></div><div class="pm-period-shortcuts"><button type="button" data-pm-last="1">Última semana</button><button type="button" data-pm-last="4">Últimas 4</button><button type="button" data-pm-last="8">Últimas 8</button></div></div></div></div><label>Catalogador<span id="pmPersonSlot"></span></label></div><div id="headerKpi" class="header-kpi hidden" aria-live="polite"><span class="header-kpi-title">Productividad promedio</span><div class="header-kpi-bottom"><strong id="headerAverage">—</strong><div id="headerTrend" class="header-trend neutral"><span id="headerArrow">—</span><span><b id="headerDelta">Sin comparación</b><small id="headerCompare">Semanas disponibles</small></span></div></div></div><div class="header-actions"><button id="publishKpis" class="hidden" type="button">☁️ Publicar actualización</button><div class="settings-wrap"><button id="settingsButton" type="button" aria-expanded="false" aria-controls="settingsMenu">⚙️ Configuración</button><div id="settingsMenu" class="settings-menu hidden"><button id="changePasswordButton" type="button">🔑 Cambiar contraseña</button></div></div><button id="logout" class="hidden">Cerrar sesión</button></div><div class="header-welcome"><h2 id="employeeGreeting"></h2><p id="headerWelcomeDescription"></p><p id="employeePeriodNote"></p></div><button id="themeToggle" type="button" aria-label="Activar modo oscuro" title="Activar modo oscuro"><svg class="theme-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 14a9 9 0 0 1-10.8-10.8A9 9 0 1 0 20.8 14Z"/></svg><svg class="theme-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4m0-14.2-1.4 1.4M6.3 17.7l-1.4 1.4"/></svg></button><div id="notificationControl" hidden>
  <button id="notificationsToggle" type="button" popovertarget="notificationsPanel" aria-controls="notificationsPanel" aria-expanded="false" aria-label="Notificaciones">
   <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 6-3 6-3 8a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1c0-2-3-2-3-8m-8 12a2 2 0 0 0 4 0"/></svg>
   <span id="notificationBadge" aria-hidden="true" hidden></span>
@@ -1267,6 +1268,7 @@ body.employee-mode :is(#qualityOverviewCards,#qualityFlowCards) .quality-goal{gr
   <label>Colaborador<select id="auditFilterPerson" name="idMeli"></select></label>
   <label>Período<select id="auditFilterPeriod" name="periodo"></select></label>
   <label>Flujo<select id="auditFilterFlow" name="flujo"></select></label>
+  <label data-audit-staff>Resultado<select name="resultadoError"><option value="">Todos</option><option value="con">Con error</option><option value="sin">Sin error</option></select></label>
   <label>Estado<select name="estado"><option value="">Todos</option><option value="sin_asignar">Sin asignar</option><option value="sin_error" data-audit-staff>Sin error</option><option value="pendiente_colaborador">Pendiente del colaborador</option><option value="pendiente_tl">Pendiente del TL</option><option value="pendiente_pm">Pendiente del PM</option><option value="cerrada_aprobada">Cerrada · aprobada</option><option value="cerrada_rechazada">Cerrada · rechazada</option></select></label>
  </form>
  <dl id="auditMetrics" aria-label="Indicadores de auditorías" hidden></dl>
@@ -1319,7 +1321,7 @@ import {getFirestore,doc,getDoc,getDocs,collection,query,where,writeBatch,server
 import {indexPeople,analyzeQuality,restoreArchivedQuality,qualityPeriods,selectQualityPeriod,summary,bucketQuality} from './calidad.mjs?v=archivo-1';
 const firebaseConfig={apiKey:'AIzaSyB7edb0wGmf86KVrca5zkBTju7wg_zVDFk',authDomain:'dashboard-kpi-teammati.firebaseapp.com',projectId:'dashboard-kpi-teammati',storageBucket:'dashboard-kpi-teammati.firebasestorage.app',messagingSenderId:'158470825794',appId:'1:158470825794:web:33eb0d3c862756b9d7cadb',measurementId:'G-7E8M7NSPV0'};
 const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app);
-import {setupAudits} from './auditorias-ui.mjs?v=solo-errores';
+import {setupAudits} from './auditorias-ui.mjs?v=barra-y-filtro';
 import {createSparkAudits} from './auditorias-spark.mjs?v=solo-errores';
 const sparkAuditCall=createSparkAudits({db,doc,getDocs,collection,query,where,documentId,runTransaction,serverTimestamp,
  currentUid:()=>auth.currentUser?.uid,currentMeli:()=>profileData?.idMeli,currentRole:()=>profileData?.rol});
@@ -1409,7 +1411,7 @@ $('tabDashboard').addEventListener('click',()=>switchTab(false));$('tabUpload').
 const authViews={
  signin:{title:'Ingresá a tu panel',description:'Consultá tus indicadores de productividad.',submit:'Iniciar sesión',busy:'Ingresando…'},
  reset:{title:'Recuperá tu contraseña',description:'Ingresá el correo con el que creaste tu cuenta.',submit:'Enviar enlace',busy:'Enviando…'},
- register:{title:'Creá tu cuenta',description:'Usá tu correo laboral. Un administrador habilitará tu perfil del dashboard.',submit:'Crear cuenta',busy:'Creando cuenta…'}
+ register:{title:'Creá tu cuenta',description:'Usá tu correo laboral. Tu cuenta se crea como Catalogador. Un administrador vinculará tu ID MELI.',submit:'Crear cuenta',busy:'Creando cuenta…'}
 };
 let authMode='signin',authBusy=false;
 auth.languageCode='es';
@@ -2252,6 +2254,50 @@ $('resetFilters').addEventListener('click',()=>{$('personFilter').value='';$('we
 $('reloadKpis').addEventListener('click',()=>{renderKpis();$('kpiStatus').textContent='Vista actualizada con los datos publicados que ya están cargados. No se consultó Firebase.';});
 
 
+const employeeHeader=$('dashboardHeader'), employeeHeaderReveal=$('employeeHeaderReveal');
+let headerHideTimer, headerPinned=false;
+function showEmployeeHeader(show){
+ clearTimeout(headerHideTimer);
+ employeeHeader.classList.toggle('header-revealed',show);
+ employeeHeaderReveal.setAttribute('aria-expanded',String(show));
+}
+function syncEmployeeHeader(){
+ const away=document.body.classList.contains('employee-mode')&&window.scrollY>=employeeHeader.offsetHeight;
+ document.body.classList.toggle('employee-header-away',away);
+ if(!away){headerPinned=false;showEmployeeHeader(false);}
+}
+function scheduleEmployeeHeaderHide(){
+ clearTimeout(headerHideTimer);
+ headerHideTimer=setTimeout(()=>{
+  if(!headerPinned&&!employeeHeader.matches(':hover, :has(:focus-visible)'))showEmployeeHeader(false);
+ },180);
+}
+window.addEventListener('scroll',syncEmployeeHeader,{passive:true});
+new ResizeObserver(syncEmployeeHeader).observe(employeeHeader);
+employeeHeaderReveal.addEventListener('pointerenter',event=>{if(event.pointerType==='mouse')showEmployeeHeader(true);});
+employeeHeaderReveal.addEventListener('pointerleave',scheduleEmployeeHeaderHide);
+employeeHeaderReveal.addEventListener('click',event=>{
+ headerPinned=!headerPinned;
+ showEmployeeHeader(headerPinned);
+ if(headerPinned&&event.detail===0)$('employeeNavigation').querySelector('button')?.focus();
+});
+employeeHeader.addEventListener('pointerenter',()=>clearTimeout(headerHideTimer));
+employeeHeader.addEventListener('pointerleave',scheduleEmployeeHeaderHide);
+employeeHeader.addEventListener('focusout',scheduleEmployeeHeaderHide);
+document.addEventListener('pointerdown',event=>{
+ if(!employeeHeader.contains(event.target)&&event.target!==employeeHeaderReveal&&!employeeHeaderReveal.contains(event.target)){
+  headerPinned=false;
+  showEmployeeHeader(false);
+ }
+});
+document.addEventListener('keydown',event=>{
+ if(event.key==='Escape'&&document.body.classList.contains('employee-header-away')&&
+    employeeHeader.classList.contains('header-revealed')&&!employeeHeader.querySelector(':popover-open')){
+  headerPinned=false;
+  showEmployeeHeader(false);
+  employeeHeaderReveal.focus();
+ }
+});
 function setupEmployeeDesign(){
  document.querySelector('header.kpi-header').insertBefore($('employeeNavigation'),$('themeToggle'));
  const cards=$('mainCards').querySelectorAll('.card');
@@ -2262,6 +2308,7 @@ function setupEmployeeDesign(){
  permissionAccounts=[];permissionGrants.clear();
  $('employeeCriteriaSlot').appendChild($('kpiFlowControls'));
  $('employeeNavigation').querySelectorAll('button').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.employeeView==='panel')));
+ syncEmployeeHeader();
 }
 function renderEmployeeOverview(days,total){
  if(isAdmin)return;
@@ -2275,6 +2322,9 @@ function renderEmployeeOverview(days,total){
 }
 document.querySelectorAll('[data-employee-view]').forEach(button=>button.addEventListener('click',()=>{
  if(isAdmin)return;
+ headerPinned=false;
+ if(button.matches(':focus-visible')&&document.body.classList.contains('employee-header-away'))employeeHeaderReveal.focus();
+ showEmployeeHeader(false);
  const view=button.dataset.employeeView;
  if(view==='auditorias'){auditFeatures.openView();return;}
  if(view==='configuracion')showConfiguration();
@@ -2436,10 +2486,22 @@ $('loginForm').addEventListener('submit',async event=>{
    await sendPasswordResetEmail(auth,email);
    $('authStatus').textContent='Si el correo está registrado, vas a recibir un enlace. Revisá también el correo no deseado.';
   }else if(authMode==='register'){
-   await createUserWithEmailAndPassword(auth,email,password);
+   const {user}=await createUserWithEmailAndPassword(auth,email,password);
+   try{
+    const ref=doc(db,'usuarios',user.uid);
+    await runTransaction(db,async tx=>{
+     if(!(await tx.get(ref)).exists())tx.set(ref,{rol:'catalogador',creadoEn:serverTimestamp()});
+    });
+   }catch(error){
+    console.error(error);
+    await signOut(auth);
+    setAuthMode('signin');
+    $('error').textContent='Se creó tu cuenta, pero falta habilitar el perfil. Contactá al administrador.';
+    return;
+   }
    await signOut(auth);
    setAuthMode('signin');
-   $('authStatus').textContent='Cuenta creada. Pedile a un administrador que habilite tu perfil para entrar al panel.';
+   $('authStatus').textContent='Cuenta creada como Catalogador. Ya podés iniciar sesión. Tus indicadores aparecerán cuando vinculen tu ID MELI.';
   }else{
    await signInWithEmailAndPassword(auth,email,password);
    $('password').value='';

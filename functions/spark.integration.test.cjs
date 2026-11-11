@@ -21,7 +21,8 @@ test('Spark importa y protege auditorías, estados y avisos sin Cloud Functions'
     const db = store.getFirestore(instance);
     const [host,port] = process.env.FIRESTORE_EMULATOR_HOST.split(':');
     store.connectFirestoreEmulator(db,host,Number(port));
-    await backend.collection('usuarios').doc(user.uid).set(profile);
+    if (profile) await backend.collection('usuarios').doc(user.uid).set(profile);
+    profile ||= {};
     const api = {...store,db,currentUid:()=>login.currentUser?.uid,currentMeli:()=>profile.idMeli,currentRole:()=>profile.rol};
     return {uid:user.uid,db,profile:{uid:user.uid,role:profile.rol,team:profile.equipo,idMeli:profile.idMeli,global:profile.rol==='pm'},
       api, call:createSparkAudits(api)};
@@ -31,6 +32,15 @@ test('Spark importa y protege auditorías, estados y avisos sin Cloud Functions'
   const another = await account('other-tl',{rol:'tl',equipo:'B'});
   const person = await account('employee',{rol:'catalogador',equipo:'A',idMeli:'001',usuario:'NET_TEST'});
   const outsider = await account('outsider',{rol:'catalogador',equipo:'B',idMeli:'002'});
+  const signup = await account('signup');
+  const ownProfile = store.doc(signup.db,'usuarios',signup.uid);
+  const catalogProfile = {rol:'catalogador',creadoEn:store.serverTimestamp()};
+  await assert.rejects(store.setDoc(ownProfile,{...catalogProfile,rol:'pm'}),{code:'permission-denied'});
+  await assert.rejects(store.setDoc(ownProfile,{...catalogProfile,idMeli:'001'}),{code:'permission-denied'});
+  await assert.rejects(store.setDoc(store.doc(signup.db,'usuarios','otro-uid'),catalogProfile),{code:'permission-denied'});
+  await store.setDoc(ownProfile,catalogProfile);
+  assert.equal((await store.getDocFromServer(ownProfile)).data().rol,'catalogador');
+  await assert.rejects(store.updateDoc(ownProfile,{rol:'tl'}),{code:'permission-denied'});
   const row = (externo,fila,idMeli='NET_TEST') => ({externo,fila,idMeli,hoja:'Datos',fecha:'2026-10-02',resultado:'Original'});
   const filas = [...Array.from({length:9},(_,i)=>row('a'+i,i+2)),row('a0',12),row('pendiente',13,'desconocido'),
     {...row('bad',14),fecha:'2026-02-30'}, {...row('sin-error',15),resultado:' NULL '}];

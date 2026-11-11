@@ -87,7 +87,11 @@ service cloud.firestore {
 
     match /usuarios/{userId} {
       allow read: if autenticado() && (request.auth.uid == userId || puedeGestionarDatos());
-      allow write: if false;
+      allow create: if autenticado() && request.auth.uid == userId
+        && request.resource.data.keys().hasOnly(['rol','creadoEn'])
+        && request.resource.data.rol == 'catalogador'
+        && request.resource.data.creadoEn == request.time;
+      allow update, delete: if false;
     }
 
     match /permisos_dashboard/{userId} {

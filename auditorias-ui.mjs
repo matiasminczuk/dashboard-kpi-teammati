@@ -259,12 +259,15 @@ export function setupAudits(api) {
     options($('auditFilterPeriod'), distinct('periodo').reverse(), 'Todos');
     options($('auditFilterFlow'), distinct('flujo'), 'Todos');
     const criteria = [...filter.querySelectorAll('select')].filter(node => !node.closest('[hidden]') && node.value);
+    const matches = (audit,node) => node.name === 'resultadoError'
+      ? (audit.estado === 'sin_error' ? 'sin' : 'con') === node.value
+      : audit[node.name] === node.value;
     const metrics = $('auditMetrics');
     metrics.hidden = session.role === 'catalogador' || auditLoading || listError;
     if (!metrics.hidden) {
       const selected = criteria.filter(node => node.name !== 'estado');
       const totals = auditReviewTotals(audits.filter(audit =>
-        (session.role !== 'tl' || audit.equipo === session.team) && selected.every(node => audit[node.name] === node.value)));
+        (session.role !== 'tl' || audit.equipo === session.team) && selected.every(node => matches(audit,node))));
       lines(metrics,[
         ['Colaboradores al día',format(totals.revisaron)],['Colaboradores con revisiones pendientes',format(totals.sinRevisar)],
         ['Aprobadas por TL',format(totals.aprobadasTl)],['Rechazadas por TL',format(totals.rechazadasTl)],
@@ -272,7 +275,7 @@ export function setupAudits(api) {
         ['Cierre rechazado por PM',format(totals.rechazadasPm)]
       ]);
     }
-    const visible = audits.filter(audit => criteria.every(node => audit[node.name] === node.value)).sort((a,b) =>
+    const visible = audits.filter(audit => criteria.every(node => matches(audit,node))).sort((a,b) =>
       (b.fecha || b.periodo).localeCompare(a.fecha || a.periodo) || a.externo.localeCompare(b.externo));
     const list = $('auditRows');
     list.replaceChildren();

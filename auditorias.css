@@ -73,6 +73,28 @@ body.dark-theme #notificationsPanel {
 #auditReports { margin-top:16px }
 #auditPreview details, #auditReports details { margin-top:8px }
 #auditPreview ul, #auditReports ul { max-height:280px; overflow:auto }
+#employeeHeaderReveal { display:none }
+body.employee-mode #dashboardHeader {
+ position:sticky; top:0; z-index:40;
+ transition:transform 160ms ease, visibility 0s;
+}
+body.employee-mode.employee-header-away #employeeHeaderReveal {
+ display:grid; place-items:start center; position:fixed; z-index:39; top:0; left:0;
+ width:100%; height:18px; padding:4px 0 0; border:0; border-radius:0; background:transparent;
+}
+#employeeHeaderReveal span {
+ width:36px; height:4px; border-radius:4px; background:#52647d; outline:2px solid #f5f6fa;
+}
+body.employee-mode.employee-header-away #dashboardHeader:not(.header-revealed):not(:has(:popover-open)) {
+ transform:translateY(-100%); visibility:hidden; transition-delay:0s,160ms;
+}
+#employeeHeaderReveal:focus-visible { outline:2px solid #0756c5; outline-offset:-2px }
+@media(pointer:coarse) {
+ body.employee-mode.employee-header-away #employeeHeaderReveal { height:34px }
+}
+@media(prefers-reduced-motion:reduce) {
+ body.employee-mode #dashboardHeader { transition:none }
+}
 body.employee-mode header.kpi-header {
  grid-template-columns:auto minmax(0,1fr) minmax(345px,445px) 44px 44px;
  grid-template-areas:"brand welcome navigation theme bell";
