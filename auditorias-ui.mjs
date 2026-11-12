@@ -43,20 +43,31 @@ function lines(container, entries) {
     return row;
   }));
 }
+function auditCard(title, className) {
+  const card = element('section', undefined, 'audit-card');
+  const fields = element('dl', undefined, 'audit-fields ' + className);
+  card.append(element('h4', title, 'audit-card-heading'), fields);
+  return {card, fields};
+}
+function auditTag(label, tone = 'neutral') {
+  const tag = element('span', label, 'audit-tag');
+  tag.dataset.tone = tone;
+  return tag;
+}
 function auditedCaseLink(audit) {
-  let url;
-  try {
-    const reference = new URL(String(audit.referencia ?? '').trim());
-    if (reference.protocol === 'https:' && !reference.username && !reference.password) url = reference.href;
-  } catch {
-    // Historical records may only have an Item ID.
-  }
-  url ||= itemUrl(audit.item);
-  if (!url) return null;
-  const link = element('a','Abrir caso auditado','audit-link');
+  const url = itemUrl(audit.item);
+  if (!url) return element('span', 'El caso requiere un Item ID válido.', 'audit-case-unavailable');
+  const link = element('a', 'Abrir caso auditado', 'audit-case-button');
   link.href = url;
   link.target = '_blank';
   link.rel = 'noopener noreferrer';
+  const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
+  svg.setAttribute('viewBox','0 0 24 24');
+  svg.setAttribute('aria-hidden','true');
+  const path = document.createElementNS(svg.namespaceURI,'path');
+  path.setAttribute('d','M13 5h6v6m0-6-9 9m0-9H6a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-4');
+  svg.append(path);
+  link.append(svg);
   return link;
 }
 function errorText(error) {
@@ -372,17 +383,38 @@ export function setupAudits(api) {
 
   function renderDetail(audit) {
     clearTimeout(deadlineTimer);
-    const fields = element('dl', undefined, 'audit-fields');
-    lines(fields, [
-      ['Auditoría',audit.cdm || audit.externo],
-      ['ID MELI',audit.colaboradorIdMeli || audit.idMeli],
-      ['Equipo',audit.equipo], ['Estado',states[auditDisplayState(audit)]], ['Fecha',audit.fecha || audit.periodo],
-      ['Flujo',normalizeQualityFlow(audit.flujo)||audit.flujo], ['Auditor',audit.auditor],
-      ['Resultado original',audit.resultado], ['Comentario Auditor',audit.observaciones],
-      ['Product ID',audit.producto], ['Item ID',audit.item], ['Caso auditado',auditedCaseLink(audit)],
-      ['Comentario colaborador',audit.comentarioOrigen], ['Decisión colaborador',audit.decisionOrigen]
+    const overview = element('div', undefined, 'audit-detail-overview');
+    const collaborator = auditCard('Datos del colaborador', 'audit-identity');
+    lines(collaborator.fields, [
+      ['Auditoría', audit.cdm || audit.externo],
+      ['ID MELI', audit.colaboradorIdMeli || audit.idMeli],
+      ['Equipo', audit.equipo],
+      ['Auditor', audit.auditor]
     ]);
-    detailBody.replaceChildren(fields);
+    const decision = auditCard('Decisión del colaborador', 'audit-origin');
+    const originDecision = String(audit.decisionOrigen ?? '').trim();
+    const decisionKey = originDecision.toLowerCase();
+    const hasDecision = decisionKey !== '' && decisionKey !== 'null';
+    lines(decision.fields, [
+      ['Decisión del colaborador', auditTag(hasDecision ? originDecision : 'Pendiente de decisión',
+        decisionKey === 'desestimar' ? 'warning' : hasDecision ? 'info' : 'neutral')],
+      ['Comentario del colaborador', audit.comentarioOrigen]
+    ]);
+    overview.append(collaborator.card, decision.card);
+
+    const auditCase = auditCard('Detalle del caso', 'audit-case-fields');
+    const flow = normalizeQualityFlow(audit.flujo) || audit.flujo;
+    const stateTone = {cerrada_aprobada:'positive', cerrada_rechazada:'negative'}[audit.estado] || 'neutral';
+    lines(auditCase.fields, [
+      ['Resultado original', audit.resultado],
+      ['Comentario del auditor', audit.observaciones],
+      ['Product ID', audit.producto],
+      ['Item ID', audit.item],
+      ['Flujo', flow && flow !== 'null' ? auditTag(flow) : null],
+      ['Estado', states[auditDisplayState(audit)] ? auditTag(states[auditDisplayState(audit)], stateTone) : null],
+      ['Fecha', audit.fecha || audit.periodo]
+    ]);
+    detailBody.replaceChildren(overview, auditCase.card);
     if (audit.estado === 'pendiente_colaborador') {
       const deadline = auditResponseDeadline(audit);
       const label = auditResponseOpen(audit) ? 'Plazo de respuesta hasta el ' : 'Plazo de respuesta vencido el ';
@@ -403,7 +435,14 @@ export function setupAudits(api) {
     const canRespond = session.role === 'catalogador' && ownsAudit(audit,session.uid,session.idMeli) && audit.estado === 'pendiente_colaborador' && auditResponseOpen(audit);
     const canDecide = session.role === 'tl' && audit.tlUid === session.uid && audit.equipo === session.team && audit.estado === 'pendiente_tl';
     const canClose = ['pm','admin'].includes(session.role) && audit.estado === 'pendiente_pm';
-    if (canRespond || canDecide || canClose) renderActions(audit, canRespond, canClose);
+    const caseLink = auditedCaseLink(audit);
+    if (canRespond || canDecide || canClose) {
+      renderActions(audit, canRespond, canClose, caseLink);
+    } else {
+      const footer = element('div', undefined, 'audit-actions audit-detail-actions audit-case-footer');
+      footer.append(caseLink);
+      auditCase.card.append(footer);
+    }
     if (session.global && audit.estado === 'sin_asignar') renderAssignment(audit);
     const list = element('ol',undefined,'audit-history');list.id = 'auditHistory';
     detailBody.append(element('h4','Historial'), list);
@@ -418,13 +457,17 @@ export function setupAudits(api) {
     catch (error) {if (ctx() === current) feedback.textContent = errorText(error);}
     finally {if (ctx() === current) {saving = false;buttons.forEach(node => {node.disabled = false;});}}
   }
-  function renderActions(audit, responding, closing) {
+  function renderActions(audit, responding, closing, caseLink) {
     const form = element('div',undefined,'audit-action');
     const textarea = element('textarea');textarea.id = 'auditResponse';textarea.maxLength = 3000;textarea.rows = 3;
-    const label = element('label', responding ? 'Tu respuesta' : 'Comentario de la decisión (opcional)');
+    const card = element('section', undefined, 'audit-card');
+    card.append(element('h4', responding ? 'Tu respuesta' : 'Revisión de la auditoría', 'audit-card-heading'));
+    if (responding) textarea.placeholder = 'Escribí tu respuesta...';
+    const label = element('label', responding ? 'Tu respuesta' : 'Comentario de la decisión (opcional)',
+      responding ? 'audit-response-label' : undefined);
     label.htmlFor = textarea.id;
     const feedback = element('p');feedback.setAttribute('role','status');
-    const buttons = element('div',undefined,'audit-actions');
+    const buttons = element('div',undefined,'audit-actions audit-detail-actions');
     for (const action of responding ? ['responder','devolver'] : ['aprobar','rechazar']) {
       const label = responding || closing ? actions[action] :
         action === 'aprobar' ? 'Aprobar y enviar al PM' : 'Rechazar y enviar al PM';
@@ -435,7 +478,10 @@ export function setupAudits(api) {
         void perform(form, () => api.call('auditoriasActuar',{id:audit.id, accion:action, texto:textarea.value.trim()}));
       }));
     }
-    form.append(label,textarea,buttons,feedback);detailBody.append(form);
+    buttons.append(caseLink);
+    form.append(label,textarea,buttons,feedback);
+    card.append(form);
+    detailBody.append(card);
   }
   function renderAssignment(audit) {
     const form = element('div',undefined,'audit-action'), person = element('select'), lead = element('select');

@@ -117,3 +117,75 @@ body.employee-mode header.kpi-header #employeeNavigation { grid-template-columns
  body.employee-mode header.kpi-header #employeeNavigation { grid-template-columns:repeat(3,minmax(0,1fr)) }
  body.employee-mode header.kpi-header .auth-brand-lockup { width:min(200px,100%) }
 }
+
+/* Audit detail */
+#auditDetail {
+ --audit-tint:#edf4ff;
+ --audit-warning:#774700;
+ --audit-warning-bg:#fff3da;
+ --audit-positive-bg:#e7f4ec;
+ --audit-negative-bg:#fcebee;
+ background:var(--kpi-surface);
+ border-radius:14px;
+}
+body.dark-theme #auditDetail {
+ --audit-tint:#223650;
+ --audit-warning:#ffda93;
+ --audit-warning-bg:#49361d;
+ --audit-positive-bg:#203b31;
+ --audit-negative-bg:#482c39;
+}
+#auditDetailBody { display:grid; gap:12px; margin-top:12px }
+.audit-detail-overview { display:grid; grid-template-columns:minmax(0,2fr) minmax(0,1fr); gap:12px }
+.audit-card { min-width:0; border:1px solid var(--kpi-border); border-radius:12px }
+#auditDetail .audit-card-heading {
+ margin:0; padding:9px 14px; border-radius:11px 11px 0 0;
+ border-bottom:1px solid var(--kpi-border); background:var(--audit-tint); color:inherit; font-size:.875rem;
+}
+.audit-card .audit-fields { margin:0; padding:14px; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px }
+.audit-card .audit-fields dd { font-size:.875rem; line-height:1.5 }
+.audit-identity > div + div { border-inline-start:1px solid var(--kpi-border); padding-inline-start:12px }
+.audit-identity dd, .audit-case-fields > :first-child dd { font-weight:700 }
+.audit-card .audit-origin { grid-template-columns:minmax(0,1fr) }
+.audit-card .audit-case-fields { grid-template-columns:repeat(5,minmax(0,1fr)) }
+.audit-case-fields > :nth-child(2) { grid-column:2 / -1 }
+.audit-tag {
+ display:inline-block; padding:3px 8px; border-radius:6px; background:var(--audit-tint);
+ color:var(--kpi-muted); font-weight:650;
+}
+.audit-tag[data-tone="warning"] { background:var(--audit-warning-bg); color:var(--audit-warning) }
+.audit-tag[data-tone="info"] { color:var(--kpi-link) }
+.audit-tag[data-tone="positive"] { background:var(--audit-positive-bg); color:var(--kpi-up) }
+.audit-tag[data-tone="negative"] { background:var(--audit-negative-bg); color:var(--kpi-down) }
+.audit-card .audit-action { max-width:none; padding:14px }
+.audit-card .audit-action textarea {
+ min-height:92px; padding:9px 10px; resize:vertical; color:inherit;
+ background:var(--kpi-surface); border:1px solid var(--kpi-border); border-radius:8px;
+}
+.audit-card textarea::placeholder { color:var(--kpi-muted); opacity:1 }
+.audit-action .audit-response-label {
+ position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap;
+}
+.audit-card .audit-action [role="status"]:empty { display:none }
+.audit-case-footer { padding:0 14px 14px; margin-top:0 }
+#auditDetail .audit-case-button {
+ display:inline-flex; align-items:center; justify-content:center; gap:8px; box-sizing:border-box;
+ min-height:40px; padding:8px 12px; border:1px solid var(--kpi-border); border-radius:8px;
+ background:var(--kpi-surface); color:var(--kpi-link); font-size:.8125rem; font-weight:700; text-decoration:none;
+}
+#auditDetail .audit-case-button:hover { background:var(--audit-tint); border-color:currentColor }
+.audit-case-button:focus-visible, .audit-card textarea:focus-visible { outline:2px solid var(--kpi-link); outline-offset:2px }
+.audit-case-button svg { width:16px; height:16px; fill:none; stroke:currentColor; stroke-width:1.75; stroke-linecap:round; stroke-linejoin:round }
+.audit-detail-actions > :last-child { margin-inline-start:auto }
+.audit-case-unavailable { color:var(--kpi-muted); font-size:.8125rem }
+@media(max-width:900px) {
+ .audit-detail-overview { grid-template-columns:minmax(0,1fr) }
+ .audit-card .audit-case-fields { grid-template-columns:repeat(4,minmax(0,1fr)) }
+}
+@media(max-width:580px) {
+ .audit-card .audit-fields:not(.audit-origin) { grid-template-columns:repeat(2,minmax(0,1fr)) }
+ .audit-identity > div:nth-child(odd) { border-inline-start:0; padding-inline-start:0 }
+ .audit-case-fields > :first-child, .audit-case-fields > :nth-child(2) { grid-column:1 / -1 }
+ .audit-detail-actions { align-items:stretch; flex-direction:column }
+ .audit-detail-actions > :last-child { margin-inline-start:0 }
+}
