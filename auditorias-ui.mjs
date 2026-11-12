@@ -7,7 +7,8 @@ const states = {
   vencida:'Vencida · sin respuesta', pendiente_tl:'Pendiente del TL', pendiente_pm:'Pendiente del PM', cerrada_aprobada:'Cerrada · aprobada',
   cerrada_rechazada:'Cerrada · rechazada'
 };
-const actions = {responder:'Enviar respuesta', devolver:'Devolver al TL', aprobar:'Aprobar y cerrar', rechazar:'Rechazar y cerrar'};
+const actions = {responder:'Confirmar hallazgo', devolver:'Devolver al TL', aprobar:'Aprobar y cerrar', rechazar:'Rechazar y cerrar'};
+const confirmedFinding = 'Hallazgo confirmado por el colaborador.';
 const recordedActions = {responder:'Respondió', devolver:'Devolvió al TL', aprobar:'Aprobó', rechazar:'Rechazó'};
 const eventLabels = {productividad:'Productividad', holds:'Holds', gestion:'Finalizadas', calidad:'Calidad',
   calidad_carga:'Calidad', kpi_publicacion:'Productividad', holds_publicados:'Holds',
@@ -432,8 +433,11 @@ export function setupAudits(api) {
       }
     }
     for (const [label, entry] of [['Respuesta del colaborador',audit.respuesta],['Decisión del TL',audit.decision],['Decisión final del PM',audit.decisionPm]]) {
-      if (entry) detailBody.append(element('h4',label), element('p',recordedActions[entry.accion] + ' · ' +
-        dateText(entry.fecha)), element('p',entry.texto || 'Sin comentario.', 'audit-message'));
+      if (!entry) continue;
+      const confirmed = entry.accion === 'responder' && entry.texto === confirmedFinding;
+      detailBody.append(element('h4',label), element('p',(confirmed ? 'Confirmó el hallazgo' : recordedActions[entry.accion]) + ' · ' +
+        dateText(entry.fecha)));
+      if (!confirmed) detailBody.append(element('p',entry.texto || 'Sin comentario.', 'audit-message'));
     }
     const canRespond = session.role === 'catalogador' && ownsAudit(audit,session.uid,session.idMeli) && audit.estado === 'pendiente_colaborador' && auditResponseOpen(audit);
     const canDecide = session.role === 'tl' && audit.tlUid === session.uid && audit.equipo === session.team && audit.estado === 'pendiente_tl';
@@ -458,8 +462,8 @@ export function setupAudits(api) {
     const textarea = element('textarea');textarea.id = 'auditResponse';textarea.maxLength = 3000;textarea.rows = 3;
     const card = element('section', undefined, 'audit-card');
     card.append(element('h4', responding ? 'Tu respuesta' : 'Revisión de la auditoría', 'audit-card-heading'));
-    if (responding) textarea.placeholder = 'Escribí tu respuesta...';
-    const label = element('label', responding ? 'Tu respuesta' : 'Comentario de la decisión (opcional)',
+    if (responding) textarea.placeholder = 'Explicá el motivo si devolvés la auditoría al TL…';
+    const label = element('label', responding ? 'Motivo de devolución al TL' : 'Comentario de la decisión (opcional)',
       responding ? 'audit-response-label' : undefined);
     label.htmlFor = textarea.id;
     const feedback = element('p');feedback.setAttribute('role','status');
@@ -468,10 +472,12 @@ export function setupAudits(api) {
       const label = responding || closing ? actions[action] :
         action === 'aprobar' ? 'Aprobar y enviar al PM' : 'Rechazar y enviar al PM';
       buttons.append(button(label, () => {
-        if (responding && !textarea.value.trim()) {feedback.textContent = 'Escribí una respuesta antes de enviarla.'; textarea.focus();return;}
+        const texto = action === 'responder' ? confirmedFinding : textarea.value.trim();
+        if (action === 'devolver' && !texto) {feedback.textContent = 'Escribí el motivo de la devolución al TL.'; textarea.focus();return;}
+        if (action === 'responder' && !window.confirm('¿Confirmás que estás de acuerdo con el hallazgo de la auditoría?')) return;
         if (!responding && !window.confirm(closing ? '¿Confirmás el cierre definitivo de esta auditoría?' :
           '¿Confirmás tu decisión y el envío al PM?')) return;
-        void perform(form, () => api.call('auditoriasActuar',{id:audit.id, accion:action, texto:textarea.value.trim()}));
+        void perform(form, () => api.call('auditoriasActuar',{id:audit.id, accion:action, texto}));
       }));
     }
     form.append(label,textarea,buttons,feedback);
