@@ -54,6 +54,8 @@ body.dark-theme #notificationsPanel {
 #auditMetrics dt { font-size:12px; color:var(--kpi-muted) }
 #auditMetrics dd { margin:3px 0 0; font-size:20px; font-weight:700; font-variant-numeric:tabular-nums }
 #viewAuditorias thead { position:sticky; top:0 }
+#viewAuditorias > .table-wrap :is(th,td):is(:nth-child(3),:nth-child(4)) { text-align:center }
+#viewAuditorias > .table-wrap :is(th,td):nth-child(5) { text-align:left }
 .audit-controls {
  display:grid; grid-template-columns:repeat(auto-fit,minmax(min(140px,100%),1fr)); gap:8px 12px; margin:10px 0;
 }
