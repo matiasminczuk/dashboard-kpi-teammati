@@ -1340,7 +1340,7 @@ import {getFirestore,doc,getDoc,getDocs,collection,query,where,writeBatch,server
 import {indexPeople,analyzeQuality,restoreArchivedQuality,qualityPeriods,selectQualityPeriod,summary,bucketQuality} from './calidad.mjs?v=archivo-1';
 import {analysisPeriod,inPeriod,operationalFlow,operationalFlows,defaultProductivityGoals,productivityTotals,normalizeQualityFlow,publishedProductivity} from './gestion-desarrollo.mjs?v=correcciones';
 import {setupFilters} from './filtros-desarrollo.mjs?v=resumen';
-import {renderOperationalCards,renderComparison,renderCreationChart,renderHoldsRanking} from './visuales-desarrollo.mjs?v=productividad';
+import {renderOperationalCards,renderComparison,renderCreationChart,renderHoldsRanking} from './visuales-desarrollo.mjs?v=semanas';
 const firebaseConfig={apiKey:'AIzaSyB7edb0wGmf86KVrca5zkBTju7wg_zVDFk',authDomain:'dashboard-kpi-teammati.firebaseapp.com',projectId:'dashboard-kpi-teammati',storageBucket:'dashboard-kpi-teammati.firebasestorage.app',messagingSenderId:'158470825794',appId:'1:158470825794:web:33eb0d3c862756b9d7cadb',measurementId:'G-7E8M7NSPV0'};
 const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app);
 import {setupAudits} from './auditorias-ui.mjs?v=barra-y-filtro';
@@ -2050,7 +2050,7 @@ function renderDevAnalytics(){
  if(!isAdmin)return;
  const rows=kpiCache,period=devFilters.period(),cadence=devFilters.state().cadence;
  renderOperationalCards($('devOperationalCards'),rows,period,productivityGoals,!isPM);
- renderCreationChart($('devCreationChart'),rows.filter(row=>inPeriod(row.fecha,period?.current)),cadence);
+ renderCreationChart($('devCreationChart'),rows.filter(row=>inPeriod(row.fecha,period?.current)),cadence,isoWeek);
  renderPMComparison();
 }
 function renderDevHolds(){

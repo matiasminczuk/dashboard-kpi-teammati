@@ -110,7 +110,7 @@ export function renderComparison({chart,body,rows,period,group,sort,goals,drilld
   }
 }
 
-export function renderCreationChart(container,rows,cadence){
+export function renderCreationChart(container,rows,cadence,isoWeek){
   const points=creationSeries(rows,cadence);
   container.replaceChildren();
   if(!points.length){container.textContent='Sin registros de Creaciones o Correcciones en el período.';return;}
@@ -132,7 +132,8 @@ export function renderCreationChart(container,rows,cadence){
     add('line',{x1:padding,y1:y(value),x2:width-padding,y2:y(value),class:'dev-chart-grid'});
     add('text',{x:padding-6,y:y(value)+4,'text-anchor':'end'},fmt(value));
   }
-  points.forEach((point,i)=>add('text',{x:x(i),y:height-12,'text-anchor':'middle'},point.key));
+  const labelFor=key=>cadence==='weeks'?isoWeek(key).key.slice(5):key;
+  points.forEach((point,i)=>add('text',{x:x(i),y:height-12,'text-anchor':'middle'},labelFor(point.key)));
   for(const [key,name,color] of [['creaciones','Creaciones','#1765d1'],['correcciones','Correcciones','#d17b12']]){
     let last=null;
     points.forEach((point,i)=>{
@@ -141,7 +142,8 @@ export function renderCreationChart(container,rows,cadence){
       const next=[x(i),y(value)];
       if(last)add('line',{x1:last[0],y1:last[1],x2:next[0],y2:next[1],stroke:color,'stroke-width':3});
       const circle=add('circle',{cx:next[0],cy:next[1],r:4,fill:color,tabindex:0});
-      const tooltip=point.key+' · '+name+' '+fmt(value);circle.setAttribute('aria-label',tooltip);
+      const periodLabel=cadence==='weeks'?labelFor(point.key)+' · lunes '+point.key:point.key;
+      const tooltip=periodLabel+' · '+name+' '+fmt(value);circle.setAttribute('aria-label',tooltip);
       const title=document.createElementNS(ns,'title');title.textContent=tooltip;circle.append(title);
       last=next;
     });
