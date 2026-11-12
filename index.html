@@ -337,6 +337,9 @@ body.pm-design .pm-period-shortcuts{display:flex;gap:6px;margin-top:12px}
 body.pm-design .pm-period-shortcuts button{background:transparent;border:1px solid #536074;color:#fff;border-radius:4px;padding:7px;font-size:11px;cursor:pointer}
 body.pm-design .pm-period-shortcuts button:hover{background:#34455c}
 body.pm-design #weeklyPanel .week-filters{display:none!important}
+.weekly-flow-filter{width:min(210px,100%);margin:0 0 12px}
+.weekly-flow-filter label{display:block;margin-bottom:4px;font-size:13px;font-weight:600}
+.weekly-flow-filter select{width:100%}
 </style><style>
 
 /* Ajuste PM: cabecera sin logotipo, KPIs completos y gráficos fluidos. */
@@ -1262,6 +1265,7 @@ body.employee-mode :is(#qualityOverviewCards,#qualityFlowCards) .quality-goal{gr
  <div id="devCreationChart" class="dev-chart" tabindex="0" aria-label="Gráfico de Creaciones y Correcciones"></div></section>
 </section>
 <section class="panel" id="weeklyPanel"><h2>Evolución semanal</h2><p class="muted">Productividad y creaciones en escalas independientes · promedio por jornada registrada · semanas de lunes a domingo.</p>
+<div id="weeklyFlowFilter" class="weekly-flow-filter" hidden><label for="weeklyFlow">Flujo</label><select id="weeklyFlow"></select></div>
 <div class="week-filters"><div><label for="weekMode">Período</label><select id="weekMode"><option value="quarter" selected>Trimestre</option><option value="month">Mes</option><option value="weeks">Semanas</option></select></div><div><label for="weekYear">Año</label><select id="weekYear"></select></div><div id="monthWrap" class="hidden"><label for="weekMonth">Mes</label><select id="weekMonth"><option value="10" selected>Octubre</option><option value="11">Noviembre</option><option value="12">Diciembre</option></select></div><div id="quarterWrap"><label for="weekQuarter">Trimestre</label><select id="weekQuarter"><option value="4" selected>Q4</option></select></div><div id="startWeekWrap" class="hidden"><label for="weekStart">Desde semana</label><select id="weekStart"></select></div><div id="endWeekWrap" class="hidden"><label for="weekEnd">Hasta semana</label><select id="weekEnd"></select></div></div>
 <p id="weeklyStatus" class="muted"></p><div id="weeklyChart" class="weekly-chart"><p class="muted">Cargando gráfico…</p></div><div class="table-wrap week-table"><table><thead><tr><th>Semana</th><th>Período</th><th>Promedio diario de tareas</th><th>Promedio diario de creaciones</th><th>Jornadas tareas</th><th>Jornadas creaciones</th></tr></thead><tbody id="weeklyRows"></tbody></table></div><p class="week-chart-note">El promedio semanal se calcula como total de tareas o creaciones dividido por las jornadas registradas de ese indicador. En la vista general se promedian todas las jornadas registradas del equipo. Las semanas que cruzan un mes o un Q usan solo los días del período elegido.</p></section>
 <section class="panel employee-only" id="employeeCreationsPanel"><h2>Creaciones · promedio diario</h2><div id="employeeCreationsChart" class="weekly-chart"></div></section>
@@ -1678,14 +1682,20 @@ function mountWeeklyLine(scroll, svg, weekCount, draw){
   observer.observe(scroll);
 }
 
+const weeklyFlowSelect=$('weeklyFlow');
+for(const [flow,label] of Object.entries(operationalFlows))weeklyFlowSelect.add(new Option(label,flow));
+weeklyFlowSelect.addEventListener('change',renderWeeklyChart);
+
 function renderWeeklyChart(){
+  $('weeklyFlowFilter').hidden=!isAdmin;
+  const selectedFlow=weeklyFlowSelect.value;
   const who=$('personFilter').value,chart=$('weeklyChart'),tbody=$('weeklyRows');
   chart.replaceChildren();tbody.replaceChildren();
   if($('weekMode').value==='weeks'&&$('weekStart').value>$('weekEnd').value){
     $('weeklyStatus').textContent='La semana inicial debe ser anterior o igual a la final.';return;
   }
   const excludedDays=excludedFlowDays();
-  const rows=kpiCache.filter(r=>isVisiblePeriod(r.fecha)&&(!who||r.id===who)&&includedRecord(r)&&weeklyMatches(r.fecha)&&isKpiDay(r,excludedDays)&&(!isAdmin||r.tipo==='tareas'&&r.flujoOperativo==='mixto'));
+  const rows=kpiCache.filter(r=>isVisiblePeriod(r.fecha)&&(!who||r.id===who)&&includedRecord(r)&&weeklyMatches(r.fecha)&&isKpiDay(r,excludedDays)&&(!isAdmin||r.tipo==='tareas'&&r.flujoOperativo===selectedFlow));
   const weeks=new Map();
   for(const r of rows){
     const k=isoWeek(r.fecha).key;
@@ -1694,7 +1704,7 @@ function renderWeeklyChart(){
   }
   const ordered=[...weeks].sort((a,b)=>a[0].localeCompare(b[0]));
   $('weeklyStatus').textContent=ordered.length?`${ordered.length} semanas con datos · ${(!isAdmin||who)?'Vista individual':'Promedio general del equipo'} · ${rows.length} registros`:'No hay registros para este período.';
-  if(!ordered.length){chart.textContent='No hay datos para graficar.';if(!isAdmin)$('employeeCreationsChart').textContent='No hay datos para graficar.';return;}
+  if(!ordered.length){chart.textContent=isAdmin?'Sin jornadas de '+operationalFlows[selectedFlow]+' en este período.':'No hay datos para graficar.';if(!isAdmin)$('employeeCreationsChart').textContent='No hay datos para graficar.';return;}
 
   // Dos líneas independientes para que la escala de tareas no aplaste la de creaciones.
   function drawLineChart(tipo,title,color){
@@ -1705,7 +1715,7 @@ function renderWeeklyChart(){
     const name=document.createElement('strong');name.textContent=title;
     const summary=document.createElement('span');summary.className='muted';
     if(valid.length>1){const change=valid.at(-1)-valid[0];summary.textContent=`Variación del período: ${change>0?'+':''}${fmt(change)} por jornada`;}
-    const flow=isAdmin?'mixto':rows.find(row=>row.tipo==='tareas'&&row.flujoOperativo)?.flujoOperativo;
+    const flow=isAdmin?selectedFlow:rows.find(row=>row.tipo==='tareas'&&row.flujoOperativo)?.flujoOperativo;
     const target=tipo==='tareas'&&flow?(Object.hasOwn(productivityGoals,flow)?productivityGoals[flow]:defaultProductivityGoals[flow]):null;
     if(tipo==='tareas')summary.textContent=(target==null?'Sin objetivo':'Mínimo esperado '+fmt(target)+' tareas')+' · '+(summary.textContent||'Sin comparación entre semanas');
     heading.append(name,summary);section.appendChild(heading);
@@ -1749,7 +1759,7 @@ function renderWeeklyChart(){
     section.appendChild(scroll);(tipo==='creaciones'&&!isAdmin?$('employeeCreationsChart'):chart).appendChild(section);
   }
   if(!isAdmin)$('employeeCreationsChart').replaceChildren();
-  drawLineChart('tareas',isAdmin?'Flujo Mixto · promedio diario':'Productividad · promedio diario de tareas','#1765d1');
+  drawLineChart('tareas',isAdmin?operationalFlows[selectedFlow]+' · promedio diario':'Productividad · promedio diario de tareas','#1765d1');
   if(!isAdmin)drawLineChart('creaciones','Creaciones · promedio diario','#996000');
 
   for(const [key,w] of ordered){
