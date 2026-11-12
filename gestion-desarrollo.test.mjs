@@ -23,9 +23,23 @@ test('recupera las jornadas de publicaciones anteriores con el criterio históri
   {fecha:'2026-11-04',flujos:{SOPORTE:8}}
  ]};
  const rows=publishedProductivity(publication,initiative=>initiative);
- assert.deepEqual(rows.map(row=>row.flujoOperativo),['mixto',null,'soporte','kv']);
+ assert.deepEqual(rows.filter(row=>row.tipo==='tareas').map(row=>row.flujoOperativo),['mixto',null,'soporte','kv']);
  assert.equal(rows[0].id,'123');
  assert.deepEqual(productivityTotals(rows.filter(row=>row.flujoOperativo==='mixto')),{days:1,people:1,average:110});
+});
+test('cuenta las correcciones de Finalizadas por jornada sin duplicar registros importados',()=>{
+ const publication={idMeli:'123',nombre:'Catalogador',equipo:'Equipo A',tareas:[
+  {tipo:'correcciones',fecha:'2026-10-05',cantidad:10},
+  {tipo:'correcciones',fecha:'2026-10-07',cantidad:3}
+ ],gestion:[
+  {fecha:'2026-10-05',flujos:{'Sugerencia de Corrección':2,'CORRECCIONES masivas':4,Creaciones:20}},
+  {fecha:'2026-10-06',flujos:{Creaciones:4}}
+ ]};
+ const rows=publishedProductivity(publication,()=>null);
+ assert.deepEqual(rows.map(({fecha,cantidad})=>[fecha,cantidad]).sort(),[
+  ['2026-10-05',6],['2026-10-06',0],['2026-10-07',3]
+ ]);
+ assert.equal(creationSeries(rows,'weeks')[0].correcciones,9);
 });
 test('período inclusivo, comparación anterior de igual duración y agrupaciones',()=>{
  const periods=analysisPeriod({from:'2026-11-03',to:'2026-11-08'},{});

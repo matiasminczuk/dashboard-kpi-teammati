@@ -42,7 +42,7 @@ export function publishedProductivity(publication, classifyInitiative) {
     )
   ).map(record => record.fecha));
 
-  return (publication.tareas || []).map(row => {
+  const rows = (publication.tareas || []).map(row => {
     const flow = [row.flujoOperativo, publication.flujoOperativo]
       .find(value => Object.hasOwn(operationalFlows, value));
     const role = row.rolOrigen || publication.rolOrigen;
@@ -50,6 +50,24 @@ export function publishedProductivity(publication, classifyInitiative) {
     return {...row, id:String(publication.idMeli), equipo:publication.equipo,
       flujoOperativo:flow || (role ? operationalFlow(role) : historicalFlow)};
   });
+  const corrections = new Map();
+  for(const {fecha,flujos} of publication.gestion || []){
+    if(!fecha||!Object.keys(flujos || {}).length)continue;
+    let total=corrections.get(fecha)??0;
+    for(const [initiative,count] of Object.entries(flujos)){
+      const quantity=Number(count);
+      if(/\bcorreccion(?:es)?\b/.test(normalizeLabel(initiative))&&Number.isFinite(quantity)&&quantity>0){
+        total+=quantity;
+      }
+    }
+    corrections.set(fecha,total);
+  }
+  const existing=rows.filter(row=>row.tipo!=='correcciones'||!corrections.has(row.fecha));
+  for(const [fecha,cantidad] of corrections){
+    existing.push({fecha,cantidad,tipo:'correcciones',id:String(publication.idMeli),
+      equipo:publication.equipo,colaborador:publication.nombre||String(publication.idMeli)});
+  }
+  return existing;
 }
 export function productivityTotals(rows) {
   const valid=rows.filter(row=>row.tipo==='tareas'&&Number.isFinite(row.cantidad)&&row.cantidad>=0);
