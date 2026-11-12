@@ -1103,7 +1103,7 @@ body.employee-mode #employeeCriteria{padding:9px 14px;margin-bottom:12px}
 body.employee-mode #kpiStatus{margin-bottom:12px}
 body:is(.employee-mode,.pm-flows) #gestionPanel>.gestion-cards{grid-template-columns:repeat(auto-fit,minmax(min(145px,100%),1fr))}
 body.employee-mode #gestionPanel .gestion-card:has(#gCcc):nth-child(1 of :not([hidden])):nth-last-child(1 of :not([hidden])){
- width:min(100%,280px);box-sizing:border-box;justify-self:center;text-align:center
+ grid-column:1/-1;text-align:center
 }
 @media(min-width:1051px){
  body.employee-mode #dashboard{zoom:.9}
