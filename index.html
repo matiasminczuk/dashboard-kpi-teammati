@@ -1243,7 +1243,7 @@ body.employee-mode :is(#qualityOverviewCards,#qualityFlowCards) .quality-goal{gr
 </section><section id="pmComparison" class="panel hidden"><h2>Comparativa de equipos</h2>
  <div class="audit-controls"><label>Flujo<select id="devCompareFlow"><option value="mixto">Flujo Mixto</option><option value="soporte">Soporte</option><option value="kv">Know Values</option></select></label>
  <label>Ordenar por<select id="devCompareSort"><option value="average">Promedio</option><option value="people">Catalogadores</option><option value="difference">Diferencia al mínimo</option><option value="delta">Evolución</option></select></label></div>
- <div id="devComparisonBars"></div><div class="table-wrap"><table><thead><tr><th>Posición</th><th>Equipo</th><th>TL</th><th>Promedio diario</th><th>Catalogadores</th><th>Mínimo</th><th>Diferencia</th><th>vs. período anterior</th></tr></thead><tbody id="pmComparisonRows"></tbody></table></div></section><div class="kpi-flow-controls" id="kpiFlowControls"><strong>Filtros de productividad</strong><label><input type="checkbox" id="excludeKnown" checked> Excluir jornadas con KNOWN_VALUE</label><label><input type="checkbox" id="excludeSupport" checked> Excluir jornadas con Soporte</label><small>Se excluye el día completo si hubo actividad de esos flujos. Los registros siguen visibles en Gestión.</small></div><section class="cards" id="mainCards"><div class="card"><span>Promedio diario de tareas (según filtros)</span><h1 id="kpiAverage">—</h1><small id="averageNote" class="muted">Por jornada con registro</small><p id="employeeGoal" class="employee-only"></p><small id="employeeTrend" class="employee-only"></small></div><div class="card"><span>Tareas totales</span><h1 id="kpiTasks">—</h1><small id="tasksNote" class="muted">Período seleccionado</small></div><div class="card"><span>Creaciones totales</span><h1 id="kpiCreations">—</h1><small class="muted">Período seleccionado</small></div><div class="card"><span>Jornadas computables</span><h1 id="kpiDays">—</h1><small class="muted">Colaborador + fecha</small></div></section>
+ <div id="devComparisonBars"></div><div class="table-wrap"><table><thead><tr><th>Posición</th><th>Equipo</th><th>Promedio diario</th><th>Catalogadores</th><th>Mínimo</th><th>Diferencia</th><th>vs. período anterior</th></tr></thead><tbody id="pmComparisonRows"></tbody></table></div></section><div class="kpi-flow-controls" id="kpiFlowControls"><strong>Filtros de productividad</strong><label><input type="checkbox" id="excludeKnown" checked> Excluir jornadas con KNOWN_VALUE</label><label><input type="checkbox" id="excludeSupport" checked> Excluir jornadas con Soporte</label><small>Se excluye el día completo si hubo actividad de esos flujos. Los registros siguen visibles en Gestión.</small></div><section class="cards" id="mainCards"><div class="card"><span>Promedio diario de tareas (según filtros)</span><h1 id="kpiAverage">—</h1><small id="averageNote" class="muted">Por jornada con registro</small><p id="employeeGoal" class="employee-only"></p><small id="employeeTrend" class="employee-only"></small></div><div class="card"><span>Tareas totales</span><h1 id="kpiTasks">—</h1><small id="tasksNote" class="muted">Período seleccionado</small></div><div class="card"><span>Creaciones totales</span><h1 id="kpiCreations">—</h1><small class="muted">Período seleccionado</small></div><div class="card"><span>Jornadas computables</span><h1 id="kpiDays">—</h1><small class="muted">Colaborador + fecha</small></div></section>
 <section id="employeeFlowPercent" aria-label="Porcentaje de tareas accionadas por flujo"><div class="employee-flow-grid">
 <div class="employee-flow-card" style="--flow-color:#3483fa"><span>CCC</span><strong id="employeePctCcc">—</strong><small id="employeeCountCcc">Sin registros</small></div>
 <div class="employee-flow-card" style="--flow-color:#e3a900"><span>Demanda</span><strong id="employeePctDemanda">—</strong><small id="employeeCountDemanda">Sin registros</small></div>
@@ -1336,7 +1336,7 @@ import {getFirestore,doc,getDoc,getDocs,collection,query,where,writeBatch,server
 import {indexPeople,analyzeQuality,restoreArchivedQuality,qualityPeriods,selectQualityPeriod,summary,bucketQuality} from './calidad.mjs?v=archivo-1';
 import {analysisPeriod,inPeriod,operationalFlow,operationalFlows,defaultProductivityGoals,productivityTotals,normalizeQualityFlow,publishedProductivity} from './gestion-desarrollo.mjs?v=historico';
 import {setupFilters} from './filtros-desarrollo.mjs?v=periodo';
-import {renderOperationalCards,renderComparison,renderCreationChart,renderHoldsRanking} from './visuales-desarrollo.mjs';
+import {renderOperationalCards,renderComparison,renderCreationChart,renderHoldsRanking} from './visuales-desarrollo.mjs?v=equipo';
 const firebaseConfig={apiKey:'AIzaSyB7edb0wGmf86KVrca5zkBTju7wg_zVDFk',authDomain:'dashboard-kpi-teammati.firebaseapp.com',projectId:'dashboard-kpi-teammati',storageBucket:'dashboard-kpi-teammati.firebasestorage.app',messagingSenderId:'158470825794',appId:'1:158470825794:web:33eb0d3c862756b9d7cadb',measurementId:'G-7E8M7NSPV0'};
 const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app);
 import {setupAudits} from './auditorias-ui.mjs?v=barra-y-filtro';
@@ -1425,7 +1425,7 @@ function arrangeEmployeePanels(){
   $('mainCards').after($('employeeFlowPercent'));$('employeeFlowPercent').after(summary);summary.after(weekly);weekly.after(holds);holds.after(gestion);gestion.after(times);
  }
 }
-function showDashboard(name,admin){document.body.classList.remove('auth-screen');isAdmin=admin;isPM=qualityGoalEditor()||accessPermission?.nivel==='superadmin';selectedTeam=isPM?'':validTeam(profileData?.equipo);publishedItems=[];kpiCache=[];holdsCache=[];gestionCache=[];excludedPeople=new Set();$('personFilter').replaceChildren(new Option(admin?'Todos los catalogadores':'Mi productividad',''));document.body.classList.toggle('admin-mode',admin);const welcome=$('employeeGreeting').closest('.header-welcome');const header=document.querySelector('header.kpi-header');header.insertBefore(welcome,$('themeToggle'));$('adminSidebar').classList.toggle('hidden',!admin);document.body.classList.toggle('employee-mode',!admin);$('employeeGreeting').textContent='¡Hola, '+name+'!';$('headerWelcomeDescription').textContent=admin?'Productividad, creaciones, holds y horarios de gestión.':'Tu productividad, creaciones, holds y horarios de gestión en un solo lugar.';$('welcome').textContent=admin?'Bienvenido, '+name:'Mi productividad';$('login').classList.add('hidden');$('dashboard').classList.remove('hidden');$('logout').classList.remove('hidden');$('tabUpload').classList.toggle('hidden',!isPM);$('publishKpis').classList.toggle('hidden',!isPM);$('pmTeamWrap').classList.toggle('hidden',!isPM);$('pmComparison').classList.toggle('hidden',!isPM);$('pmTeamFilter').value=isPM?'':selectedTeam;switchTab(false);arrangeEmployeePanels();if(admin){devFilters.start(auth.currentUser.uid);selectAdminSection('resumen');loadDevLeads();}loadDashboardKpis().catch(console.error);loadQuality();}
+function showDashboard(name,admin){document.body.classList.remove('auth-screen');isAdmin=admin;isPM=qualityGoalEditor()||accessPermission?.nivel==='superadmin';selectedTeam=isPM?'':validTeam(profileData?.equipo);publishedItems=[];kpiCache=[];holdsCache=[];gestionCache=[];excludedPeople=new Set();$('personFilter').replaceChildren(new Option(admin?'Todos los catalogadores':'Mi productividad',''));document.body.classList.toggle('admin-mode',admin);const welcome=$('employeeGreeting').closest('.header-welcome');const header=document.querySelector('header.kpi-header');header.insertBefore(welcome,$('themeToggle'));$('adminSidebar').classList.toggle('hidden',!admin);document.body.classList.toggle('employee-mode',!admin);$('employeeGreeting').textContent='¡Hola, '+name+'!';$('headerWelcomeDescription').textContent=admin?'Productividad, creaciones, holds y horarios de gestión.':'Tu productividad, creaciones, holds y horarios de gestión en un solo lugar.';$('welcome').textContent=admin?'Bienvenido, '+name:'Mi productividad';$('login').classList.add('hidden');$('dashboard').classList.remove('hidden');$('logout').classList.remove('hidden');$('tabUpload').classList.toggle('hidden',!isPM);$('publishKpis').classList.toggle('hidden',!isPM);$('pmTeamWrap').classList.toggle('hidden',!isPM);$('pmComparison').classList.toggle('hidden',!isPM);$('pmTeamFilter').value=isPM?'':selectedTeam;switchTab(false);arrangeEmployeePanels();if(admin){devFilters.start(auth.currentUser.uid);selectAdminSection('resumen');}loadDashboardKpis().catch(console.error);loadQuality();}
 function switchTab(upload){if(upload&&!canImportBases())return;auditFeatures.closeView();$('viewSettings').classList.add('hidden');$('viewDashboard').classList.toggle('hidden',upload);$('viewUpload').classList.toggle('hidden',!upload);$('tabDashboard').classList.toggle('active',!upload);$('tabUpload').classList.toggle('active',upload);}
 $('tabDashboard').addEventListener('click',()=>switchTab(false));$('tabUpload').addEventListener('click',()=>switchTab(true));
 const authViews={
@@ -2008,24 +2008,11 @@ function devAuditPeriod(audit){
 function applyPublishedData(items){
  const personalId=String(profileData?.idMeli||'').trim();
  publishedItems=!isAdmin?items.filter(item=>personalId&&String(item.idMeli)===personalId):!isPM?items.filter(item=>selectedTeam&&validTeam(item.equipo)===selectedTeam):items;applyTeamView();}
-let devLeads=new Map();
-async function loadDevLeads(){
- const uid=auth.currentUser?.uid;
- devLeads=new Map();
- if(!isPM||!uid)return;
- try{
-  const profiles=await getDocs(query(collection(db,'usuarios'),where('rol','==','tl')));
-  if(auth.currentUser?.uid!==uid)return;
-  for(const doc of profiles.docs){const p=doc.data();if(!p.equipo)continue;
-   const names=devLeads.get(p.equipo)||[];if(p.nombre)names.push(p.nombre);devLeads.set(p.equipo,names);}
-  renderPMComparison();
- }catch(error){console.error('No se pudo consultar a los TL',error.code);}
-}
 function renderPMComparison(){
  if(!isPM)return;
  renderComparison({chart:$('devComparisonBars'),body:$('pmComparisonRows'),rows:kpiCache,
   period:devFilters.period(),group:$('devCompareFlow').value,sort:$('devCompareSort').value,goals:productivityGoals,
-  lead:team=>devLeads.get(team)?.join(', '),drilldown:team=>{devFilters.chooseTeam(team);selectAdminSection('productividad-holds');}});
+  drilldown:team=>{devFilters.chooseTeam(team);selectAdminSection('productividad-holds');}});
 }
 function renderDevAnalytics(){
  if(!isAdmin)return;

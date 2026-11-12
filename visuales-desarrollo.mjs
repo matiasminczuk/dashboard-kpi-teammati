@@ -31,7 +31,7 @@ export function renderOperationalCards(container,rows,period,goals,onlyActive=fa
   if(!container.children.length)container.append(element('p','Sin colaboradores con datos de flujo en el período.'));
 }
 
-export function renderComparison({chart,body,rows,period,group,sort,goals,lead,drilldown}){
+export function renderComparison({chart,body,rows,period,group,sort,goals,drilldown}){
   const teams=new Map();
   for(const row of rows){
     if(!teams.has(row.equipo))teams.set(row.equipo,[]);
@@ -61,7 +61,7 @@ export function renderComparison({chart,body,rows,period,group,sort,goals,lead,d
     row.insertCell().textContent=positions.get(item.team);
     const button=element('button',item.team,'audit-link');button.type='button';button.onclick=()=>drilldown(item.team);
     row.insertCell().append(button);
-    for(const value of [lead(item.team)||'—',fmt(item.average),fmt(item.people),minimum===null?'Sin objetivo':fmt(minimum),
+    for(const value of [fmt(item.average),fmt(item.people),minimum===null?'Sin objetivo':fmt(minimum),
       signed(item.difference),signed(item.delta)])row.insertCell().textContent=value;
   }
 }
