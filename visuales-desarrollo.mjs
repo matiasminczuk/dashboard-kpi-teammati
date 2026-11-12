@@ -2,7 +2,6 @@ import {operationalFlows,productivityTotals,achievement,creationSeries,holdsErro
 
 const format=new Intl.NumberFormat('es-AR',{maximumFractionDigits:1});
 const fmt=value=>value==null?'—':format.format(value);
-const signed=value=>value==null?'—':(value>0?'+':'')+fmt(value);
 function element(tag,text,className){
   const node=document.createElement(tag);
   if(text!==undefined)node.textContent=text;
@@ -29,12 +28,36 @@ export function renderOperationalCards(container,rows,period,goals,onlyActive=fa
     if(onlyActive&&!current.people&&!previous.people)continue;
     const target=goals[group]??null, kpi=achievement(current.average,target);
     const card=element('article',undefined,'dev-metric');
-    card.append(element('h3',name),element('strong',current.average==null?'Sin datos':fmt(current.average)+' tareas por jornada'),
-      element('p',fmt(current.people)+' colaboradores · '+fmt(current.days)+' jornadas'),
-      element('p',target===null?'Sin objetivo':'Mínimo '+fmt(target)+' · Diferencia '+signed(kpi.difference)+
-        (kpi.percent==null?'':' · '+fmt(kpi.percent)+'% de cumplimiento')),
-      element('p',current.average==null||previous.average==null?'Sin comparación disponible':
-        signed(current.average-previous.average)+' tareas por jornada vs. período anterior'));
+    card.append(element('h3',name),element('strong',current.average==null?'Sin datos':fmt(current.average),'dev-metric-value'));
+    if(current.average!==null)card.append(element('p','tareas por jornada'));
+    card.append(element('p',fmt(current.people)+' colaboradores · '+fmt(current.days)+' jornadas'));
+
+    const goal=element('div',undefined,'dev-metric-goal');
+    const status=target===null?'Sin objetivo':kpi.percent===null?'Sin jornadas para evaluar':
+      kpi.difference>=0?'En objetivo':'Por debajo del objetivo';
+    const badge=element('span',status,'dev-metric-badge');
+    if(kpi.percent!==null)badge.dataset.state=kpi.difference>=0?'met':'below';
+    goal.append(badge);
+    if(target!==null)goal.append(element('p','Mínimo '+fmt(target)+' tareas por jornada'));
+    if(kpi.percent!==null){
+      const progress=element('progress');
+      progress.max=100;progress.value=Math.min(kpi.percent,100);
+      progress.setAttribute('aria-label','Cumplimiento del mínimo');
+      progress.setAttribute('aria-valuetext',fmt(kpi.percent)+'%');
+      progress.dataset.state=badge.dataset.state;
+      goal.append(progress,element('p',fmt(kpi.percent)+'% de cumplimiento'));
+    }
+    const trend=element('p',undefined,'dev-metric-trend');
+    if(current.average===null||previous.average===null)trend.textContent='Sin comparación disponible';
+    else {
+      const change=current.average-previous.average;
+      if(change===0)trend.textContent='Sin variación vs. período anterior';
+      else {
+        comparisonChange(trend,change);
+        trend.append(document.createTextNode(' tareas por jornada vs. período anterior'));
+      }
+    }
+    card.append(goal,trend);
     container.append(card);
   }
   if(!container.children.length)container.append(element('p','Sin colaboradores con datos de flujo en el período.'));

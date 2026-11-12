@@ -336,7 +336,7 @@ body.pm-design .pm-week-pair{display:grid;grid-template-columns:1fr 1fr;gap:9px}
 body.pm-design .pm-period-shortcuts{display:flex;gap:6px;margin-top:12px}
 body.pm-design .pm-period-shortcuts button{background:transparent;border:1px solid #536074;color:#fff;border-radius:4px;padding:7px;font-size:11px;cursor:pointer}
 body.pm-design .pm-period-shortcuts button:hover{background:#34455c}
-body.pm-design #weeklyPanel .week-filters{display:none!important}
+body.pm-design #weeklyPanel :is(.week-filters,.week-table,.week-chart-note){display:none!important}
 .weekly-flow-filter{width:min(210px,100%);margin:0 0 12px}
 .weekly-flow-filter label{display:block;margin-bottom:4px;font-size:13px;font-weight:600}
 .weekly-flow-filter select{width:100%}
@@ -1144,7 +1144,7 @@ body.employee-mode :is(#qualityOverviewCards,#qualityFlowCards) .quality-goal{gr
 }
 </style>
 <link rel="stylesheet" href="./auditorias.css?v=barra-y-filtro">
-<link rel="stylesheet" href="./gestion-desarrollo.css?v=resumen">
+<link rel="stylesheet" href="./gestion-desarrollo.css?v=productividad">
 </head>
 <body class="auth-screen">
 <button id="employeeHeaderReveal" type="button" aria-label="Mostrar barra de navegación" aria-controls="dashboardHeader" aria-expanded="false"><span aria-hidden="true"></span></button>
@@ -1260,7 +1260,7 @@ body.employee-mode :is(#qualityOverviewCards,#qualityFlowCards) .quality-goal{gr
  <article class="panel summary-visual"><h2>Distribución de flujos</h2><p class="summary-sub">CCC, Demanda y Otros</p><div id="sumFlows" class="summary-chart"></div></article>
  <article class="panel summary-visual"><h2>Cierres por franja horaria</h2><p class="summary-sub">Tareas finalizadas · Gestión</p><div id="sumHours" class="summary-chart"></div></article>
 </section>
-<section id="pmProductivity" class="panel" data-admin-hide="true" aria-labelledby="pmProductivityTitle"><div class="pm-overview-heading"><p class="pm-eyebrow">RENDIMIENTO Y SEGUIMIENTO</p><h1 id="pmProductivityTitle">Productividad / Holds</h1><p id="pmProductivityScope" aria-live="polite">Indicadores del período seleccionado</p></div><div id="pmProductivityFilters"></div><div class="pm-productivity-metrics" aria-live="polite"><article class="pm-productivity-primary"><span>Flujo Mixto · productividad diaria</span><strong id="pmProductivityAverage">—</strong><small id="pmProductivityGoal">Tareas por jornada computable</small></article><article><span>Creaciones por jornada</span><strong id="pmCreationAverage">—</strong><small id="pmCreationDays">Jornadas con creaciones</small></article><article class="pm-hold-metric"><span>Registros de holds</span><strong id="pmHoldCount">—</strong><small id="pmHoldContext">Eventos del período</small></article><article><span>Catalogadores con registros</span><strong id="pmActivePeople">—</strong><small id="pmActivityDays">Jornadas computables</small></article></div><details class="pm-methodology"><summary>Criterios del cálculo y exclusiones</summary><p>La productividad se calcula por jornada registrada. Los objetivos se evalúan dentro de cada flujo operativo. Los holds cuentan eventos según «Último Hold», incluidos los registros repetidos de un mismo CDM.</p> <div id="pmProductivityCriteria" hidden></div></details><section class="panel"><h2>Productividad por flujo</h2><div id="devOperationalCards" class="dev-metrics"></div></section>
+<section id="pmProductivity" class="panel" data-admin-hide="true" aria-labelledby="pmProductivityTitle"><div class="pm-overview-heading"><p class="pm-eyebrow">RENDIMIENTO Y SEGUIMIENTO</p><h1 id="pmProductivityTitle">Productividad / Holds</h1><p id="pmProductivityScope" aria-live="polite">Indicadores del período seleccionado</p></div><div id="pmProductivityFilters"></div><div class="pm-productivity-metrics" aria-live="polite"><article class="pm-productivity-primary"><span>Flujo Mixto · productividad diaria</span><strong id="pmProductivityAverage">—</strong><small id="pmProductivityGoal">Tareas por jornada computable</small></article><article><span>Creaciones por jornada</span><strong id="pmCreationAverage">—</strong><small id="pmCreationDays">Jornadas con creaciones</small></article><article class="pm-hold-metric"><span>Registros de holds</span><strong id="pmHoldCount">—</strong><small id="pmHoldContext">Eventos del período</small></article><article><span>Catalogadores con registros</span><strong id="pmActivePeople">—</strong><small id="pmActivityDays">Jornadas computables</small></article></div><section class="panel"><h2>Productividad por flujo</h2><div id="devOperationalCards" class="dev-metrics"></div></section>
  <section class="panel"><h2>Creaciones y Correcciones</h2><div class="dev-legend"><span>Creaciones</span><span>Correcciones</span></div>
  <div id="devCreationChart" class="dev-chart" tabindex="0" aria-label="Gráfico de Creaciones y Correcciones"></div></section>
 </section>
@@ -1269,13 +1269,13 @@ body.employee-mode :is(#qualityOverviewCards,#qualityFlowCards) .quality-goal{gr
 <div class="week-filters"><div><label for="weekMode">Período</label><select id="weekMode"><option value="quarter" selected>Trimestre</option><option value="month">Mes</option><option value="weeks">Semanas</option></select></div><div><label for="weekYear">Año</label><select id="weekYear"></select></div><div id="monthWrap" class="hidden"><label for="weekMonth">Mes</label><select id="weekMonth"><option value="10" selected>Octubre</option><option value="11">Noviembre</option><option value="12">Diciembre</option></select></div><div id="quarterWrap"><label for="weekQuarter">Trimestre</label><select id="weekQuarter"><option value="4" selected>Q4</option></select></div><div id="startWeekWrap" class="hidden"><label for="weekStart">Desde semana</label><select id="weekStart"></select></div><div id="endWeekWrap" class="hidden"><label for="weekEnd">Hasta semana</label><select id="weekEnd"></select></div></div>
 <p id="weeklyStatus" class="muted"></p><div id="weeklyChart" class="weekly-chart"><p class="muted">Cargando gráfico…</p></div><div class="table-wrap week-table"><table><thead><tr><th>Semana</th><th>Período</th><th>Promedio diario de tareas</th><th>Promedio diario de creaciones</th><th>Jornadas tareas</th><th>Jornadas creaciones</th></tr></thead><tbody id="weeklyRows"></tbody></table></div><p class="week-chart-note">El promedio semanal se calcula como total de tareas o creaciones dividido por las jornadas registradas de ese indicador. En la vista general se promedian todas las jornadas registradas del equipo. Las semanas que cruzan un mes o un Q usan solo los días del período elegido.</p></section>
 <section class="panel employee-only" id="employeeCreationsPanel"><h2>Creaciones · promedio diario</h2><div id="employeeCreationsChart" class="weekly-chart"></div></section>
-<section class="panel" id="holdsPanel"><h2>⏸️ Evolución de tareas holdeadas</h2><p class="muted">Se cuenta cada fila del CSV, incluso cuando se repite el ID CDM, según la fecha de «Ultimo Hold». Se utilizan los mismos filtros de catalogador y período del gráfico superior.</p><div class="holds-stats"><div class="holds-stat"><span class="muted">Tareas holdeadas en el período</span><strong id="holdsTotal">—</strong></div><div class="holds-stat"><span class="muted">Semanas con holds</span><strong id="holdsWeeks">—</strong></div><div class="holds-stat"><span class="muted">Promedio por semana con holds</span><strong id="holdsAverage">—</strong></div></div><p id="holdsStatus" class="muted">Consultando historial de holds…</p><div id="holdsChart" class="weekly-chart"></div><div class="table-wrap week-table"><table><thead><tr><th>Semana</th><th>Tareas holdeadas (filas del CSV)</th></tr></thead><tbody id="holdsWeeklyRows"></tbody></table></div><h3>Holds por catalogador</h3><div class="table-wrap"><table><thead><tr><th>Catalogador</th><th>ID MELI</th><th>Holds</th></tr></thead><tbody id="holdsPeopleRows"></tbody></table></div></section>
+<section class="panel" id="holdsPanel"><h2>⏸️ Evolución de tareas holdeadas</h2><p class="muted">Se cuenta cada fila del CSV, incluso cuando se repite el ID CDM, según la fecha de «Ultimo Hold». Se utilizan los mismos filtros de catalogador y período del gráfico superior.</p><div class="holds-stats"><div class="holds-stat"><span class="muted">Tareas holdeadas en el período</span><strong id="holdsTotal">—</strong></div><div class="holds-stat"><span class="muted">Semanas con holds</span><strong id="holdsWeeks">—</strong></div><div class="holds-stat"><span class="muted">Promedio por semana con holds</span><strong id="holdsAverage">—</strong></div></div><p id="holdsStatus" class="muted">Consultando historial de holds…</p><div id="holdsChart" class="weekly-chart"></div><div class="table-wrap week-table"><table><thead><tr><th>Semana</th><th>Tareas holdeadas (filas del CSV)</th></tr></thead><tbody id="holdsWeeklyRows"></tbody></table></div></section>
 
 <section class="panel employee-only" id="employeeWeeklyTablePanel"><h2>Detalle semanal</h2><details><summary>Consultar promedios y jornadas por semana</summary><div id="employeeWeeklyTableSlot"></div></details></section>
 <section id="pmFlowsIntro" data-admin-hide="true"><div class="pm-overview-heading"><p class="pm-eyebrow">OPERACIÓN Y DISTRIBUCIÓN</p><h1>Flujos / Tiempos</h1><p id="pmFlowsScope">Indicadores del período seleccionado</p></div><div id="pmFlowsFilters"></div><section id="flowProductivityGoals" class="quality-overview" aria-labelledby="flowProductivityTitle"><div class="quality-overview-head"><div><h2 id="flowProductivityTitle">Productividad por grupo</h2><p>Promedio por jornada con actividad registrada en cada grupo, según los filtros seleccionados.</p></div></div><div class="quality-flow-grid productivity-goal-grid" id="flowProductivityCards"></div></section><div class="pm-operation-metrics"><article><span>Tareas finalizadas</span><strong id="gTotalTasks">—</strong><small>Base de finalizadas · según filtros</small></article><article><span>Catalogadores con registros</span><strong id="gPeopleTotal">—</strong><small id="gDayCoverage">Jornadas de gestión</small></article><article><span>Cierres con horario válido</span><strong id="gTimeCoverage">—</strong><small id="gTimeCoverageNote">Cobertura de la base</small></article></div></section>
 <section class="panel" id="gestionPanel"><h2>Distribución de flujos</h2><p class="muted">Participación de cada grupo en las tareas finalizadas del período y los catalogadores seleccionados.</p><div id="gFlowComposition" aria-label="Distribución de tareas por grupo"></div><div class="gestion-cards"><div class="gestion-card"><span>CCC</span><strong id="gCcc">—</strong><small id="gCccCount">—</small></div><div class="gestion-card orange"><span>DEMANDA</span><strong id="gDemanda">—</strong><small id="gDemandaCount">—</small></div><div class="gestion-card"><span>SOPORTE</span><strong id="gSoporte">—</strong><small id="gSoporteCount">—</small></div><div class="gestion-card"><span>KNOWN VALUE</span><strong id="gKnown">—</strong><small id="gKnownCount">—</small></div><div class="gestion-card purple"><span>OTROS</span><strong id="gOtros">—</strong><small id="gOtrosCount">—</small></div></div><p id="gestionStatus" class="muted">Consultando gestión…</p><h3>Detalle de iniciativas</h3><div class="table-wrap"><table><thead><tr><th>Iniciativa</th><th>Grupo</th><th>Tareas</th><th>% del total</th></tr></thead><tbody id="gFlowRows"></tbody></table></div><details class="pm-methodology"><summary>Cómo se agrupan las iniciativas</summary><p>CCC se muestra por separado de Know Values. Demanda incluye «Sugerencia de corrección» y «Sugerencia de creación». Soporte reúne las iniciativas de denuncias, familias, merge y correcciones definidas en la clasificación. El resto se muestra en Otros. La tabla indica el grupo de cada iniciativa.</p></details></section>
 <section class="panel" id="tiemposPanel"><h2>Horarios observados</h2><p class="muted">Inicio de la primera tarea y finalización de la última tarea de cada catalogador por día. Las tarjetas muestran el promedio diario del período. Horas 01–07 del CSV se interpretan como 13–19 (hipótesis de formato 12 h sin AM/PM).</p><p id="employeeTimeCoverage" class="employee-only"></p><div class="gestion-cards four"><div class="gestion-card"><span>INICIO OBSERVADO</span><strong id="gStart">—</strong><small>Promedio del inicio de la primera tarea diaria</small></div><div class="gestion-card"><span>FIN OBSERVADO</span><strong id="gEnd">—</strong><small>Promedio del fin de la última tarea diaria</small></div><div class="gestion-card orange"><span>CIERRES DE 15 A 18 H</span><strong id="gLast3">—</strong><small>Cierres entre 15:00 y 18:00</small></div><div class="gestion-card purple"><span>FRANJA CON MÁS CIERRES</span><strong id="gPeak">—</strong><small id="gPeakPct">De los cierres con horario</small></div></div><div class="gestion-two"><div><h3>Distribución de cierres</h3><div id="gHourBars"></div></div><div><h3>Patrón observado</h3><p id="gPattern" class="muted">Cargá la base de Gestión para ver los resultados.</p><p class="gestion-note">La distribución usa franjas 09–11, 11–13, 13–15, 15–17, 17–18 y «Fuera de franja». El porcentaje siempre se calcula sobre cierres con hora válida.</p></div></div></section>
-<section class="panel" id="teamPeoplePanel"><h2>Resumen por catalogador</h2><div class="table-wrap"><table><thead><tr><th>Catalogador</th><th>ID MELI</th><th>Jornadas</th><th>Tareas</th><th>Promedio diario</th><th>Creaciones</th></tr></thead><tbody id="peopleRows"><tr><td colspan="6">Cargando…</td></tr></tbody></table></div></section>
+<section class="panel" id="teamPeoplePanel"><h2>Resumen por catalogador</h2><div class="table-wrap"><table><thead><tr><th>Catalogador</th><th>ID MELI</th><th>Jornadas</th><th>Tareas</th><th>Promedio diario</th><th>Creaciones</th><th>Correcciones</th><th>Holds</th></tr></thead><tbody id="peopleRows"><tr><td colspan="8">Cargando…</td></tr></tbody></table></div></section>
 <section class="panel" id="pendingPanel"><h2>Indicadores pendientes</h2><p class="muted">El objetivo diario y el porcentaje de cumplimiento requieren incorporar los criterios correspondientes del Excel. Todavía no están guardados en los registros importados; no se calculan valores ficticios.</p></section>
 </div>
 <section id="viewAuditorias" class="panel" aria-labelledby="auditTitle" hidden>
@@ -1340,7 +1340,7 @@ import {getFirestore,doc,getDoc,getDocs,collection,query,where,writeBatch,server
 import {indexPeople,analyzeQuality,restoreArchivedQuality,qualityPeriods,selectQualityPeriod,summary,bucketQuality} from './calidad.mjs?v=archivo-1';
 import {analysisPeriod,inPeriod,operationalFlow,operationalFlows,defaultProductivityGoals,productivityTotals,normalizeQualityFlow,publishedProductivity} from './gestion-desarrollo.mjs?v=historico';
 import {setupFilters} from './filtros-desarrollo.mjs?v=resumen';
-import {renderOperationalCards,renderComparison,renderCreationChart,renderHoldsRanking} from './visuales-desarrollo.mjs?v=resumen';
+import {renderOperationalCards,renderComparison,renderCreationChart,renderHoldsRanking} from './visuales-desarrollo.mjs?v=productividad';
 const firebaseConfig={apiKey:'AIzaSyB7edb0wGmf86KVrca5zkBTju7wg_zVDFk',authDomain:'dashboard-kpi-teammati.firebaseapp.com',projectId:'dashboard-kpi-teammati',storageBucket:'dashboard-kpi-teammati.firebasestorage.app',messagingSenderId:'158470825794',appId:'1:158470825794:web:33eb0d3c862756b9d7cadb',measurementId:'G-7E8M7NSPV0'};
 const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app);
 import {setupAudits} from './auditorias-ui.mjs?v=barra-y-filtro';
@@ -1995,9 +1995,31 @@ function renderKpis(){
   renderQuality();
   renderPmProductivity();
   renderDevAnalytics();
-  const people=new Map();for(const r of filtered){if(!people.has(r.id))people.set(r.id,{name:r.colaborador,id:r.id,days:0,tasks:0,creations:0});const p=people.get(r.id);if(r.tipo==='tareas'){if(isKpiDay(r,excludedDays)){p.days++;p.tasks+=r.cantidad;}}else if(r.tipo==='creaciones')p.creations+=r.cantidad;}
-  const body=$('peopleRows');body.replaceChildren();if(!people.size){const tr=document.createElement('tr'),td=document.createElement('td');td.colSpan=6;td.textContent='No hay registros para este período.';tr.appendChild(td);body.appendChild(tr);}
-  for(const p of [...people.values()].sort((a,b)=>a.name.localeCompare(b.name,'es'))){const tr=document.createElement('tr');for(const v of [p.name,p.id,fmt(p.days),fmt(p.tasks),p.days?fmt(p.tasks/p.days):'—',fmt(p.creations)]){const td=document.createElement('td');td.textContent=v;tr.appendChild(td);}body.appendChild(tr);}
+  const people=new Map();
+  function personFor(row){
+    if(!people.has(row.id))people.set(row.id,{name:row.colaborador||row.id,id:row.id,days:0,tasks:0,creations:0,corrections:null,holds:0});
+    return people.get(row.id);
+  }
+  for(const row of filtered){
+    const person=personFor(row);
+    if(row.tipo==='tareas'&&isKpiDay(row,excludedDays)){person.days++;person.tasks+=row.cantidad;}
+    if(row.tipo==='creaciones')person.creations+=row.cantidad;
+    if(row.tipo==='correcciones')person.corrections=(person.corrections??0)+row.cantidad;
+  }
+  for(const row of holdsCache){
+    if(isVisiblePeriod(row.fecha)&&(!who||row.id===who)&&includedRecord(row)&&weeklyMatches(row.fecha)){
+      personFor(row).holds+=Number(row.cantidad)||0;
+    }
+  }
+  const body=$('peopleRows');
+  body.replaceChildren();
+  if(!people.size){const cell=body.insertRow().insertCell();cell.colSpan=8;cell.textContent='No hay registros para este período.';}
+  for(const person of [...people.values()].sort((a,b)=>a.name.localeCompare(b.name,'es'))){
+    const row=body.insertRow();
+    const values=[person.name,person.id,fmt(person.days),fmt(person.tasks),person.days?fmt(person.tasks/person.days):'—',
+      fmt(person.creations),person.corrections===null?'—':fmt(person.corrections),fmt(person.holds)];
+    for(const value of values)row.insertCell().textContent=value;
+  }
 }
 // V16: las vistas consultan SOLO los documentos publicados; nunca el historial crudo.
 const devFilters=setupFilters({
@@ -2160,13 +2182,13 @@ async function loadHoldsForPeople(people){
  $('holdsStatus').textContent=errors?`No se pudieron consultar los holds de ${errors} catalogadores.`:`${fmt(all.reduce((n,r)=>n+r.cantidad,0))} holds registrados en Firebase.`;
 }
 function renderHolds(){
- const chart=$('holdsChart'),weekly=$('holdsWeeklyRows'),peopleBody=$('holdsPeopleRows');
- chart.replaceChildren();weekly.replaceChildren();peopleBody.replaceChildren();
+ const chart=$('holdsChart'),weekly=$('holdsWeeklyRows');
+ chart.replaceChildren();weekly.replaceChildren();
  const who=$('personFilter').value;
  if($('weekMode').value==='weeks'&&$('weekStart').value>$('weekEnd').value){chart.textContent='Revisá el rango de semanas.';return;}
  const selected=holdsCache.filter(r=>isVisiblePeriod(r.fecha)&&(!who||r.id===who)&&includedRecord(r)&&weeklyMatches(r.fecha));
- const rows=selected,counts=new Map(),byPerson=new Map();
- for(const r of rows){const wk=isoWeek(r.fecha).key;counts.set(wk,(counts.get(wk)||0)+r.cantidad);const p=byPerson.get(r.id)||{name:r.colaborador,id:r.id,count:0};p.count+=r.cantidad;byPerson.set(r.id,p);}
+ const rows=selected,counts=new Map();
+ for(const r of rows){const wk=isoWeek(r.fecha).key;counts.set(wk,(counts.get(wk)||0)+r.cantidad);}
  const ordered=[...counts].sort((a,b)=>a[0].localeCompare(b[0]));
  const total=rows.reduce((n,r)=>n+r.cantidad,0);$('holdsTotal').textContent=fmt(total);$('holdsWeeks').textContent=fmt(ordered.length);$('holdsAverage').textContent=ordered.length?fmt(total/ordered.length):'—';
  if(!ordered.length){chart.innerHTML='<p class="muted">No hay registros de holds para el período y los catalogadores seleccionados.</p>';}
@@ -2189,8 +2211,7 @@ function renderHolds(){
   section.appendChild(scroll);chart.appendChild(section);
  }
  for(const [wk,count] of ordered){const tr=document.createElement('tr');for(const v of [wk,count]){const td=document.createElement('td');td.textContent=v;tr.appendChild(td);}weekly.appendChild(tr);}
- for(const p of [...byPerson.values()].sort((a,b)=>b.count-a.count)){const tr=document.createElement('tr');for(const v of [p.name,p.id,p.count]){const td=document.createElement('td');td.textContent=v;tr.appendChild(td);}peopleBody.appendChild(tr);}
- if(!ordered.length){for(const [body,columns] of [[weekly,2],[peopleBody,3]]){const row=document.createElement('tr'),cell=document.createElement('td');cell.colSpan=columns;cell.textContent='Sin registros para los filtros seleccionados';row.appendChild(cell);body.appendChild(row);}}
+ if(!ordered.length){const cell=weekly.insertRow().insertCell();cell.colSpan=2;cell.textContent='Sin registros para los filtros seleccionados';}
 }
 function holdRecordId(cdm,fecha){return 'hold2_'+String(cdm).replace(/[^a-zA-Z0-9_-]/g,'_')+'_'+fecha;}
 $('holdsFile').addEventListener('change',async event=>{
@@ -3127,7 +3148,6 @@ function renderPmProductivity(){
  const excludedCount=new Set(selected.filter(r=>!isKpiDay(r,excluded)).map(r=>r.id+'|'+r.fecha)).size;
  $('pmActivityDays').textContent=fmt(tasks.length)+' jornadas de tareas · '+fmt(excludedCount)+' excluidas';
  $('pmProductivityScope').textContent=dashboardScope();
- if($('kpiFlowControls').parentElement?.id!=='pmProductivityCriteria')$('pmProductivityCriteria').appendChild($('kpiFlowControls'));
  if($('peopleControl').parentElement?.id!=='pmProductivity')$('pmProductivity').appendChild($('peopleControl'));
 }
 

@@ -14,6 +14,14 @@ body.pm-design #dashboard #pmHeaderFilters,body.pm-design #dashboard #pmFilterBa
 .dev-metric{min-width:0;padding:12px;border:1px solid var(--kpi-border);border-radius:10px}
 .dev-metric h3,.dev-metric p{margin:0 0 6px}
 .dev-metric p{font-size:13px;color:var(--kpi-muted)}
+.dev-metric-value{display:block;font-size:clamp(1.4rem,3vw,2rem);line-height:1.2}
+.dev-metric-goal{margin-top:12px;padding-top:10px;border-top:1px solid var(--kpi-border)}
+.dev-metric-badge{display:inline-block;margin-bottom:6px;font-size:13px;font-weight:750;color:var(--kpi-muted)}
+.dev-metric-badge[data-state="met"]{color:var(--kpi-up)}
+.dev-metric-badge[data-state="below"]{color:var(--kpi-down)}
+.dev-metric-goal progress{display:block;width:100%;height:8px;margin:8px 0;accent-color:var(--kpi-up)}
+.dev-metric-goal progress[data-state="below"]{accent-color:var(--kpi-down)}
+.dev-metric p.dev-metric-trend{margin-top:10px;margin-bottom:0}
 .dev-comparison-bar{display:grid;grid-template-columns:minmax(100px,1fr) minmax(48px,3fr) 45px;align-items:center;gap:10px;margin:7px 0;font-size:13px}
 .dev-comparison-bar meter{width:100%;height:15px}
 .comparison-arrow{font-weight:800}
