@@ -1151,7 +1151,7 @@ body.employee-mode :is(#qualityOverviewCards,#qualityFlowCards) .quality-goal{gr
  body.employee-mode :is(#weeklyPanel,#employeeCreationsPanel,#holdsPanel,#gestionPanel,#tiemposPanel){padding:12px}
 }
 </style>
-<link rel="stylesheet" href="./auditorias.css?v=columnas-auditoria">
+<link rel="stylesheet" href="./auditorias.css?v=detalle-modal">
 <link rel="stylesheet" href="./gestion-desarrollo.css?v=productividad">
 </head>
 <body class="auth-screen">
@@ -1302,10 +1302,10 @@ body.employee-mode :is(#qualityOverviewCards,#qualityFlowCards) .quality-goal{gr
  <dl id="auditMetrics" aria-label="Indicadores de auditorías" hidden></dl>
  <p id="auditListStatus" class="muted" role="status"></p>
  <div class="table-wrap"><table><thead><tr><th scope="col">Auditoría</th><th scope="col">Colaborador</th><th scope="col">Fecha o período</th><th scope="col">Iniciativa</th><th scope="col">Estado</th></tr></thead><tbody id="auditRows"></tbody></table></div>
- <section id="auditDetail" aria-labelledby="auditDetailTitle" hidden>
+ <dialog id="auditDetail" aria-labelledby="auditDetailTitle">
   <div class="audit-detail-heading"><h3 id="auditDetailTitle" tabindex="-1">Detalle de auditoría</h3><button id="auditCloseDetail" class="audit-link" type="button">Cerrar detalle</button></div>
   <div id="auditDetailBody"></div>
- </section>
+ </dialog>
  <section id="auditReports" hidden></section>
 </section>
 <div id="viewUpload" class="hidden"><div class="pm-overview-heading"><p class="pm-eyebrow">ACTUALIZACIÓN DE INFORMACIÓN</p><h1>Cargar bases</h1><p>Elegí el archivo, revisá los cambios y guardalos. Después publicá Productividad, Holds y Finalizadas para que se vean en el dashboard.</p></div><nav class="upload-tabs" aria-label="Tipo de base"><button type="button" data-upload="productividad" aria-pressed="true">Productividad</button><button type="button" data-upload="holds" aria-pressed="false">Holds</button><button type="button" data-upload="finalizadas" aria-pressed="false">Finalizadas</button><button type="button" data-upload="calidad" aria-pressed="false">Calidad</button><button type="button" data-upload="auditorias" aria-pressed="false">Auditorías</button></nav><div id="publicationActions"><h2>Publicar datos guardados</h2><p>Este paso actualiza las fichas de Productividad, Holds y Finalizadas.</p></div>
@@ -1353,7 +1353,7 @@ import {setupFilters} from './filtros-desarrollo.mjs?v=resumen';
 import {renderOperationalCards,renderComparison,renderCreationChart,renderHoldsRanking} from './visuales-desarrollo.mjs?v=panel-colaborador';
 const firebaseConfig={apiKey:'AIzaSyB7edb0wGmf86KVrca5zkBTju7wg_zVDFk',authDomain:'dashboard-kpi-teammati.firebaseapp.com',projectId:'dashboard-kpi-teammati',storageBucket:'dashboard-kpi-teammati.firebasestorage.app',messagingSenderId:'158470825794',appId:'1:158470825794:web:33eb0d3c862756b9d7cadb',measurementId:'G-7E8M7NSPV0'};
 const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app);
-import {setupAudits} from './auditorias-ui.mjs?v=calidad-errores';
+import {setupAudits} from './auditorias-ui.mjs?v=detalle-modal';
 import {createSparkAudits} from './auditorias-spark.mjs?v=plazo';
 const sparkAuditCall=createSparkAudits({db,doc,getDocs,collection,query,where,documentId,runTransaction,serverTimestamp,
  currentUid:()=>auth.currentUser?.uid,currentMeli:()=>profileData?.idMeli,currentRole:()=>profileData?.rol});

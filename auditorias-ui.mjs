@@ -96,7 +96,9 @@ export function setupAudits(api) {
   function stopDetail() {
     clearTimeout(deadlineTimer);
     detailListener?.(); historyListener?.(); detailListener = historyListener = undefined;
-    selectedAudit = undefined; history = []; detail.hidden = true; detailBody.replaceChildren();
+    selectedAudit = undefined; history = [];
+    if (detail.open) detail.close();
+    detailBody.replaceChildren();
   }
   function closeView() {
     auditPanel.hidden = true;
@@ -350,10 +352,10 @@ export function setupAudits(api) {
 
   function openDetail(id) {
     stopDetail();
-    detail.hidden = false;
-    $('auditDetailTitle').focus();
-    detail.scrollIntoView({block:'start'});
     detailBody.append(element('p','Cargando auditoría…'));
+    detail.showModal();
+    detail.scrollTop = 0;
+    $('auditDetailTitle').focus({preventScroll:true});
     const ref = api.doc(api.db,'auditorias',id);
     const unavailable = () => {detailBody.replaceChildren(element('p','La auditoría ya no está disponible para tu cuenta.'));};
     detailListener = watch(ref, snapshot => {
@@ -367,7 +369,11 @@ export function setupAudits(api) {
         () => {$('auditHistory')?.replaceChildren(element('li','No se pudo leer el historial.'));});
     }, unavailable);
   }
-  $('auditCloseDetail').onclick = () => {stopDetail();$('auditTitle').focus();};
+  $('auditCloseDetail').onclick = stopDetail;
+  detail.addEventListener('cancel', event => {
+    event.preventDefault();
+    stopDetail();
+  });
   function renderHistory() {
     const list = $('auditHistory');
     if (!list) return;

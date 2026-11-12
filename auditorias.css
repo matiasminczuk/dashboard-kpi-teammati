@@ -65,7 +65,16 @@ body.dark-theme #notificationsPanel {
 .audit-actions { margin-top:12px }
 #dashboard .audit-link { padding:4px 0; min-height:32px; background:transparent; color:var(--kpi-link,#0756c5); text-align:left; overflow-wrap:anywhere }
 #dashboard .audit-link:hover { text-decoration:underline }
-#auditDetail { margin-top:16px; padding:14px; border:1px solid var(--kpi-border); border-radius:10px; scroll-margin-top:10px }
+#auditDetail {
+ margin:auto; padding:0 16px 16px; width:min(960px,calc(100% - 24px)); max-height:calc(100dvh - 24px);
+ box-sizing:border-box; border:1px solid var(--kpi-border); color:inherit; overscroll-behavior:contain;
+}
+#auditDetail::backdrop { background:#0b152aa6 }
+body:has(#auditDetail[open]) { overflow:hidden }
+#auditDetail > .audit-detail-heading {
+ position:sticky; top:0; z-index:1; padding:10px 0; background:var(--kpi-surface);
+ border-bottom:1px solid var(--kpi-border);
+}
 #auditDetailTitle { margin:0 }
 .audit-fields { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(185px,100%),1fr)); gap:8px 16px }
 .audit-fields dt { color:var(--kpi-muted); font-size:12px }
