@@ -414,6 +414,9 @@ export function setupAudits(api) {
       ['Estado', states[auditDisplayState(audit)] ? auditTag(states[auditDisplayState(audit)], stateTone) : null],
       ['Fecha', audit.fecha || audit.periodo]
     ]);
+    const footer = element('div', undefined, 'audit-actions audit-detail-actions audit-case-footer');
+    footer.append(auditedCaseLink(audit));
+    auditCase.card.append(footer);
     detailBody.replaceChildren(overview, auditCase.card);
     if (audit.estado === 'pendiente_colaborador') {
       const deadline = auditResponseDeadline(audit);
@@ -435,14 +438,7 @@ export function setupAudits(api) {
     const canRespond = session.role === 'catalogador' && ownsAudit(audit,session.uid,session.idMeli) && audit.estado === 'pendiente_colaborador' && auditResponseOpen(audit);
     const canDecide = session.role === 'tl' && audit.tlUid === session.uid && audit.equipo === session.team && audit.estado === 'pendiente_tl';
     const canClose = ['pm','admin'].includes(session.role) && audit.estado === 'pendiente_pm';
-    const caseLink = auditedCaseLink(audit);
-    if (canRespond || canDecide || canClose) {
-      renderActions(audit, canRespond, canClose, caseLink);
-    } else {
-      const footer = element('div', undefined, 'audit-actions audit-detail-actions audit-case-footer');
-      footer.append(caseLink);
-      auditCase.card.append(footer);
-    }
+    if (canRespond || canDecide || canClose) renderActions(audit, canRespond, canClose);
     if (session.global && audit.estado === 'sin_asignar') renderAssignment(audit);
     const list = element('ol',undefined,'audit-history');list.id = 'auditHistory';
     detailBody.append(element('h4','Historial'), list);
@@ -457,7 +453,7 @@ export function setupAudits(api) {
     catch (error) {if (ctx() === current) feedback.textContent = errorText(error);}
     finally {if (ctx() === current) {saving = false;buttons.forEach(node => {node.disabled = false;});}}
   }
-  function renderActions(audit, responding, closing, caseLink) {
+  function renderActions(audit, responding, closing) {
     const form = element('div',undefined,'audit-action');
     const textarea = element('textarea');textarea.id = 'auditResponse';textarea.maxLength = 3000;textarea.rows = 3;
     const card = element('section', undefined, 'audit-card');
@@ -478,7 +474,6 @@ export function setupAudits(api) {
         void perform(form, () => api.call('auditoriasActuar',{id:audit.id, accion:action, texto:textarea.value.trim()}));
       }));
     }
-    buttons.append(caseLink);
     form.append(label,textarea,buttons,feedback);
     card.append(form);
     detailBody.append(card);

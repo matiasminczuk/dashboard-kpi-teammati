@@ -167,7 +167,7 @@ body.dark-theme #auditDetail {
  position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap;
 }
 .audit-card .audit-action [role="status"]:empty { display:none }
-.audit-case-footer { padding:0 14px 14px; margin-top:0 }
+.audit-case-footer { justify-content:flex-end; padding:0 14px 14px; margin-top:0 }
 #auditDetail .audit-case-button {
  display:inline-flex; align-items:center; justify-content:center; gap:8px; box-sizing:border-box;
  min-height:40px; padding:8px 12px; border:1px solid var(--kpi-border); border-radius:8px;
@@ -176,7 +176,6 @@ body.dark-theme #auditDetail {
 #auditDetail .audit-case-button:hover { background:var(--audit-tint); border-color:currentColor }
 .audit-case-button:focus-visible, .audit-card textarea:focus-visible { outline:2px solid var(--kpi-link); outline-offset:2px }
 .audit-case-button svg { width:16px; height:16px; fill:none; stroke:currentColor; stroke-width:1.75; stroke-linecap:round; stroke-linejoin:round }
-.audit-detail-actions > :last-child { margin-inline-start:auto }
 .audit-case-unavailable { color:var(--kpi-muted); font-size:.8125rem }
 @media(max-width:900px) {
  .audit-detail-overview { grid-template-columns:minmax(0,1fr) }
@@ -187,5 +186,4 @@ body.dark-theme #auditDetail {
  .audit-identity > div:nth-child(odd) { border-inline-start:0; padding-inline-start:0 }
  .audit-case-fields > :first-child, .audit-case-fields > :nth-child(2) { grid-column:1 / -1 }
  .audit-detail-actions { align-items:stretch; flex-direction:column }
- .audit-detail-actions > :last-child { margin-inline-start:0 }
 }
