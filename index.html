@@ -1238,6 +1238,7 @@ body.employee-mode :is(#qualityOverviewCards,#qualityFlowCards) .quality-goal{gr
   <div><label for="qualitySource">Origen</label><select id="qualitySource"><option value="interna">Auditorías internas</option><option value="meli">Auditorías de MELI</option></select></div>
   <div><label for="qualityFlow">Flujo</label><select id="qualityFlow"><option value="">Todos</option><option>SDC</option><option>CCC</option><option>FO</option><option>SCP</option></select></div>
   <div id="qualityCadenceFilter"><label for="qualityCadence">Agrupar por</label><select id="qualityCadence"><option value="months">Mes</option><option value="weeks">Semana</option></select></div>
+  <div id="qualityWeekFilter" hidden><label for="qualityWeek">Semana de evolución</label><select id="qualityWeek"></select></div>
  </div>
  <p id="qualityTrendHint" hidden>Elegí un flujo para ver su evolución.</p>
  <p id="qualityStatus" role="status"></p><button id="qualityRecoverLink" class="quality-text-button" type="button" hidden>Usar una base ya cargada</button>
@@ -2862,11 +2863,24 @@ function renderQuality(){
  const weeklyTrend=cadence==='weeks'&&periods?withFlow(selectQualityPeriod(eligible,periods.current,true)):null;
  const trendRecords=weeklyTrend??now;
  const buckets=flow?bucketQuality(trendRecords,cadence):[];
+ const weekSelect=$('qualityWeek'),selectedWeek=weekSelect.value;
+ const weekFilterVisible=Boolean(flow)&&cadence==='weeks';
+ $('qualityWeekFilter').hidden=!weekFilterVisible;
+ if(weekFilterVisible){
+  weekSelect.replaceChildren(new Option(buckets.length?'Todas las semanas':'Sin semanas con datos',''));
+  for(const {key} of buckets){
+   const sunday=new Date(Date.parse(key+'T00:00:00Z')+6*86400000).toISOString().slice(0,10);
+   weekSelect.add(new Option(isoWeek(key).key.slice(5)+' · '+key+' a '+sunday,key));
+  }
+  if(buckets.some(bucket=>bucket.key===selectedWeek))weekSelect.value=selectedWeek;
+  weekSelect.disabled=!buckets.length;
+ }else weekSelect.replaceChildren();
  const graph=$('qualityTrend');graph.replaceChildren();
  if(flow&&!buckets.length)graph.textContent=cadence==='weeks'?'Sin registros semanales o diarios para esta selección.':'Sin datos en el período.';
  for(const bucket of buckets){
+  if(weekFilterVisible&&weekSelect.value&&bucket.key!==weekSelect.value)continue;
   const row=document.createElement('div'),label=document.createElement('span'),bar=document.createElement('meter'),value=document.createElement('strong');
-  label.textContent=cadence==='weeks'?'Semana del '+bucket.key:cadence==='months'?'Mes · '+monthLabel(bucket.key):bucket.key;
+  label.textContent=cadence==='weeks'?isoWeek(bucket.key).key.slice(5)+' · Semana del '+bucket.key:cadence==='months'?'Mes · '+monthLabel(bucket.key):bucket.key;
   bar.min=0;bar.max=1;bar.value=bucket.quality;bar.setAttribute('aria-label',label.textContent);
   value.textContent=qualityPercent(bucket.quality);
   row.append(label,bar,value);graph.appendChild(row);
@@ -2889,7 +2903,7 @@ function renderQuality(){
   qualityTable('qualityComparisonRows',rows,'Sin grupos con resultados en este período.',4);
  }
 }
-for(const id of ['qualitySource','qualityFlow','qualityCadence'])$(id).addEventListener('change',renderQuality);
+for(const id of ['qualitySource','qualityFlow','qualityCadence','qualityWeek'])$(id).addEventListener('change',renderQuality);
 document.querySelectorAll('[data-open-quality]').forEach(button=>button.addEventListener('click',()=>{
  if(isAdmin){selectAdminSection('calidad');$('qualityTitle').focus();return;}
  const detail=$('qualityDetail');detail.hidden=!detail.hidden;renderQuality();
