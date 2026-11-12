@@ -7,7 +7,7 @@ const states = {
   vencida:'Vencida · sin respuesta', pendiente_tl:'Pendiente del TL', pendiente_pm:'Pendiente del PM', cerrada_aprobada:'Cerrada · aprobada',
   cerrada_rechazada:'Cerrada · rechazada'
 };
-const actions = {responder:'Confirmar hallazgo', devolver:'Devolver al TL', aprobar:'Aprobar y cerrar', rechazar:'Rechazar y cerrar'};
+const actions = {responder:'Confirmar error', devolver:'Devolver al TL', aprobar:'Aprobar y cerrar', rechazar:'Rechazar y cerrar'};
 const confirmedFinding = 'Hallazgo confirmado por el colaborador.';
 const recordedActions = {responder:'Respondió', devolver:'Devolvió al TL', aprobar:'Aprobó', rechazar:'Rechazó'};
 const eventLabels = {productividad:'Productividad', holds:'Holds', gestion:'Finalizadas', calidad:'Calidad',
