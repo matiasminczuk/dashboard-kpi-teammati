@@ -1,10 +1,10 @@
 import {itemUrl,normalizeQualityFlow} from './gestion-desarrollo.mjs';
 import {labels, mapHeaders, mapAuditRows, hasNetkelColumns} from './auditorias-import.mjs';
-import {auditReviewTotals, auditScope, observeSparkNotices, ownsAudit, watchAuditScope} from './auditorias-spark.mjs?v=solo-errores';
+import {auditReviewTotals, auditScope, observeSparkNotices, ownsAudit, watchAuditScope, auditResponseOpen, auditResponseDeadline} from './auditorias-spark.mjs?v=plazo';
 
 const states = {
   sin_asignar:'Sin asignar', sin_error:'Sin error', pendiente_colaborador:'Pendiente del colaborador',
-  pendiente_tl:'Pendiente del TL', pendiente_pm:'Pendiente del PM', cerrada_aprobada:'Cerrada · aprobada',
+  vencida:'Vencida · sin respuesta', pendiente_tl:'Pendiente del TL', pendiente_pm:'Pendiente del PM', cerrada_aprobada:'Cerrada · aprobada',
   cerrada_rechazada:'Cerrada · rechazada'
 };
 const actions = {responder:'Enviar respuesta', devolver:'Devolver al TL', aprobar:'Aprobar y cerrar', rechazar:'Rechazar y cerrar'};
@@ -15,6 +15,7 @@ const eventLabels = {productividad:'Productividad', holds:'Holds', gestion:'Fina
 const dateFormat = new Intl.DateTimeFormat('es-AR', {dateStyle:'medium', timeStyle:'short'});
 const dateText = value => value?.toDate ? dateFormat.format(value.toDate()) : '—';
 const nameOf = (profile, fallback) => profile?.nombre || profile?.nombreCompleto || profile?.usuario || fallback;
+const auditDisplayState = audit => audit.estado === 'pendiente_colaborador' && !auditResponseOpen(audit) ? 'vencida' : audit.estado;
 
 function element(tag, text, className) {
   const node = document.createElement(tag);
@@ -72,7 +73,7 @@ export function setupAudits(api) {
   const sheetSelect = $('auditSheet'), headerInput = $('auditHeaderRow'), mappingArea = $('auditMappings');
   const loadButton = $('auditLoad'), fileInput = $('auditFile'), fileSetup = $('auditFileSetup');
   const status = $('auditUploadStatus'), preview = $('auditPreview');
-  let session, listeners = [], audits = [], all = [], unread = [], detailListener, historyListener;
+  let session, listeners = [], audits = [], all = [], unread = [], detailListener, historyListener, deadlineTimer;
   let inbox, inboxListener, visibleNotices = 100;
   let sparkItems = [], sparkRead = new Map();
   let selectedAudit, history = [], roster = new Map(), sheets = [], fileVersion = 0, busy = false;
@@ -81,6 +82,7 @@ export function setupAudits(api) {
   const ctx = () => session;
 
   function stopDetail() {
+    clearTimeout(deadlineTimer);
     detailListener?.(); historyListener?.(); detailListener = historyListener = undefined;
     selectedAudit = undefined; history = []; detail.hidden = true; detailBody.replaceChildren();
   }
@@ -281,7 +283,7 @@ export function setupAudits(api) {
     const criteria = [...filter.querySelectorAll('select')].filter(node => !node.closest('[hidden]') && node.value);
     const matches = (audit,node) => node.name === 'resultadoError'
       ? (audit.estado === 'sin_error' ? 'sin' : 'con') === node.value
-      : audit[node.name] === node.value;
+      : (node.name === 'estado' ? auditDisplayState(audit) : audit[node.name]) === node.value;
     const metrics = $('auditMetrics');
     metrics.hidden = session.role === 'catalogador' || auditLoading || listError;
     if (!metrics.hidden) {
@@ -307,7 +309,7 @@ export function setupAudits(api) {
       const label = audit.cdm ? [audit.cdm,audit.item].filter(Boolean).join(' · ') : audit.externo;
       cell.append(button(label, () => openDetail(audit.id), 'audit-link'));
       row.append(cell, element('td', audit.idMeli), element('td', audit.fecha || audit.periodo),
-        element('td', audit.flujo || '—'), element('td', states[audit.estado] || audit.estado));
+        element('td', audit.flujo || '—'), element('td', states[auditDisplayState(audit)] || audit.estado));
       list.append(row);
     }
   }
@@ -369,22 +371,36 @@ export function setupAudits(api) {
   }
 
   function renderDetail(audit) {
+    clearTimeout(deadlineTimer);
     const fields = element('dl', undefined, 'audit-fields');
     lines(fields, [
       ['Auditoría',audit.cdm || audit.externo],
       ['ID MELI',audit.colaboradorIdMeli || audit.idMeli],
-      ['Equipo',audit.equipo], ['Estado',states[audit.estado]], ['Fecha',audit.fecha || audit.periodo],
+      ['Equipo',audit.equipo], ['Estado',states[auditDisplayState(audit)]], ['Fecha',audit.fecha || audit.periodo],
       ['Flujo',normalizeQualityFlow(audit.flujo)||audit.flujo], ['Auditor',audit.auditor],
       ['Resultado original',audit.resultado], ['Comentario Auditor',audit.observaciones],
       ['Product ID',audit.producto], ['Item ID',audit.item], ['Caso auditado',auditedCaseLink(audit)],
       ['Comentario colaborador',audit.comentarioOrigen], ['Decisión colaborador',audit.decisionOrigen]
     ]);
     detailBody.replaceChildren(fields);
+    if (audit.estado === 'pendiente_colaborador') {
+      const deadline = auditResponseDeadline(audit);
+      const label = auditResponseOpen(audit) ? 'Plazo de respuesta hasta el ' : 'Plazo de respuesta vencido el ';
+      const deadlineFormat = new Intl.DateTimeFormat('es-AR',{dateStyle:'short',timeStyle:'short',timeZone:'America/Argentina/Buenos_Aires'});
+      detailBody.append(element('p',deadline === null?'Sin fecha de publicación para calcular el plazo.':
+        label+deadlineFormat.format(deadline)+' (Argentina).','audit-message'));
+      if(deadline !== null && deadline > Date.now()){
+        deadlineTimer=setTimeout(()=>{
+          renderAuditList();
+          renderDetail(audit);
+        },Math.min(deadline-Date.now()+1,2147483647));
+      }
+    }
     for (const [label, entry] of [['Respuesta del colaborador',audit.respuesta],['Decisión del TL',audit.decision],['Decisión final del PM',audit.decisionPm]]) {
       if (entry) detailBody.append(element('h4',label), element('p',recordedActions[entry.accion] + ' · ' +
         dateText(entry.fecha)), element('p',entry.texto || 'Sin comentario.', 'audit-message'));
     }
-    const canRespond = session.role === 'catalogador' && ownsAudit(audit,session.uid,session.idMeli) && audit.estado === 'pendiente_colaborador';
+    const canRespond = session.role === 'catalogador' && ownsAudit(audit,session.uid,session.idMeli) && audit.estado === 'pendiente_colaborador' && auditResponseOpen(audit);
     const canDecide = session.role === 'tl' && audit.tlUid === session.uid && audit.equipo === session.team && audit.estado === 'pendiente_tl';
     const canClose = ['pm','admin'].includes(session.role) && audit.estado === 'pendiente_pm';
     if (canRespond || canDecide || canClose) renderActions(audit, canRespond, canClose);

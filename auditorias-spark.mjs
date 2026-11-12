@@ -180,6 +180,9 @@ export function createSparkAudits(api) {
     return runTransaction(db,async tx => {
       const audit = (await tx.get(ref)).data(), accion = input.accion, texto = clean(input.texto);
       const responding = ['responder','devolver'].includes(accion);
+      if (responding && audit?.estado === 'pendiente_colaborador' && !auditResponseOpen(audit)) {
+        throw Object.assign(Error('Venció el plazo de respuesta de esta auditoría.'), {code:'failed-precondition'});
+      }
       const deciding = ['aprobar','rechazar'].includes(accion);
       const pmReview = deciding && audit?.estado === 'pendiente_pm' && ['pm','admin'].includes(currentRole?.());
       if (texto.length > 3000 || (responding && !texto)) throw Error('Completá la respuesta.');
@@ -193,6 +196,19 @@ export function createSparkAudits(api) {
       return {estado};
     });
   };
+}
+
+export function auditResponseDeadline(audit) {
+  const publication = audit.publicadaEn?.toMillis?.();
+  if (!Number.isFinite(publication)) return null;
+  const weekday = new Date(publication - 3 * 3600000).getUTCDay();
+  const days = weekday === 0 ? 12 : weekday === 6 ? 13 : 14;
+  return publication + days * 86400000;
+}
+
+export function auditResponseOpen(audit, now = Date.now()) {
+  const deadline = auditResponseDeadline(audit);
+  return deadline !== null && now < deadline;
 }
 
 export function auditReviewTotals(audits) {

@@ -1213,7 +1213,7 @@ body.employee-mode :is(#qualityOverviewCards,#qualityFlowCards) .quality-goal{gr
 <div class="pm-overview-heading"><div><p class="pm-eyebrow">PANEL DE GESTIÓN</p><h1>Resumen</h1><p id="pmScope" aria-live="polite">Indicadores del período seleccionado</p></div></div>
 <div id="pmFilterBar" class="pm-filter-bar"></div>
 <div class="pm-metrics">
-<article class="pm-primary-metric"><small>Flujo Mixto · productividad diaria</small><div><strong id="pmAvg">—</strong><span class="pm-unit">tareas / jornada</span></div><span id="pmGoalStatus" class="pm-goal-status">Objetivo: 100 tareas / jornada</span><span id="pmDaysNote">Jornadas computables</span><span id="pmTrendNote"></span></article>
+<article class="pm-primary-metric"><small>Flujo Mixto · productividad diaria</small><div><strong id="pmAvg">—</strong><span class="pm-unit">tareas / jornada</span></div><span id="pmGoalStatus" class="pm-goal-status">Piso: 100 tareas / jornada</span><span id="pmDaysNote">Jornadas computables</span><span id="pmTrendNote"></span></article>
 <article><small>Tareas gestionadas</small><strong id="pmAll">—</strong><span>Finalizadas + postergadas</span></article>
 <article><small>Tareas finalizadas</small><strong id="pmDone">—</strong><span id="pmDoneNote">Cierres del período</span></article>
 <article class="pm-postponed-metric"><small>Tareas postergadas</small><strong id="pmPost">—</strong><span id="pmPostNote">Postergaciones del período</span></article>
@@ -1246,9 +1246,9 @@ body.employee-mode :is(#qualityOverviewCards,#qualityFlowCards) .quality-goal{gr
 </section><section id="pmComparison" class="panel hidden"><h2>Comparativa de equipos</h2>
  <div class="audit-controls"><label>Flujo<select id="devCompareFlow"><option value="mixto">Flujo Mixto</option><option value="soporte">Soporte</option><option value="kv">Know Values</option></select></label>
  <label>Ordenar por<select id="devCompareSort"><option value="average">Promedio</option><option value="people">Catalogadores</option><option value="delta">Evolución</option></select></label></div>
- <div id="devComparisonBars"></div><div class="table-wrap"><table><thead><tr><th>Posición</th><th>Equipo</th><th>Promedio diario</th><th>Catalogadores</th><th>Mínimo</th><th>Diferencia</th><th>vs. período anterior</th></tr></thead><tbody id="pmComparisonRows"></tbody></table></div></section><div class="kpi-flow-controls" id="kpiFlowControls"><strong>Filtros de productividad</strong><label><input type="checkbox" id="excludeKnown" checked> Excluir jornadas con KNOWN_VALUE</label><label><input type="checkbox" id="excludeSupport" checked> Excluir jornadas con Soporte</label><small>Se excluye el día completo si hubo actividad de esos flujos. Los registros siguen visibles en Gestión.</small></div><section class="cards" id="mainCards"><div class="card"><span>Promedio diario de tareas (según filtros)</span><h1 id="kpiAverage">—</h1><small id="averageNote" class="muted">Por jornada con registro</small><p id="employeeGoal" class="employee-only"></p><small id="employeeTrend" class="employee-only"></small></div><div class="card"><span>Tareas totales</span><h1 id="kpiTasks">—</h1><small id="tasksNote" class="muted">Período seleccionado</small></div><div class="card"><span>Creaciones totales</span><h1 id="kpiCreations">—</h1><small class="muted">Período seleccionado</small></div><div class="card"><span>Jornadas computables</span><h1 id="kpiDays">—</h1><small class="muted">Colaborador + fecha</small></div></section>
+ <div id="devComparisonBars"></div><div class="table-wrap"><table><thead><tr><th>Posición</th><th>Equipo</th><th>Promedio diario</th><th>Catalogadores</th><th>Piso</th><th>Diferencia</th><th>vs. período anterior</th></tr></thead><tbody id="pmComparisonRows"></tbody></table></div></section><div class="kpi-flow-controls" id="kpiFlowControls"><strong>Filtros de productividad</strong><label><input type="checkbox" id="excludeKnown" checked> Excluir jornadas con KNOWN_VALUE</label><label><input type="checkbox" id="excludeSupport" checked> Excluir jornadas con Soporte</label><small>Se excluye el día completo si hubo actividad de esos flujos. Los registros siguen visibles en Gestión.</small></div><section class="cards" id="mainCards"><div class="card"><span>Promedio diario de tareas (según filtros)</span><h1 id="kpiAverage">—</h1><small id="averageNote" class="muted">Por jornada con registro</small><p id="employeeGoal" class="employee-only"></p><small id="employeeTrend" class="employee-only"></small></div><div class="card"><span>Tareas totales</span><h1 id="kpiTasks">—</h1><small id="tasksNote" class="muted">Período seleccionado</small></div><div class="card"><span>Creaciones totales</span><h1 id="kpiCreations">—</h1><small class="muted">Período seleccionado</small></div><div class="card"><span>Jornadas computables</span><h1 id="kpiDays">—</h1><small class="muted">Colaborador + fecha</small></div></section>
 <section id="employeeFlowPercent" aria-label="Porcentaje de tareas accionadas por flujo"><div class="employee-flow-grid">
-<div class="employee-flow-card" style="--flow-color:#3483fa"><span>CCC</span><strong id="employeePctCcc">—</strong><small id="employeeCountCcc">Sin registros</small></div>
+<div class="employee-flow-card" style="--flow-color:#3483fa"><span>Flujo Mixto</span><strong id="employeePctCcc">—</strong><small id="employeeCountCcc">Sin registros</small></div>
 <div class="employee-flow-card" style="--flow-color:#e3a900"><span>Demanda</span><strong id="employeePctDemanda">—</strong><small id="employeeCountDemanda">Sin registros</small></div>
 <div class="employee-flow-card" style="--flow-color:#22a06b"><span>Soporte</span><strong id="employeePctSoporte">—</strong><small id="employeeCountSoporte">Sin registros</small></div>
 <div class="employee-flow-card" style="--flow-color:#e28a23"><span>KNOWN_VALUE</span><strong id="employeePctKnown">—</strong><small id="employeeCountKnown">Sin registros</small></div>
@@ -1257,7 +1257,7 @@ body.employee-mode :is(#qualityOverviewCards,#qualityFlowCards) .quality-goal{gr
 <section id="summaryVisual" class="summary-visual-grid" aria-label="Gráficos del resumen">
  <article class="panel summary-visual summary-wide"><h2>Evolución de tareas y creaciones</h2><p class="summary-sub">Promedio diario por semana · filtros generales</p><div id="sumTrend" class="summary-chart"></div></article>
  <article class="panel summary-visual summary-wide"><h2>Evolución de Holds</h2><p class="summary-sub">Cantidad por semana</p><div id="sumHolds" class="summary-chart"></div></article>
- <article class="panel summary-visual"><h2>Distribución de flujos</h2><p class="summary-sub">CCC, Demanda y Otros</p><div id="sumFlows" class="summary-chart"></div></article>
+ <article class="panel summary-visual"><h2>Distribución de flujos</h2><p class="summary-sub">Flujo Mixto, Demanda y Otros</p><div id="sumFlows" class="summary-chart"></div></article>
  <article class="panel summary-visual"><h2>Cierres por franja horaria</h2><p class="summary-sub">Tareas finalizadas · Gestión</p><div id="sumHours" class="summary-chart"></div></article>
 </section>
 <section id="pmProductivity" class="panel" data-admin-hide="true" aria-labelledby="pmProductivityTitle"><div class="pm-overview-heading"><p class="pm-eyebrow">RENDIMIENTO Y SEGUIMIENTO</p><h1 id="pmProductivityTitle">Productividad / Holds</h1><p id="pmProductivityScope" aria-live="polite">Indicadores del período seleccionado</p></div><div id="pmProductivityFilters"></div><div class="pm-productivity-metrics" aria-live="polite"><article class="pm-productivity-primary"><span>Flujo Mixto · productividad diaria</span><strong id="pmProductivityAverage">—</strong><small id="pmProductivityGoal">Tareas por jornada computable</small></article><article><span>Creaciones por jornada</span><strong id="pmCreationAverage">—</strong><small id="pmCreationDays">Jornadas con creaciones</small></article><article class="pm-hold-metric"><span>Registros de holds</span><strong id="pmHoldCount">—</strong><small id="pmHoldContext">Eventos del período</small></article><article><span>Catalogadores con registros</span><strong id="pmActivePeople">—</strong><small id="pmActivityDays">Jornadas computables</small></article></div><section class="panel"><h2>Productividad por flujo</h2><div id="devOperationalCards" class="dev-metrics"></div></section>
@@ -1268,13 +1268,13 @@ body.employee-mode :is(#qualityOverviewCards,#qualityFlowCards) .quality-goal{gr
 <div id="weeklyFlowFilter" class="weekly-flow-filter" hidden><label for="weeklyFlow">Flujo</label><select id="weeklyFlow"></select></div>
 <div class="week-filters"><div><label for="weekMode">Período</label><select id="weekMode"><option value="quarter" selected>Trimestre</option><option value="month">Mes</option><option value="weeks">Semanas</option></select></div><div><label for="weekYear">Año</label><select id="weekYear"></select></div><div id="monthWrap" class="hidden"><label for="weekMonth">Mes</label><select id="weekMonth"><option value="10" selected>Octubre</option><option value="11">Noviembre</option><option value="12">Diciembre</option></select></div><div id="quarterWrap"><label for="weekQuarter">Trimestre</label><select id="weekQuarter"><option value="4" selected>Q4</option></select></div><div id="startWeekWrap" class="hidden"><label for="weekStart">Desde semana</label><select id="weekStart"></select></div><div id="endWeekWrap" class="hidden"><label for="weekEnd">Hasta semana</label><select id="weekEnd"></select></div></div>
 <p id="weeklyStatus" class="muted"></p><div id="weeklyChart" class="weekly-chart"><p class="muted">Cargando gráfico…</p></div><div class="table-wrap week-table"><table><thead><tr><th>Semana</th><th>Período</th><th>Promedio diario de tareas</th><th>Promedio diario de creaciones</th><th>Jornadas tareas</th><th>Jornadas creaciones</th></tr></thead><tbody id="weeklyRows"></tbody></table></div><p class="week-chart-note">El promedio semanal se calcula como total de tareas o creaciones dividido por las jornadas registradas de ese indicador. En la vista general se promedian todas las jornadas registradas del equipo. Las semanas que cruzan un mes o un Q usan solo los días del período elegido.</p></section>
-<section class="panel employee-only" id="employeeCreationsPanel"><h2>Creaciones · promedio diario</h2><div id="employeeCreationsChart" class="weekly-chart"></div></section>
-<section class="panel" id="holdsPanel"><h2>⏸️ Evolución de tareas holdeadas</h2><p class="muted">Se cuenta cada fila del CSV, incluso cuando se repite el ID CDM, según la fecha de «Ultimo Hold». Se utilizan los mismos filtros de catalogador y período del gráfico superior.</p><div class="holds-stats"><div class="holds-stat"><span class="muted">Tareas holdeadas en el período</span><strong id="holdsTotal">—</strong></div><div class="holds-stat"><span class="muted">Semanas con holds</span><strong id="holdsWeeks">—</strong></div><div class="holds-stat"><span class="muted">Promedio por semana con holds</span><strong id="holdsAverage">—</strong></div></div><p id="holdsStatus" class="muted">Consultando historial de holds…</p><div id="holdsChart" class="weekly-chart"></div><div class="table-wrap week-table"><table><thead><tr><th>Semana</th><th>Tareas holdeadas (filas del CSV)</th></tr></thead><tbody id="holdsWeeklyRows"></tbody></table></div></section>
+<section class="panel employee-only" id="employeeCreationsPanel"><h2>Creaciones y Correcciones · promedio diario</h2><div class="dev-legend"><span>Creaciones</span><span>Correcciones</span></div><div id="employeeCreationsChart" class="dev-chart"></div></section>
+<section class="panel" id="holdsPanel"><h2>⏸️ Evolución de tareas holdeadas</h2><p class="muted">Se cuenta cada fila del CSV, incluso cuando se repite el ID CDM, según la fecha de «Ultimo Hold». Se utilizan los mismos filtros de catalogador y período del gráfico superior.</p><div class="holds-stats"><div class="holds-stat"><span class="muted">Tareas holdeadas en el período</span><strong id="holdsTotal">—</strong></div><div class="holds-stat"><span class="muted">Semanas con holds</span><strong id="holdsWeeks">—</strong></div><div class="holds-stat"><span class="muted">Promedio por semana con holds</span><strong id="holdsAverage">—</strong></div></div><p id="holdsStatus" class="muted">Consultando historial de holds…</p><div id="holdsChart" class="weekly-chart"></div><details class="pm-methodology"><summary>Tareas holdeadas (filas del CSV)</summary><div class="table-wrap week-table"><table><thead><tr><th>Semana</th><th>Tareas holdeadas</th></tr></thead><tbody id="holdsWeeklyRows"></tbody></table></div></details><section id="holdReasonsPanel" hidden><h3>Ranking de motivos de Hold</h3><div id="holdReasonRows"></div></section></section>
 
 <section class="panel employee-only" id="employeeWeeklyTablePanel"><h2>Detalle semanal</h2><details><summary>Consultar promedios y jornadas por semana</summary><div id="employeeWeeklyTableSlot"></div></details></section>
 <section id="pmFlowsIntro" data-admin-hide="true"><div class="pm-overview-heading"><p class="pm-eyebrow">OPERACIÓN Y DISTRIBUCIÓN</p><h1>Flujos / Tiempos</h1><p id="pmFlowsScope">Indicadores del período seleccionado</p></div><div id="pmFlowsFilters"></div><section id="flowProductivityGoals" class="quality-overview" aria-labelledby="flowProductivityTitle"><div class="quality-overview-head"><div><h2 id="flowProductivityTitle">Productividad por grupo</h2><p>Promedio por jornada con actividad registrada en cada grupo, según los filtros seleccionados.</p></div></div><div class="quality-flow-grid productivity-goal-grid" id="flowProductivityCards"></div></section><div class="pm-operation-metrics"><article><span>Tareas finalizadas</span><strong id="gTotalTasks">—</strong><small>Base de finalizadas · según filtros</small></article><article><span>Catalogadores con registros</span><strong id="gPeopleTotal">—</strong><small id="gDayCoverage">Jornadas de gestión</small></article><article><span>Cierres con horario válido</span><strong id="gTimeCoverage">—</strong><small id="gTimeCoverageNote">Cobertura de la base</small></article></div></section>
-<section class="panel" id="gestionPanel"><h2>Distribución de flujos</h2><p class="muted">Participación de cada grupo en las tareas finalizadas del período y los catalogadores seleccionados.</p><div id="gFlowComposition" aria-label="Distribución de tareas por grupo"></div><div class="gestion-cards"><div class="gestion-card"><span>CCC</span><strong id="gCcc">—</strong><small id="gCccCount">—</small></div><div class="gestion-card orange"><span>DEMANDA</span><strong id="gDemanda">—</strong><small id="gDemandaCount">—</small></div><div class="gestion-card"><span>SOPORTE</span><strong id="gSoporte">—</strong><small id="gSoporteCount">—</small></div><div class="gestion-card"><span>KNOWN VALUE</span><strong id="gKnown">—</strong><small id="gKnownCount">—</small></div><div class="gestion-card purple"><span>OTROS</span><strong id="gOtros">—</strong><small id="gOtrosCount">—</small></div></div><p id="gestionStatus" class="muted">Consultando gestión…</p><h3>Detalle de iniciativas</h3><div class="table-wrap"><table><thead><tr><th>Iniciativa</th><th>Grupo</th><th>Tareas</th><th>% del total</th></tr></thead><tbody id="gFlowRows"></tbody></table></div><details class="pm-methodology"><summary>Cómo se agrupan las iniciativas</summary><p>CCC se muestra por separado de Know Values. Demanda incluye «Sugerencia de corrección» y «Sugerencia de creación». Soporte reúne las iniciativas de denuncias, familias, merge y correcciones definidas en la clasificación. El resto se muestra en Otros. La tabla indica el grupo de cada iniciativa.</p></details></section>
-<section class="panel" id="tiemposPanel"><h2>Horarios observados</h2><p class="muted">Inicio de la primera tarea y finalización de la última tarea de cada catalogador por día. Las tarjetas muestran el promedio diario del período. Horas 01–07 del CSV se interpretan como 13–19 (hipótesis de formato 12 h sin AM/PM).</p><p id="employeeTimeCoverage" class="employee-only"></p><div class="gestion-cards four"><div class="gestion-card"><span>INICIO OBSERVADO</span><strong id="gStart">—</strong><small>Promedio del inicio de la primera tarea diaria</small></div><div class="gestion-card"><span>FIN OBSERVADO</span><strong id="gEnd">—</strong><small>Promedio del fin de la última tarea diaria</small></div><div class="gestion-card orange"><span>CIERRES DE 15 A 18 H</span><strong id="gLast3">—</strong><small>Cierres entre 15:00 y 18:00</small></div><div class="gestion-card purple"><span>FRANJA CON MÁS CIERRES</span><strong id="gPeak">—</strong><small id="gPeakPct">De los cierres con horario</small></div></div><div class="gestion-two"><div><h3>Distribución de cierres</h3><div id="gHourBars"></div></div><div><h3>Patrón observado</h3><p id="gPattern" class="muted">Cargá la base de Gestión para ver los resultados.</p><p class="gestion-note">La distribución usa franjas 09–11, 11–13, 13–15, 15–17, 17–18 y «Fuera de franja». El porcentaje siempre se calcula sobre cierres con hora válida.</p></div></div></section>
+<section class="panel" id="gestionPanel"><h2>Distribución de flujos</h2><p class="muted">Participación de cada grupo en las tareas finalizadas del período y los catalogadores seleccionados.</p><div id="gFlowComposition" aria-label="Distribución de tareas por grupo"></div><div class="gestion-cards"><div class="gestion-card"><span>Flujo Mixto</span><strong id="gCcc">—</strong><small id="gCccCount">—</small></div><div class="gestion-card orange"><span>DEMANDA</span><strong id="gDemanda">—</strong><small id="gDemandaCount">—</small></div><div class="gestion-card"><span>SOPORTE</span><strong id="gSoporte">—</strong><small id="gSoporteCount">—</small></div><div class="gestion-card"><span>KNOWN VALUE</span><strong id="gKnown">—</strong><small id="gKnownCount">—</small></div><div class="gestion-card purple"><span>OTROS</span><strong id="gOtros">—</strong><small id="gOtrosCount">—</small></div></div><p id="gestionStatus" class="muted">Consultando gestión…</p><h3>Detalle de iniciativas</h3><div class="table-wrap"><table><thead><tr><th>Iniciativa</th><th>Grupo</th><th>Tareas</th><th>% del total</th></tr></thead><tbody id="gFlowRows"></tbody></table></div><details class="pm-methodology"><summary>Cómo se agrupan las iniciativas</summary><p>Flujo Mixto agrupa CCC (incluido MAO), SDC, SCP y FO. Demanda incluye «Sugerencia de corrección» y «Sugerencia de creación». Soporte reúne las iniciativas de denuncias, familias, merge y correcciones definidas en la clasificación. El resto se muestra en Otros. La tabla indica el grupo de cada iniciativa.</p></details></section>
+<section class="panel" id="tiemposPanel"><h2>Horarios observados</h2><p class="muted">Inicio de la primera tarea y finalización de la última tarea de cada catalogador por día. Las tarjetas muestran el promedio diario del período. Se usan horas de 24 horas. Fuera de franja incluye cierres antes de las 09:00 o después de las 18:00.</p><p id="employeeTimeCoverage" class="employee-only"></p><div class="gestion-cards four"><div class="gestion-card"><span>INICIO OBSERVADO</span><strong id="gStart">—</strong><small>Promedio del inicio de la primera tarea diaria</small></div><div class="gestion-card"><span>FIN OBSERVADO</span><strong id="gEnd">—</strong><small>Promedio del fin de la última tarea diaria</small></div><div class="gestion-card orange"><span>CIERRES DE 15 A 18 H</span><strong id="gLast3">—</strong><small>Cierres entre 15:00 y 18:00</small></div><div class="gestion-card purple"><span>FRANJA CON MÁS CIERRES</span><strong id="gPeak">—</strong><small id="gPeakPct">De los cierres con horario</small></div></div><div class="gestion-two"><div><h3>Distribución de cierres</h3><div id="gHourBars"></div></div><div><h3>Patrón observado</h3><p id="gPattern" class="muted">Cargá la base de Gestión para ver los resultados.</p><p class="gestion-note">La distribución usa franjas 09–11, 11–13, 13–15, 15–17, 17–18 y «Fuera de franja». El porcentaje siempre se calcula sobre cierres con hora válida.</p></div></div></section>
 <section class="panel" id="teamPeoplePanel"><h2>Resumen por catalogador</h2><div class="table-wrap"><table><thead><tr><th>Catalogador</th><th>ID MELI</th><th>Jornadas</th><th>Tareas</th><th>Promedio diario</th><th>Creaciones</th><th>Correcciones</th><th>Holds</th></tr></thead><tbody id="peopleRows"><tr><td colspan="8">Cargando…</td></tr></tbody></table></div></section>
 <section class="panel" id="pendingPanel"><h2>Indicadores pendientes</h2><p class="muted">El objetivo diario y el porcentaje de cumplimiento requieren incorporar los criterios correspondientes del Excel. Todavía no están guardados en los registros importados; no se calculan valores ficticios.</p></section>
 </div>
@@ -1287,7 +1287,7 @@ body.employee-mode :is(#qualityOverviewCards,#qualityFlowCards) .quality-goal{gr
   <label>Período<select id="auditFilterPeriod" name="periodo"></select></label>
   <label>Flujo<select id="auditFilterFlow" name="flujo"></select></label>
   <label data-audit-staff>Resultado<select name="resultadoError"><option value="">Todos</option><option value="con">Con error</option><option value="sin">Sin error</option></select></label>
-  <label>Estado<select name="estado"><option value="">Todos</option><option value="sin_asignar">Sin asignar</option><option value="sin_error" data-audit-staff>Sin error</option><option value="pendiente_colaborador">Pendiente del colaborador</option><option value="pendiente_tl">Pendiente del TL</option><option value="pendiente_pm">Pendiente del PM</option><option value="cerrada_aprobada">Cerrada · aprobada</option><option value="cerrada_rechazada">Cerrada · rechazada</option></select></label>
+  <label>Estado<select name="estado"><option value="">Todos</option><option value="sin_asignar">Sin asignar</option><option value="sin_error" data-audit-staff>Sin error</option><option value="pendiente_colaborador">Pendiente del colaborador</option><option value="vencida">Vencida · sin respuesta</option><option value="pendiente_tl">Pendiente del TL</option><option value="pendiente_pm">Pendiente del PM</option><option value="cerrada_aprobada">Cerrada · aprobada</option><option value="cerrada_rechazada">Cerrada · rechazada</option></select></label>
  </form>
  <dl id="auditMetrics" aria-label="Indicadores de auditorías" hidden></dl>
  <p id="auditListStatus" class="muted" role="status"></p>
@@ -1298,7 +1298,7 @@ body.employee-mode :is(#qualityOverviewCards,#qualityFlowCards) .quality-goal{gr
  </section>
  <section id="auditReports" hidden></section>
 </section>
-<div id="viewUpload" class="hidden"><div class="pm-overview-heading"><p class="pm-eyebrow">ACTUALIZACIÓN DE INFORMACIÓN</p><h1>Cargar bases</h1><p>Elegí una base, revisá la vista previa y confirmá los cambios.</p></div><nav class="upload-tabs" aria-label="Tipo de base"><button type="button" data-upload="productividad" aria-pressed="true">Productividad</button><button type="button" data-upload="holds" aria-pressed="false">Holds</button><button type="button" data-upload="finalizadas" aria-pressed="false">Finalizadas</button><button type="button" data-upload="calidad" aria-pressed="false">Calidad</button><button type="button" data-upload="auditorias" aria-pressed="false">Auditorías</button></nav><div id="publicationActions"></div>
+<div id="viewUpload" class="hidden"><div class="pm-overview-heading"><p class="pm-eyebrow">ACTUALIZACIÓN DE INFORMACIÓN</p><h1>Cargar bases</h1><p>Elegí el archivo, revisá los cambios y guardalos. Después publicá Productividad, Holds y Finalizadas para que se vean en el dashboard.</p></div><nav class="upload-tabs" aria-label="Tipo de base"><button type="button" data-upload="productividad" aria-pressed="true">Productividad</button><button type="button" data-upload="holds" aria-pressed="false">Holds</button><button type="button" data-upload="finalizadas" aria-pressed="false">Finalizadas</button><button type="button" data-upload="calidad" aria-pressed="false">Calidad</button><button type="button" data-upload="auditorias" aria-pressed="false">Auditorías</button></nav><div id="publicationActions"><h2>Publicar datos guardados</h2><p>Este paso actualiza las fichas de Productividad, Holds y Finalizadas.</p></div>
 <section class="panel" id="auditUploadPanel" data-upload-panel="auditorias" hidden>
  <h2>Importar auditorías</h2>
  <label for="auditFile">Archivo Excel o CSV</label>
@@ -1314,7 +1314,7 @@ body.employee-mode :is(#qualityOverviewCards,#qualityFlowCards) .quality-goal{gr
   <div class="audit-controls" id="auditMappings"></div>
  </details>
  <details id="auditPreview" hidden><summary>Ver detalle de la carga</summary><div id="auditPreviewResults"></div></details>
-</section><section class="panel" data-upload-panel="productividad"><h2>📁 Cargar bases de productividad</h2><p>Seleccioná el archivo completo <strong>Evolución Productividad.xlsm</strong> que recibís cada lunes.</p><div class="upload"><p>📗 <strong>Seleccionar archivo Excel</strong></p><input type="file" id="excelFile" accept=".xlsm,.xlsx"><p class="muted">Se leen los datos en tu navegador. El archivo se analiza primero; solo se guarda después de tu confirmación.</p></div><p id="fileStatus" class="status" role="status"></p><div id="preview" class="hidden"><div class="summary"><div>Hojas encontradas<strong id="sheetCount">—</strong></div><div>Registros en Base diaria<strong id="dailyCount">—</strong></div><div>Registros en Base creaciones<strong id="creationCount">—</strong></div></div><label for="sheetSelect">Vista previa de la hoja</label><select id="sheetSelect"></select><p class="muted" id="previewInfo"></p><div class="table-wrap"><table id="previewTable"></table></div><div id="validation" class="validation hidden" aria-live="polite"></div><div id="importPanel" class="importbox hidden"><h3>☁️ Confirmar actualización en Firebase</h3><p id="importSummary" class="muted">Preparando comparación con el historial guardado…</p><div id="importStats" class="summary hidden"></div><button id="confirmImport" type="button" disabled>Confirmar actualización</button><p id="importStatus" class="status" role="status"></p><p class="muted">Solo administradores. Los registros se identifican por ID MELI, fecha y tipo de indicador. No se eliminan semanas anteriores.</p></div></div></section><section class="panel hold-upload" data-upload-panel="holds" hidden><h2>⏸️ Cargar base de tareas holdeadas</h2><p>Importá el CSV de CDM por separado. No modifica la base de productividad.</p><div class="upload"><p><strong>Seleccionar archivo CSV de Holds</strong></p><input type="file" id="holdsFile" accept=".csv,text/csv"><p class="muted">Se analiza en tu navegador y se compara con Firebase antes de confirmar.</p></div><p id="holdsFileStatus" class="status"></p><div id="holdsImportPanel" class="importbox hidden"><h3>Vista previa de Holds</h3><div id="holdsImportStats" class="summary"></div><p id="holdsImportSummary" class="muted"></p><button type="button" id="confirmHoldsImport" disabled>Confirmar importación de Holds</button><p id="holdsImportStatus" class="status"></p><p class="hold-note">Las filas repetidas de un mismo CDM y fecha se contabilizan. Repetir la carga del mismo archivo conserva los registros agrupados sin duplicarlos.</p></div></section><section class="panel gestion-upload" data-upload-panel="finalizadas" hidden><h2>Cargar base de finalizadas</h2><p>Subí el CSV de tareas finalizadas para actualizar la distribución de flujos y los horarios. No modifica Productividad ni Holds.</p><div class="upload"><p><strong>Seleccionar CSV de finalizadas</strong></p><input type="file" id="gestionFile" accept=".csv,text/csv"><p class="muted">Se calcula por catalogador y día: primera hora de Asignación (Fecha inicio) y última hora de Finalización (Fecha fin). Los registros anteriores se recalculan con la versión 14; requiere confirmar la actualización.</p></div><p id="gestionFileStatus" class="status" role="status"></p><div id="gestionImportPanel" class="importbox hidden"><h3>Vista previa de Gestión</h3><div id="gestionImportStats" class="summary"></div><p id="gestionImportSummary" class="muted"></p><button id="confirmGestionImport" type="button" disabled>Confirmar importación de Gestión</button><p id="gestionImportStatus" class="status" role="status"></p></div></section><section class="panel" data-upload-panel="calidad" hidden>
+</section><section class="panel" data-upload-panel="productividad"><h2>📁 Cargar bases de productividad</h2><p>Seleccioná el archivo completo <strong>Evolución Productividad.xlsm</strong> que recibís cada lunes.</p><div class="upload"><p>📗 <strong>Seleccionar archivo Excel</strong></p><input type="file" id="excelFile" accept=".xlsm,.xlsx"><p class="muted">Se leen los datos en tu navegador. El archivo se analiza primero; solo se guarda después de tu confirmación.</p></div><p id="fileStatus" class="status" role="status"></p><div id="preview" class="hidden"><div class="summary"><div>Hojas encontradas<strong id="sheetCount">—</strong></div><div>Registros en Base diaria<strong id="dailyCount">—</strong></div><div>Registros en Base creaciones<strong id="creationCount">—</strong></div></div><label for="sheetSelect">Vista previa de la hoja</label><select id="sheetSelect"></select><p class="muted" id="previewInfo"></p><div class="table-wrap"><table id="previewTable"></table></div><div id="validation" class="validation hidden" aria-live="polite"></div><div id="importPanel" class="importbox hidden"><h3>Guardar registros de Productividad</h3><p id="importSummary" class="muted">Preparando comparación con el historial guardado…</p><div id="importStats" class="summary hidden"></div><button id="confirmImport" type="button" disabled>Guardar registros</button><p id="importStatus" class="status" role="status"></p><p class="muted">Solo administradores. Los registros se identifican por ID MELI, fecha y tipo de indicador. No se eliminan semanas anteriores.</p></div></div></section><section class="panel hold-upload" data-upload-panel="holds" hidden><h2>⏸️ Cargar base de tareas holdeadas</h2><p>Importá el CSV de CDM por separado. No modifica la base de productividad.</p><div class="upload"><p><strong>Seleccionar archivo CSV de Holds</strong></p><input type="file" id="holdsFile" accept=".csv,text/csv"><p class="muted">Se analiza en tu navegador y se compara con Firebase antes de confirmar.</p></div><p id="holdsFileStatus" class="status"></p><div id="holdsImportPanel" class="importbox hidden"><h3>Vista previa de Holds</h3><div id="holdsImportStats" class="summary"></div><p id="holdsImportSummary" class="muted"></p><button type="button" id="confirmHoldsImport" disabled>Confirmar importación de Holds</button><p id="holdsImportStatus" class="status"></p><p class="hold-note">Las filas repetidas de un mismo CDM y fecha se contabilizan. Repetir la carga del mismo archivo conserva los registros agrupados sin duplicarlos.</p></div></section><section class="panel gestion-upload" data-upload-panel="finalizadas" hidden><h2>Cargar base de finalizadas</h2><p>Subí el CSV de tareas finalizadas para actualizar la distribución de flujos y los horarios. No modifica Productividad ni Holds.</p><div class="upload"><p><strong>Seleccionar CSV de finalizadas</strong></p><input type="file" id="gestionFile" accept=".csv,text/csv"><p class="muted">Se calcula por catalogador y día: primera hora de Asignación (Fecha inicio) y última hora de Finalización (Fecha fin). Los registros anteriores se recalculan con la versión 15; requiere confirmar la actualización.</p></div><p id="gestionFileStatus" class="status" role="status"></p><div id="gestionImportPanel" class="importbox hidden"><h3>Vista previa de Gestión</h3><div id="gestionImportStats" class="summary"></div><p id="gestionImportSummary" class="muted"></p><button id="confirmGestionImport" type="button" disabled>Confirmar importación de Gestión</button><p id="gestionImportStatus" class="status" role="status"></p></div></section><section class="panel" data-upload-panel="calidad" hidden>
  <h2>Cargar base de Calidad</h2><p>Usá un Excel o CSV con colaborador, cantidad auditada y efectividad. El flujo y origen pueden venir en columnas o en el nombre de la hoja.</p>
  <div class="quality-upload-fields"><div><label for="calidadFile">Archivo</label><input id="calidadFile" type="file" accept=".xlsx,.xlsm,.xls,.csv,text/csv"></div><div><label for="qualityImportMonth">Mes para filas sin fecha</label><input id="qualityImportMonth" type="month"></div></div>
  <div class="quality-archive"><button id="qualityFindArchives" class="tab" type="button">Buscar bases ya cargadas</button><div id="qualityArchivePicker" hidden><label for="qualityArchive">Archivo guardado en Firebase</label><select id="qualityArchive"></select></div></div><p id="calidadFileStatus" class="status" role="status"></p>
@@ -1338,13 +1338,13 @@ import {initializeApp} from 'https://www.gstatic.com/firebasejs/12.6.0/firebase-
 import {getAuth,onAuthStateChanged,signInWithEmailAndPassword,createUserWithEmailAndPassword,sendPasswordResetEmail,signOut,EmailAuthProvider,reauthenticateWithCredential,updatePassword} from 'https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js';
 import {getFirestore,doc,getDoc,getDocs,collection,query,where,writeBatch,serverTimestamp,runTransaction,onSnapshot,orderBy,limit,documentId} from 'https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js';
 import {indexPeople,analyzeQuality,restoreArchivedQuality,qualityPeriods,selectQualityPeriod,summary,bucketQuality} from './calidad.mjs?v=archivo-1';
-import {analysisPeriod,inPeriod,operationalFlow,operationalFlows,defaultProductivityGoals,productivityTotals,normalizeQualityFlow,publishedProductivity} from './gestion-desarrollo.mjs?v=correcciones';
+import {analysisPeriod,inPeriod,operationalFlow,operationalFlows,defaultProductivityGoals,productivityTotals,normalizeQualityFlow,publishedProductivity} from './gestion-desarrollo.mjs?v=productividad-personal';
 import {setupFilters} from './filtros-desarrollo.mjs?v=resumen';
-import {renderOperationalCards,renderComparison,renderCreationChart,renderHoldsRanking} from './visuales-desarrollo.mjs?v=semanas';
+import {renderOperationalCards,renderComparison,renderCreationChart,renderHoldsRanking} from './visuales-desarrollo.mjs?v=piso';
 const firebaseConfig={apiKey:'AIzaSyB7edb0wGmf86KVrca5zkBTju7wg_zVDFk',authDomain:'dashboard-kpi-teammati.firebaseapp.com',projectId:'dashboard-kpi-teammati',storageBucket:'dashboard-kpi-teammati.firebasestorage.app',messagingSenderId:'158470825794',appId:'1:158470825794:web:33eb0d3c862756b9d7cadb',measurementId:'G-7E8M7NSPV0'};
 const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app);
-import {setupAudits} from './auditorias-ui.mjs?v=caso-auditado';
-import {createSparkAudits} from './auditorias-spark.mjs?v=solo-errores';
+import {setupAudits} from './auditorias-ui.mjs?v=plazo';
+import {createSparkAudits} from './auditorias-spark.mjs?v=plazo';
 const sparkAuditCall=createSparkAudits({db,doc,getDocs,collection,query,where,documentId,runTransaction,serverTimestamp,
  currentUid:()=>auth.currentUser?.uid,currentMeli:()=>profileData?.idMeli,currentRole:()=>profileData?.rol});
 const auditFeatures = setupAudits({
@@ -1491,7 +1491,7 @@ function correctionBase(){
  if(candidates.length>1)throw Error('Hay varias fuentes de Correcciones. Conservá una sola columna de origen.');
  return candidates.length?analyzeBase(candidates[0],'Correcciones'):null;
 }
-function validateWorkbook(){const box=$('validation');box.classList.remove('hidden');try{const daily=analyzeBase('Base diaria','Tareas totales'),creations=analyzeBase('Base creaciones','Creaciones');const corrections=correctionBase(),all=[...daily.records,...creations.records,...(corrections?.records||[])],people=new Map();for(const r of all)people.set(r.id,r.name);const dates=all.map(r=>r.date).sort(),issues=[...daily.issues,...creations.issues,...(corrections?.issues||[])];const esc=v=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));const valid=issues.length===0&&daily.duplicates===0&&creations.duplicates===0&&!(corrections?.duplicates)&&daily.records.length>0&&creations.records.length>0; if(valid){prepareImport(daily,creations,corrections).catch(e=>{console.error(e);$('importStatus').textContent='No se pudo comparar con Firebase: '+e.message;$('importStatus').className='status bad';});}else{$('importPanel').classList.add('hidden');importPlan=null;}box.innerHTML=`<h3>✓ Análisis del equipo ${esc(TEAM)}</h3><p class="muted">Se procesaron las bases originales. No se incluyen registros de otros equipos.</p><div class="summary"><div>Tareas (registros)<strong>${daily.records.length.toLocaleString('es-AR')}</strong></div><div>Creaciones (registros)<strong>${creations.records.length.toLocaleString('es-AR')}</strong></div><div>IDs MELI distintos<strong>${people.size}</strong></div><div>Fechas disponibles<strong>${dates.length?esc(dates[0]+' a '+dates.at(-1)):'—'}</strong></div></div><p><strong>Filas del equipo:</strong> ${daily.teamRows} en Base diaria y ${creations.teamRows} en Base creaciones.</p><p><strong>Registros repetidos por fecha + ID:</strong> ${daily.duplicates+creations.duplicates}. Se consideran una sola vez en esta vista previa; antes de importar se deberán revisar.</p><p><strong>Registros inválidos:</strong> ${issues.length}.</p>${issues.length?`<ul class="bad">${issues.slice(0,8).map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:'<p class="good">✓ Todos los registros seleccionados tienen fecha, ID MELI, colaborador y cantidad válidos.</p>'}<h3>Catalogadores detectados</h3><div class="table-wrap"><table><thead><tr><th>ID MELI</th><th>Colaborador</th></tr></thead><tbody>${[...people].sort((a,b)=>a[1].localeCompare(b[1])).map(([id,name])=>`<tr><td>${esc(id)}</td><td>${esc(name)}</td></tr>`).join('')}</tbody></table></div><p class="muted">Los datos aún no se guardaron. La importación definitiva incluirá controles de duplicados, cambios y autorización del administrador.</p>`;}catch(e){console.error(e);box.innerHTML='';const p=document.createElement('p');p.className='bad';p.textContent='No se pudo validar el equipo: '+e.message;box.appendChild(p);}}
+function validateWorkbook(){const box=$('validation');box.classList.remove('hidden');try{const daily=analyzeBase('Base diaria','Tareas totales'),creations=analyzeBase('Base creaciones','Creaciones');const corrections=correctionBase(),all=[...daily.records,...creations.records,...(corrections?.records||[])],people=new Map();for(const r of all)people.set(r.id,r.name);const dates=all.map(r=>r.date).sort(),issues=[...daily.issues,...creations.issues,...(corrections?.issues||[])];const esc=v=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));const valid=issues.length===0&&daily.duplicates===0&&creations.duplicates===0&&!(corrections?.duplicates)&&daily.records.length>0&&creations.records.length>0; if(valid){prepareImport(daily,creations,corrections).catch(e=>{console.error(e);$('importStatus').textContent='No se pudo comparar con Firebase: '+e.message;$('importStatus').className='status bad';});}else{$('importPanel').classList.add('hidden');importPlan=null;}box.innerHTML=`<h3>✓ Vista previa de Productividad</h3><p class="muted">${fmt(new Set(all.map(row=>row.equipo)).size)} equipos incluidos en la carga.</p><div class="summary"><div>Tareas (registros)<strong>${daily.records.length.toLocaleString('es-AR')}</strong></div><div>Creaciones (registros)<strong>${creations.records.length.toLocaleString('es-AR')}</strong></div><div>IDs MELI distintos<strong>${people.size}</strong></div><div>Fechas disponibles<strong>${dates.length?esc(dates[0]+' a '+dates.at(-1)):'—'}</strong></div></div><p><strong>Filas del equipo:</strong> ${daily.teamRows} en Base diaria y ${creations.teamRows} en Base creaciones.</p><p><strong>Registros repetidos por fecha + ID:</strong> ${daily.duplicates+creations.duplicates}. Se consideran una sola vez en esta vista previa; antes de importar se deberán revisar.</p><p><strong>Registros inválidos:</strong> ${issues.length}.</p>${issues.length?`<ul class="bad">${issues.slice(0,8).map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:'<p class="good">✓ Todos los registros seleccionados tienen fecha, ID MELI, colaborador y cantidad válidos.</p>'}<h3>Catalogadores detectados</h3><div class="table-wrap"><table><thead><tr><th>ID MELI</th><th>Colaborador</th></tr></thead><tbody>${[...people].sort((a,b)=>a[1].localeCompare(b[1])).map(([id,name])=>`<tr><td>${esc(id)}</td><td>${esc(name)}</td></tr>`).join('')}</tbody></table></div><p class="muted">Los datos aún no se guardaron. La importación definitiva incluirá controles de duplicados, cambios y autorización del administrador.</p>`;}catch(e){console.error(e);box.innerHTML='';const p=document.createElement('p');p.className='bad';p.textContent='No se pudo validar el equipo: '+e.message;box.appendChild(p);}}
 
 
 // Guardado en Firestore: cada ID MELI tiene un documento kpis/{idMeli} y
@@ -1563,7 +1563,7 @@ $('confirmImport').addEventListener('click',async()=>{
     const log=writeBatch(db);
     log.set(logRef,{archivo:plan.fileName,tipo:'productividad',...noticeScope,equipo:isPM?'Todos los equipos':selectedTeam,usuario:auth.currentUser.uid,nuevos:plan.stats.newCount,corregidos:plan.stats.updatedCount,sinCambios:plan.stats.unchangedCount,catalogadores:plan.stats.people,fecha:serverTimestamp(),estado:'completado'});
     await log.commit();
-    status.className='status good';status.textContent=`✓ Importación completada: ${plan.stats.newCount} nuevos, ${plan.stats.updatedCount} corregidos. Historial guardado en Firebase.`;kpiLoaded=false;$('importStatus').textContent+=' Para que los colaboradores vean los cambios, pulsá «Publicar actualización del equipo».';
+    status.className='status good';status.textContent=`✓ Importación completada: ${plan.stats.newCount} nuevos, ${plan.stats.updatedCount} corregidos. Historial guardado en Firebase.`;kpiLoaded=false;showPublicationShortcut(status);
     importPlan=null;
   }catch(e){console.error(e);status.className='status bad';status.textContent='Error durante la importación: '+e.message+'. Puede haber lotes guardados; volvé a seleccionar el Excel para comparar y reintentar sin duplicar.';}
   finally{importBusy=false;$('excelFile').disabled=false;}
@@ -1704,7 +1704,7 @@ function renderWeeklyChart(){
   }
   const ordered=[...weeks].sort((a,b)=>a[0].localeCompare(b[0]));
   $('weeklyStatus').textContent=ordered.length?`${ordered.length} semanas con datos · ${(!isAdmin||who)?'Vista individual':'Promedio general del equipo'} · ${rows.length} registros`:'No hay registros para este período.';
-  if(!ordered.length){chart.textContent=isAdmin?'Sin jornadas de '+operationalFlows[selectedFlow]+' en este período.':'No hay datos para graficar.';if(!isAdmin)$('employeeCreationsChart').textContent='No hay datos para graficar.';return;}
+  if(!ordered.length){chart.textContent=isAdmin?'Sin jornadas de '+operationalFlows[selectedFlow]+' en este período.':'No hay datos para graficar.';return;}
 
   // Dos líneas independientes para que la escala de tareas no aplaste la de creaciones.
   function drawLineChart(tipo,title,color){
@@ -1717,9 +1717,9 @@ function renderWeeklyChart(){
     if(valid.length>1){const change=valid.at(-1)-valid[0];summary.textContent=`Variación del período: ${change>0?'+':''}${fmt(change)} por jornada`;}
     const flow=isAdmin?selectedFlow:rows.find(row=>row.tipo==='tareas'&&row.flujoOperativo)?.flujoOperativo;
     const target=tipo==='tareas'&&flow?(Object.hasOwn(productivityGoals,flow)?productivityGoals[flow]:defaultProductivityGoals[flow]):null;
-    if(tipo==='tareas')summary.textContent=(target==null?'Sin objetivo':'Mínimo esperado '+fmt(target)+' tareas')+' · '+(summary.textContent||'Sin comparación entre semanas');
+    if(tipo==='tareas')summary.textContent=(target==null?'Sin objetivo':'Piso '+fmt(target)+' tareas')+' · '+(summary.textContent||'Sin comparación entre semanas');
     heading.append(name,summary);section.appendChild(heading);
-    if(!valid.length){const empty=document.createElement('p');empty.className='pm-chart-empty';empty.textContent='Sin registros de '+(tipo==='tareas'?'tareas':'creaciones')+' para los filtros seleccionados.';section.appendChild(empty);(tipo==='creaciones'&&!isAdmin?$('employeeCreationsChart'):chart).appendChild(section);return;}
+    if(!valid.length){const empty=document.createElement('p');empty.className='pm-chart-empty';empty.textContent='Sin registros de '+(tipo==='tareas'?'tareas':'creaciones')+' para los filtros seleccionados.';section.appendChild(empty);chart.appendChild(section);return;}
     const scroll=document.createElement('div');scroll.className='line-chart-scroll';scroll.dataset.singleWeek=String(ordered.length===1);
     const svgNS='http://www.w3.org/2000/svg';
     const svg=document.createElementNS(svgNS,'svg');
@@ -1756,11 +1756,11 @@ function renderWeeklyChart(){
         el('text',{x:px,y:Math.max(15,py-13),'text-anchor':ordered.length===1?'middle':i===0?'start':i===ordered.length-1?'end':'middle',fill:'#24364b','font-size':12,'font-weight':700},fmt(v));
       });
     });
-    section.appendChild(scroll);(tipo==='creaciones'&&!isAdmin?$('employeeCreationsChart'):chart).appendChild(section);
+    section.appendChild(scroll);chart.appendChild(section);
   }
-  if(!isAdmin)$('employeeCreationsChart').replaceChildren();
+
   drawLineChart('tareas',isAdmin?operationalFlows[selectedFlow]+' · promedio diario':'Productividad · promedio diario de tareas','#1765d1');
-  if(!isAdmin)drawLineChart('creaciones','Creaciones · promedio diario','#996000');
+
 
   for(const [key,w] of ordered){
     const tr=document.createElement('tr');
@@ -1797,7 +1797,7 @@ window.addEventListener('resize',centerSingleWeekCharts);
 function renderSummaryVisual(){
  const who=$('personFilter').value,from=$('fromWeek').value,to=$('toWeek').value;
  const match=r=>weeklyMatches(r.fecha)&&(!who||r.id===who)&&includedRecord(r);
- const tasks=new Map(),creations=new Map(),holds=new Map(),groups={CCC:0,DEMANDA:0,SOPORTE:0,KNOWN_VALUE:0,OTROS:0},bins=[0,0,0,0,0,0];
+ const tasks=new Map(),creations=new Map(),holds=new Map(),groups={'Flujo Mixto':0,DEMANDA:0,SOPORTE:0,KNOWN_VALUE:0,OTROS:0},bins=[0,0,0,0,0,0];
  const excludedDays=excludedFlowDays();
  for(const r of kpiCache.filter(r=>match(r)&&isKpiDay(r,excludedDays))){const map=r.tipo==='tareas'?tasks:r.tipo==='creaciones'?creations:null;const key=isoWeek(r.fecha).key;if(map){const item=map.get(key)||{sum:0,count:0,days:new Set()};item.sum+=Number(r.cantidad)||0;const dayKey=String(r.id)+'|'+String(r.fecha);if(!item.days.has(dayKey)){item.days.add(dayKey);item.count++;}map.set(key,item);}}
  for(const r of holdsCache.filter(match)){const key=isoWeek(r.fecha).key;holds.set(key,(holds.get(key)||0)+(Number(r.cantidad)||0));}
@@ -1866,7 +1866,7 @@ function renderSummaryVisual(){
   }
  }
  const flowTotal=Object.values(groups).reduce((a,b)=>a+b,0);
- for(const [key,pctId,countId] of [['CCC','employeePctCcc','employeeCountCcc'],['DEMANDA','employeePctDemanda','employeeCountDemanda'],['SOPORTE','employeePctSoporte','employeeCountSoporte'],['KNOWN_VALUE','employeePctKnown','employeeCountKnown'],['OTROS','employeePctOtros','employeeCountOtros']]){
+ for(const [key,pctId,countId] of [['Flujo Mixto','employeePctCcc','employeeCountCcc'],['DEMANDA','employeePctDemanda','employeeCountDemanda'],['SOPORTE','employeePctSoporte','employeeCountSoporte'],['KNOWN_VALUE','employeePctKnown','employeeCountKnown'],['OTROS','employeePctOtros','employeeCountOtros']]){
   $(pctId).textContent=flowTotal?(groups[key]/flowTotal*100).toLocaleString('es-AR',{minimumFractionDigits:1,maximumFractionDigits:1})+'%':'—';
   $(countId).textContent=flowTotal?fmt(groups[key])+' tareas':'Sin registros de Gestión';
  }
@@ -1880,7 +1880,7 @@ function renderSummaryVisual(){
   const summaryValue=document.createElement('strong');summaryValue.textContent=fmt(total);
   summaryText.append(summaryLabel,summaryValue);summary.append(summaryIcon,summaryText);flowEl.appendChild(summary);
   const list=document.createElement('div');list.className='flows-premium-list';
-  const flowInfo=[['CCC','CCC','#3483fa','▤'],['DEMANDA','Demanda','#ffbf00','▣'],['SOPORTE','Soporte','#22a06b','▥'],['KNOWN_VALUE','KNOWN_VALUE','#e28a23','▧'],['OTROS','Otros','#9b86df','•••']];
+  const flowInfo=[['Flujo Mixto','Flujo Mixto','#3483fa','▤'],['DEMANDA','Demanda','#ffbf00','▣'],['SOPORTE','Soporte','#22a06b','▥'],['KNOWN_VALUE','KNOWN_VALUE','#e28a23','▧'],['OTROS','Otros','#9b86df','•••']];
   for(const [key,label,color,symbol] of flowInfo){
    const count=groups[key],pct=count/total*100;
    const row=document.createElement('div');row.className='flows-premium-row';
@@ -1958,7 +1958,7 @@ function renderSummaryVisual(){
 function renderHeaderKpi(){
  const who=$('personFilter').value,from=$('fromWeek').value,to=$('toWeek').value;
  const excludedDays=excludedFlowDays();
- const rows=kpiCache.filter(r=>isVisiblePeriod(r.fecha)&&r.tipo==='tareas'&&isKpiDay(r,excludedDays)&&(!who||r.id===who)&&includedRecord(r)&&weeklyMatches(r.fecha));
+ const rows=kpiCache.filter(r=>isVisiblePeriod(r.fecha)&&r.tipo==='tareas'&&(!isAdmin||r.flujoOperativo==='mixto')&&isKpiDay(r,excludedDays)&&(!who||r.id===who)&&includedRecord(r)&&weeklyMatches(r.fecha));
  const total=rows.reduce((sum,r)=>sum+(Number(r.cantidad)||0),0);
  $('headerKpi').classList.remove('hidden');
  $('headerAverage').textContent=rows.length?fmt(total/rows.length):'—';
@@ -1987,6 +1987,7 @@ function renderKpis(){
   const excludedCount=new Set(filtered.filter(r=>r.tipo==='tareas'&&!isKpiDay(r,excludedDays)).map(r=>r.id+'|'+r.fecha)).size;
   $('averageNote').textContent=tasks.length?`${tasks.length} jornadas computables${excludedCount?' · '+excludedCount+' excluidas por ${excludedFlowLabel()}':''}`:excludedCount?`${excludedCount} jornadas excluidas por ${excludedFlowLabel()}`:'Sin registros de tareas en este período';
   renderWeeklyChart();
+  if(!isAdmin)renderCreationChart($('employeeCreationsChart'),filtered,'weeks',isoWeek,true);
   renderHolds();
   renderGestion();
   renderSummaryVisual();
@@ -2070,7 +2071,7 @@ function applyTeamView(){
  const old=$('personFilter').value;
  const personalId=String(profileData?.idMeli||'').trim();
  const personalRows=rows=>isAdmin?rows:rows.filter(row=>row.id===undefined||String(row.id)===personalId).map(row=>({...row,id:personalId}));
- kpiCache=isAdmin?items.flatMap(item=>publishedProductivity(item,gCategory)):personalRows(items.flatMap(x=>x.tareas||[]));
+ kpiCache=items.flatMap(item=>publishedProductivity(isAdmin?item:{...item,tareas:personalRows(item.tareas||[]),gestion:personalRows(item.gestion||[])},gCategory));
  holdsCache=personalRows(items.flatMap(x=>x.holds||[]));
  gestionCache=personalRows(items.flatMap(x=>x.gestion||[]));
  kpiLoaded=true;if(isAdmin)loadExcludedPeople();
@@ -2113,6 +2114,7 @@ async function notificationDigest(value){
 }
 $('publishKpis').addEventListener('click',async()=>{
  if(!canImportBases()||publishing||!auth.currentUser)return;
+ if(importBusy||holdsBusy||gestionBusy||calidadBusy){$('publishStatus').textContent='Esperá a que termine la carga antes de publicar.';return;}
  if(!confirm('¿Leer el historial de Firebase y publicar los KPI actualizados para todos los colaboradores? Esta operación puede consumir muchas lecturas.'))return;
  publishing=true;$('publishKpis').disabled=true;const status=$('publishStatus');status.className='status';status.textContent='Leyendo historial original (una sola pasada)…';
  try{
@@ -2123,17 +2125,17 @@ $('publishKpis').addEventListener('click',async()=>{
   for(const person of persons.docs){
    const id=person.id,name=String(person.data().nombre||id);
    const snap=await getDocs(collection(db,'kpis',id,'registros'));totalRead+=snap.size;
-   const tareas=[],gestion=[],holdsByDay=new Map(),holdsErrores=[];
+   const tareas=[],gestion=[],holdsByDay=new Map(),holdsErrores=[],holdReasons=[];
    const newerHolds=new Set(snap.docs.filter(d=>d.data().tipo==='hold'&&d.data().versionHold===2).map(d=>String(d.data().idCDM)));
    for(const item of snap.docs){const r=item.data();if(!r.fecha)continue;
     if(['tareas','creaciones','correcciones'].includes(r.tipo)&&Number.isFinite(Number(r.cantidad)))tareas.push({id,fecha:r.fecha,tipo:r.tipo,cantidad:Number(r.cantidad),colaborador:String(r.colaborador||name),...(r.rolOrigen?{rolOrigen:r.rolOrigen,flujoOperativo:operationalFlow(r.rolOrigen)}:{})});
     else if(r.tipo==='gestion')gestion.push({id,fecha:r.fecha,colaborador:name,tipo:'gestion',versionGestion:r.versionGestion,total:Number(r.total)||0,flujos:r.flujos||{},franjas:r.franjas||[],cierresValidos:Number(r.cierresValidos)||0,ultimas3:Number(r.ultimas3)||0,primerInicio:r.primerInicio??null,ultimoCierre:r.ultimoCierre??null});
-    else if(r.tipo==='hold'){if(r.versionHold!==2&&newerHolds.has(String(r.idCDM)))continue;const qty=r.versionHold===2?(Number(r.cantidad)||0):1;holdsByDay.set(r.fecha,(holdsByDay.get(r.fecha)||0)+qty);for(const action of r.accionesCorrectas||[])holdsErrores.push({...action,fecha:r.fecha,idCDM:r.idCDM,id,colaborador:name});}
+    else if(r.tipo==='hold'){if(r.versionHold!==2&&newerHolds.has(String(r.idCDM)))continue;const qty=r.versionHold===2?(Number(r.cantidad)||0):1;holdsByDay.set(r.fecha,(holdsByDay.get(r.fecha)||0)+qty);for(const action of r.accionesCorrectas||[])holdsErrores.push({...action,fecha:r.fecha,idCDM:r.idCDM,id,colaborador:name});for(const reason of r.motivosHold||[])holdReasons.push({...reason,fecha:r.fecha,idCDM:r.idCDM,id,colaborador:name});}
    }
    const holds=[...holdsByDay].map(([fecha,cantidad])=>({id,fecha,cantidad,colaborador:name}));
    // Firestore limita cada documento a 1 MiB; avisar antes de publicar documentos demasiado grandes.
    if(auth.currentUser?.uid!==uid)throw Error('La sesión cambió durante la publicación.');
-   const payload={idMeli:id,nombre:name,equipo:validTeam(person.data().equipo),tareas,holds,gestion,holdsErrores,version:16};
+   const payload={idMeli:id,nombre:name,equipo:validTeam(person.data().equipo),tareas,holds,gestion,holdsErrores,holdReasons,version:16};
    payload.notificacionVersion=await notificationDigest(payload);
    payload.notificacionSecciones=Object.fromEntries(await Promise.all(
     Object.entries({productividad:tareas,holds,finalizadas:gestion}).map(async ([seccion,datos])=>[seccion,await notificationDigest(datos)])
@@ -2144,7 +2146,7 @@ $('publishKpis').addEventListener('click',async()=>{
    await (async()=>{const batch=writeBatch(db);batch.set(doc(db,'kpi_publicados',id),payload);await batch.commit();})();
    updated++;status.textContent=`Publicando ${updated}/${persons.size} colaboradores · ${totalRead} documentos leídos aproximadamente…`;
   }
-  status.className='status good';status.textContent=`✓ ${updated} fichas publicadas. Lecturas aproximadas: ${totalRead}. Los colaboradores ya pueden ver la nueva publicación.`;
+  status.className='status good';status.textContent=`✓ ${updated} fichas publicadas. Los colaboradores ya pueden consultar la actualización.`;
   if(versions.length){
    if(auth.currentUser?.uid!==uid)throw Error('La sesión cambió durante la publicación.');
    const log=writeBatch(db);
@@ -2152,7 +2154,7 @@ $('publishKpis').addEventListener('click',async()=>{
     afectados:versions.map(([id])=>id),versiones:Object.fromEntries(versions),fecha:serverTimestamp(),estado:'completado'});
    await log.commit();
   }
-  $('holdsImportStatus').textContent+=' Publicá manualmente los KPI para hacer visibles los cambios.';
+  await loadDashboardKpis();
  }catch(e){console.error(e);status.className='status bad';status.textContent='Publicación incompleta: '+e.message+'; las fichas anteriores no publicadas permanecen sin cambios.';}
  finally{publishing=false;$('publishKpis').disabled=false;}
 });
@@ -2188,6 +2190,12 @@ function renderHolds(){
  if($('weekMode').value==='weeks'&&$('weekStart').value>$('weekEnd').value){chart.textContent='Revisá el rango de semanas.';return;}
  const selected=holdsCache.filter(r=>isVisiblePeriod(r.fecha)&&(!who||r.id===who)&&includedRecord(r)&&weeklyMatches(r.fecha));
  const rows=selected,counts=new Map();
+ $('holdReasonsPanel').hidden=!isAdmin;
+ if(isAdmin){
+  const reasons=publishedItems.filter(item=>devMatches(item.equipo,item.idMeli)).flatMap(item=>item.holdReasons||[])
+   .filter(row=>weeklyMatches(row.fecha)).map(row=>({...row,accionCorrecta:row.motivo}));
+  renderHoldsRanking($('holdReasonRows'),reasons,devFilters.state().cadence,10,{column:'Motivo Holdeo',unit:'holds'});
+ }
  for(const r of rows){const wk=isoWeek(r.fecha).key;counts.set(wk,(counts.get(wk)||0)+r.cantidad);}
  const ordered=[...counts].sort((a,b)=>a[0].localeCompare(b[0]));
  const total=rows.reduce((n,r)=>n+r.cantidad,0);$('holdsTotal').textContent=fmt(total);$('holdsWeeks').textContent=fmt(ordered.length);$('holdsAverage').textContent=ordered.length?fmt(total/ordered.length):'—';
@@ -2221,6 +2229,7 @@ $('holdsFile').addEventListener('change',async event=>{
   if(!/\.csv$/i.test(file.name))throw Error('Seleccioná un archivo CSV.');
   await loadXlsx();const raw=await file.arrayBuffer();const wb=XLSX.read(raw,{type:'array',raw:true,codepage:65001});const matrix=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,defval:'',raw:false,blankrows:false});
   const head=matrix[0]||[],col=name=>head.findIndex(h=>normalize(h)===normalize(name));const ci=col('ID CDM'),cp=col('Colaborador'),cd=col('Ultimo Hold'),ca=col('Acción correcta');
+  const cm=col('Motivo Holdeo')<0?col('Motivo de Hold'):col('Motivo Holdeo');
   if([ci,cp,cd].some(x=>x<0))throw Error('Faltan columnas: ID CDM, Colaborador o Ultimo Hold.');
   const {people,teams}=await loadImportPeople();const selected=new Map();let skipped=0,invalid=0,duplicates=0;
   for(let i=1;i<matrix.length;i++){
@@ -2238,6 +2247,15 @@ $('holdsFile').addEventListener('change',async event=>{
     if(found)found.cantidad++;else record.accionesCorrectas.push({accionCorrecta:action,cantidad:1});
    }
    if(ca>=0)selected.get(key).accionesCorrectas??=[];
+   if(cm>=0){
+    const record=selected.get(key),motivo=String(r[cm]??'').trim();
+    record.motivosHold??=[];
+    if(motivo&&motivo.toLowerCase()!=='null'){
+     const existing=record.motivosHold.find(reason=>normalize(reason.motivo)===normalize(motivo));
+     if(existing)existing.cantidad++;
+     else record.motivosHold.push({motivo,cantidad:1});
+    }
+   }
   }
   if(!selected.size)throw Error('El CSV no contiene holds válidos de catalogadores presentes en tu equipo.');
   const changes=[],stats={newCount:0,updatedCount:0,unchangedCount:0};const grouped=new Map();
@@ -2245,7 +2263,7 @@ $('holdsFile').addEventListener('change',async event=>{
   for(const [id,recs] of grouped){const snap=await getDocs(collection(db,'kpis',id,'registros'));const existing=new Map(snap.docs.map(d=>[d.id,d.data()]));
    for(const record of recs){const recordId=holdRecordId(record.idCDM,record.fecha),old=existing.get(recordId);
     if(!old){stats.newCount++;changes.push({recordId,record});}
-    else if(old.fecha!==record.fecha||old.colaborador!==record.colaborador||old.idCDM!==record.idCDM||Number(old.cantidad)!==record.cantidad||('accionesCorrectas' in record&&JSON.stringify(old.accionesCorrectas||[])!==JSON.stringify(record.accionesCorrectas))){stats.updatedCount++;changes.push({recordId,record:{...record,...(!('accionesCorrectas' in record)&&old.accionesCorrectas?{accionesCorrectas:old.accionesCorrectas}:{})}});}
+    else if(old.fecha!==record.fecha||old.colaborador!==record.colaborador||old.idCDM!==record.idCDM||Number(old.cantidad)!==record.cantidad||('accionesCorrectas' in record&&JSON.stringify(old.accionesCorrectas||[])!==JSON.stringify(record.accionesCorrectas))||('motivosHold' in record&&JSON.stringify(old.motivosHold||[])!==JSON.stringify(record.motivosHold))){stats.updatedCount++;changes.push({recordId,record:{...record,...(!('accionesCorrectas' in record)&&old.accionesCorrectas?{accionesCorrectas:old.accionesCorrectas}:{}),...(!('motivosHold' in record)&&old.motivosHold?{motivosHold:old.motivosHold}:{})}});}
     else stats.unchangedCount++;
    }
   }
@@ -2264,14 +2282,14 @@ $('confirmHoldsImport').addEventListener('click',async()=>{
  try{const noticeScope=await notificationScope(plan.changes);
   for(let i=0;i<plan.changes.length;i+=300){const batch=writeBatch(db);for(const {recordId,record} of plan.changes.slice(i,i+300))batch.set(doc(db,'kpis',record.id,'registros',recordId),{...record,operacionAviso:noticeScope.operacionAviso,actualizadoEn:serverTimestamp()});await batch.commit();status.textContent=`Guardando holds… ${Math.min(i+300,plan.changes.length)} de ${plan.changes.length}`;}
   const log=writeBatch(db);log.set(doc(collection(db,'importaciones')),{archivo:plan.fileName,tipo:'holds',...noticeScope,equipo:isPM?'Todos los equipos':selectedTeam,usuario:auth.currentUser.uid,nuevos:plan.stats.newCount,corregidos:plan.stats.updatedCount,fecha:serverTimestamp(),estado:'completado'});await log.commit();
-  status.className='status good';status.textContent='✓ Holds guardados correctamente en Firebase.';holdsImportPlan=null;await loadDashboardKpis();
+  status.className='status good';status.textContent='✓ Holds guardados correctamente en Firebase.';holdsImportPlan=null;showPublicationShortcut(status);
  }catch(e){console.error(e);status.className='status bad';status.textContent='Error al guardar holds: '+e.message+'. Podés volver a cargar el CSV para reintentar sin duplicados.';}
  finally{holdsBusy=false;$('holdsFile').disabled=false;}
 });
 
 // Gestión: agregados diarios independientes. Sin escrituras por cada tarea.
-// V14: en gMinutes el grupo 3 son segundos y el grupo 4 es AM/PM.
-const G_SCHEMA=14;
+// V15 usa la hora de 24 horas y conserva segundos para el límite de las 18:00.
+const G_SCHEMA=15;
 const G_BINS=['09–11','11–13','13–15','15–17','17–18','Fuera de franja'];
 // Lector CSV directo: evita que Excel/SheetJS transforme HH:mm:ss en valores de fecha.
 function parseGestionCSV(text){
@@ -2293,37 +2311,43 @@ function parseGestionCSV(text){
 function gCategory(name){
  const n=normalize(name);
  if(n==='known_value')return 'KNOWN_VALUE';
- if(n==='mao'||n==='ccc')return 'CCC';
+ if(normalizeQualityFlow(n))return 'Flujo Mixto';
  if(['sugerencia de correccion','sugerencia de creacion'].includes(n))return 'DEMANDA';
  if(['denuncias_bpp','sugerencias de correccion','unificacion de familias','sugerencias de creacion','separacion de familias','merge de productos','denuncia bpp - uso indebido de marca','analisis y correccion de knowns values'].includes(n))return 'SOPORTE';
  return 'OTROS';
 }
-function gMinutes(value){const m=String(value??'').trim().match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(AM|PM)?$/i);if(!m)return null;let h=+m[1];const min=+m[2];if(min>59||h>23)return null;if(m[4]){if(h<1||h>12)return null;h=(h%12)+(m[4].toUpperCase()==='PM'?12:0);}else if(h>=1&&h<=7)h+=12;return h*60+min;}
-function gBin(min){if(min===null)return -1;const h=min/60;return h>=9&&h<11?0:h>=11&&h<13?1:h>=13&&h<15?2:h>=15&&h<17?3:h>=17&&h<18?4:5;}
+function gMinutes(value){
+ const match=String(value??'').trim().match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
+ if(!match)return null;
+ const [,hour,minute,second='0']=match;
+ if(+hour>23||+minute>59||+second>59)return null;
+ return +hour*60 + +minute + +second/60;
+}
+function gBin(min){if(min===null)return -1;const h=min/60;return h>=9&&h<11?0:h>=11&&h<13?1:h>=13&&h<15?2:h>=15&&h<17?3:h>=17&&min<=1080?4:5;}
 function gTime(min){if(min===null||!Number.isFinite(min))return '—';const x=Math.round(min);return `${pad2(Math.floor(x/60)%24)}:${pad2(x%60)}`;}
 function gPct(num,den){return den?`${(100*num/den).toLocaleString('es-AR',{maximumFractionDigits:1})}%`:'—';}
 function gEqual(a,b){return JSON.stringify(a)===JSON.stringify(b);}
 async function loadGestionForPeople(people){
  const all=[];let errors=0;
  for(const person of people){try{const snap=await getDocs(collection(db,'kpis',person.id,'registros'));for(const item of snap.docs){const r=item.data();if(r.tipo!=='gestion'||!r.fecha)continue;all.push({...r,id:person.id,colaborador:person.data().nombre||person.id});}}catch(e){errors++;console.error('Error de Gestión',person.id,e);}}
- gestionCache=all;$('gestionStatus').textContent=errors?`No se pudo consultar Gestión de ${errors} catalogadores.`:`${fmt(all.reduce((n,r)=>n+(Number(r.total)||0),0))} tareas finalizadas en Gestión · ${all.filter(r=>r.versionGestion===G_SCHEMA).length}/${all.length} jornadas con cálculo V14.`;
+ gestionCache=all;$('gestionStatus').textContent=errors?`No se pudo consultar Gestión de ${errors} catalogadores.`:`${fmt(all.reduce((n,r)=>n+(Number(r.total)||0),0))} tareas finalizadas en Gestión · ${all.filter(r=>r.versionGestion===G_SCHEMA).length}/${all.length} jornadas con cálculo V15.`;
 }
 function renderGestion(){
  const who=$('personFilter').value;
  const rows=gestionCache.filter(r=>isVisiblePeriod(r.fecha)&&(!who||r.id===who)&&includedRecord(r)&&weeklyMatches(r.fecha));
  renderFlowProductivityGoals(rows);
- const groups={CCC:0,DEMANDA:0,SOPORTE:0,KNOWN_VALUE:0,OTROS:0},flows=new Map(),bins=[0,0,0,0,0,0];let total=0,closed=0,firstSum=0,firstDays=0,lastSum=0,lastDays=0,last3=0;
+ const groups={'Flujo Mixto':0,DEMANDA:0,SOPORTE:0,KNOWN_VALUE:0,OTROS:0},flows=new Map(),bins=[0,0,0,0,0,0];let total=0,closed=0,firstSum=0,firstDays=0,lastSum=0,lastDays=0,last3=0;
  for(const r of rows){const count=Number(r.total)||0;total+=count;for(const [name,raw] of Object.entries(r.flujos||{})){const v=Number(raw)||0;flows.set(name,(flows.get(name)||0)+v);groups[gCategory(name)]+=v;}
   if(r.versionGestion===G_SCHEMA){(r.franjas||[]).forEach((v,i)=>{if(i<6)bins[i]+=Number(v)||0;});closed+=Number(r.cierresValidos)||0;last3+=Number(r.ultimas3)||0;}
   if(r.versionGestion===G_SCHEMA&&Number.isFinite(Number(r.primerInicio))&&r.primerInicio!==null){firstSum+=Number(r.primerInicio);firstDays++;}if(r.versionGestion===G_SCHEMA&&Number.isFinite(Number(r.ultimoCierre))&&r.ultimoCierre!==null){lastSum+=Number(r.ultimoCierre);lastDays++;}
  }
-  for(const [group,prefix] of [['CCC','gCcc'],['DEMANDA','gDemanda'],['SOPORTE','gSoporte'],['KNOWN_VALUE','gKnown'],['OTROS','gOtros']]){$(prefix).textContent=gPct(groups[group],total);$(prefix+'Count').textContent=`${fmt(groups[group])} tareas`;}
+  for(const [group,prefix] of [['Flujo Mixto','gCcc'],['DEMANDA','gDemanda'],['SOPORTE','gSoporte'],['KNOWN_VALUE','gKnown'],['OTROS','gOtros']]){$(prefix).textContent=gPct(groups[group],total);$(prefix+'Count').textContent=`${fmt(groups[group])} tareas`;}
   $('gTotalTasks').textContent=fmt(total);$('gPeopleTotal').textContent=fmt(new Set(rows.map(r=>r.id)).size);$('gDayCoverage').textContent=fmt(rows.length)+' jornadas de gestión';
   $('gTimeCoverage').textContent=gPct(closed,total);$('gTimeCoverageNote').textContent=fmt(closed)+' de '+fmt(total)+' finalizadas con horario válido y cálculo actualizado';
   $('pmFlowsScope').textContent=dashboardScope();
   if(isAdmin&&$('pmFlowsIntro').nextElementSibling?.id!=='gestionPanel')$('viewDashboard').insertBefore($('pmFlowsIntro'),$('gestionPanel'));
   const composition=$('gFlowComposition');composition.replaceChildren();
-  const flowColors={CCC:'#1765d1',DEMANDA:'#996000',SOPORTE:'#137f72',KNOWN_VALUE:'#7552ae',OTROS:'#64748b'};
+  const flowColors={'Flujo Mixto':'#1765d1',DEMANDA:'#996000',SOPORTE:'#137f72',KNOWN_VALUE:'#7552ae',OTROS:'#64748b'};
   if(total){const track=document.createElement('div');track.className='flow-composition-track';for(const [group,count] of Object.entries(groups)){if(!count)continue;const segment=document.createElement('span');segment.style.width=(100*count/total)+'%';segment.style.background=flowColors[group];segment.title=group+' · '+gPct(count,total);segment.setAttribute('aria-label',segment.title);track.appendChild(segment);}composition.appendChild(track);}else composition.textContent='Sin tareas finalizadas para los filtros seleccionados.';
  const body=$('gFlowRows');body.replaceChildren();for(const [name,count] of [...flows].sort((a,b)=>b[1]-a[1])){const tr=document.createElement('tr');for(const val of [name,gCategory(name),fmt(count),gPct(count,total)]){const td=document.createElement('td');td.textContent=val;tr.appendChild(td);}body.appendChild(tr);}if(!flows.size)body.innerHTML='<tr><td colspan="4">Sin registros de Gestión para este período.</td></tr>';
  if(!isAdmin)$('employeeTimeCoverage').textContent=fmt(closed)+' de '+fmt(total)+' tareas finalizadas con horario válido · '+gPct(closed,total)+' de cobertura';
@@ -2343,20 +2367,20 @@ $('gestionFile').addEventListener('change',async event=>{
    if(!fechaFin||!flow){invalid++;continue;}
    // El flujo y el cierre corresponden al día de finalización.
    const cierre=ensureDay(id,fechaFin);cierre.total++;cierre.flujos[flow]=(cierre.flujos[flow]||0)+1;valid++;
-   const fin=gMinutes(r[idx.end]);if(fin!==null){cierre.ultimoCierre=cierre.ultimoCierre===null?fin:Math.max(cierre.ultimoCierre,fin);cierre.franjas[gBin(fin)]++;cierre.cierresValidos++;if(fin>=900&&fin<1080)cierre.ultimas3++;}
+   const fin=gMinutes(r[idx.end]);if(fin!==null){cierre.ultimoCierre=cierre.ultimoCierre===null?fin:Math.max(cierre.ultimoCierre,fin);cierre.franjas[gBin(fin)]++;cierre.cierresValidos++;if(fin>=900&&fin<=1080)cierre.ultimas3++;}
    // El primer inicio corresponde al día de inicio, aunque la tarea termine otro día.
    const inicio=gMinutes(r[idx.start]);if(fechaInicio&&inicio!==null){const apertura=ensureDay(id,fechaInicio);apertura.primerInicio=apertura.primerInicio===null?inicio:Math.min(apertura.primerInicio,inicio);}
   }
   if(!aggregated.size)throw Error('No se encontraron tareas del equipo en el archivo.');const byId=new Map();for(const r of aggregated.values()){if(!byId.has(r.id))byId.set(r.id,[]);byId.get(r.id).push(r);}
   const changes=[],stats={newCount:0,updatedCount:0,unchangedCount:0};for(const [id,recs] of byId){const snap=await getDocs(collection(db,'kpis',id,'registros'));const existing=new Map(snap.docs.map(d=>[d.id,d.data()]));for(const record of recs){const recordId='gestion_'+record.fecha,old=existing.get(recordId);const fields=['versionGestion','total','flujos','franjas','cierresValidos','ultimas3','primerInicio','ultimoCierre'];if(!old){stats.newCount++;changes.push({recordId,record});}else if(fields.some(f=>!gEqual(old[f],record[f]))){stats.updatedCount++;changes.push({recordId,record});}else stats.unchangedCount++;}}
-  gestionPlan={changes,stats,fileName:file.name};$('gestionImportStats').innerHTML=`<div>Días nuevos<strong>${stats.newCount}</strong></div><div>Días actualizados<strong>${stats.updatedCount}</strong></div><div>Sin cambios<strong>${stats.unchangedCount}</strong></div>`;$('gestionImportSummary').textContent=`${fmt(valid)} tareas válidas del equipo, ${aggregated.size} jornadas por catalogador, ${skipped} filas de otros colaboradores y ${invalid} filas inválidas. No se modifican Holds ni Productividad. ${changes.length?'Revisá y confirmá la importación.':'Todos los registros ya coinciden con Firebase.'}`;$('gestionImportPanel').classList.remove('hidden');$('confirmGestionImport').disabled=!changes.length;$('gestionFileStatus').className='status good';$('gestionFileStatus').textContent='✓ CSV analizado con cálculo V14 (primer inicio y último cierre por día). Aún no se guardó nada.';
+  gestionPlan={changes,stats,fileName:file.name};$('gestionImportStats').innerHTML=`<div>Días nuevos<strong>${stats.newCount}</strong></div><div>Días actualizados<strong>${stats.updatedCount}</strong></div><div>Sin cambios<strong>${stats.unchangedCount}</strong></div>`;$('gestionImportSummary').textContent=`${fmt(valid)} tareas válidas del equipo, ${aggregated.size} jornadas por catalogador, ${skipped} filas de otros colaboradores y ${invalid} filas inválidas. No se modifican Holds ni Productividad. ${changes.length?'Revisá y confirmá la importación.':'Todos los registros ya coinciden con Firebase.'}`;$('gestionImportPanel').classList.remove('hidden');$('confirmGestionImport').disabled=!changes.length;$('gestionFileStatus').className='status good';$('gestionFileStatus').textContent='✓ CSV analizado con cálculo V15 (primer inicio y último cierre por día). Aún no se guardó nada.';
  }catch(e){console.error(e);$('gestionFileStatus').className='status bad';$('gestionFileStatus').textContent='Error al analizar Gestión: '+e.message;}
 });
 $('confirmGestionImport').addEventListener('click',async()=>{
  if(!canImportBases()||gestionBusy||!gestionPlan||!auth.currentUser)return;const plan=gestionPlan;if(!confirm(`¿Guardar ${plan.stats.newCount} jornadas nuevas y actualizar ${plan.stats.updatedCount} jornadas de Gestión?`))return;
  gestionBusy=true;$('confirmGestionImport').disabled=true;$('gestionFile').disabled=true;const status=$('gestionImportStatus');status.className='status';
  try{const noticeScope=await notificationScope(plan.changes);for(let i=0;i<plan.changes.length;i+=250){const batch=writeBatch(db);for(const {recordId,record} of plan.changes.slice(i,i+250))batch.set(doc(db,'kpis',record.id,'registros',recordId),{...record,operacionAviso:noticeScope.operacionAviso,actualizadoEn:serverTimestamp()});await batch.commit();status.textContent=`Guardando Gestión… ${Math.min(i+250,plan.changes.length)} de ${plan.changes.length}`;}
- const log=writeBatch(db);log.set(doc(collection(db,'importaciones')),{archivo:plan.fileName,tipo:'gestion',...noticeScope,equipo:isPM?'Todos los equipos':selectedTeam,usuario:auth.currentUser.uid,nuevos:plan.stats.newCount,corregidos:plan.stats.updatedCount,fecha:serverTimestamp(),estado:'completado'});await log.commit();status.className='status good';status.textContent='✓ Gestión guardada correctamente en Firebase.';gestionPlan=null;status.textContent+=' Publicá manualmente los KPI para hacer visibles los cambios.';
+ const log=writeBatch(db);log.set(doc(collection(db,'importaciones')),{archivo:plan.fileName,tipo:'gestion',...noticeScope,equipo:isPM?'Todos los equipos':selectedTeam,usuario:auth.currentUser.uid,nuevos:plan.stats.newCount,corregidos:plan.stats.updatedCount,fecha:serverTimestamp(),estado:'completado'});await log.commit();status.className='status good';status.textContent='✓ Gestión guardada correctamente en Firebase.';gestionPlan=null;showPublicationShortcut(status);
  }catch(e){console.error(e);status.className='status bad';status.textContent='Error al guardar Gestión: '+e.message+'. Volvé a cargar el CSV para comparar y reintentar sin duplicados.';}finally{gestionBusy=false;$('gestionFile').disabled=false;}
 });
 
@@ -2432,7 +2456,7 @@ function renderEmployeeOverview(days,total){
  if(target===null){goal.dataset.state='empty';goal.textContent=flow==='kv'?'Know Values · Sin objetivo':'Sin objetivo verificable para esta ficha';
   $('employeeTrend').textContent=$('headerDelta').textContent+' · '+$('headerCompare').textContent;return;}
  goal.dataset.state=average===null?'empty':average>=target?'met':'below';
- goal.textContent=average===null?'Sin jornadas para comparar con el mínimo':average===target?'Cumplió el mínimo esperado · '+fmt(target):fmt(Math.abs(average-target))+' tareas '+(average>target?'por encima':'por debajo')+' del mínimo esperado de '+fmt(target);
+ goal.textContent=average===null?'Sin jornadas para comparar con el mínimo':average===target?'Alcanzó el piso · '+fmt(target):fmt(Math.abs(average-target))+' tareas '+(average>target?'por encima':'por debajo')+' del piso de '+fmt(target);
  $('employeeTrend').textContent=$('headerDelta').textContent+' · '+$('headerCompare').textContent;
 }
 document.querySelectorAll('[data-employee-view]').forEach(button=>button.addEventListener('click',()=>{
@@ -2459,6 +2483,17 @@ function showConfiguration(){
  $('openUpload').disabled=!canImportBases();$('uploadAccessNote').textContent=canImportBases()?'Carga y publicación habilitadas.':'Tu cuenta requiere autorización para cargar bases.';
  $('openPermissions').disabled=!canManageAccess();$('permissionsAccessNote').textContent=ownsAccess()?'Podés designar SUPER ADM y habilitar TL.':canManageAccess()?'Podés habilitar cargas y acceso global a cuentas TL.':'Disponible para Ezequiel y los SUPER ADM designados.';
  $('permissionsPanel').classList.add('hidden');
+}
+function showPublicationShortcut(status){
+ const link=document.createElement('button');
+ link.type='button';
+ link.className='audit-link';
+ link.textContent='Ir a publicar';
+ link.addEventListener('click',()=>{
+  $('publicationActions').scrollIntoView({block:'start'});
+  $('publishKpis').focus({preventScroll:true});
+ });
+ status.append(' Pendiente de publicar. ',link);
 }
 function selectUploadBase(name){
  document.querySelectorAll('[data-upload]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.upload===name)));
@@ -2763,15 +2798,21 @@ function renderQuality(){
   $('qualityAudited').textContent=now.length?fmt(current.audited):'—';
   $('qualityErrors').textContent=current.errors===null?'Sin datos':fmt(current.errors);
  }
- const cadence=isAdmin?devFilters.state().cadence:$('qualityCadence').value;
+ let cadence=isAdmin?devFilters.state().cadence:$('qualityCadence').value;
  $('qualityCadence').closest('div').hidden=isAdmin;
- const trendRecords=cadence==='weeks'&&periods?withFlow(selectQualityPeriod(eligible,periods.current,true)):now;
+ const weeklyTrend=cadence==='weeks'&&periods?withFlow(selectQualityPeriod(eligible,periods.current,true)):null;
+ let trendRecords=weeklyTrend??now;
+ if(weeklyTrend&&!weeklyTrend.length){
+  const monthly=withFlow(eligible).filter(row=>row.unit==='month'&&row.start<periods.current.end&&
+   new Date(Date.UTC(Number(row.start.slice(0,4)),Number(row.start.slice(5,7)),1)).toISOString().slice(0,10)>periods.current.start);
+  if(monthly.length){cadence='months';trendRecords=monthly;}
+ }
  const buckets=flow?bucketQuality(trendRecords,cadence):[];
  const graph=$('qualityTrend');graph.replaceChildren();
  if(!buckets.length)graph.textContent=!flow?'Elegí un flujo para ver su evolución.':cadence==='weeks'?'Sin registros fechados para mostrar por semana.':'Sin datos en el período.';
  for(const bucket of buckets){
   const row=document.createElement('div'),label=document.createElement('span'),bar=document.createElement('meter'),value=document.createElement('strong');
-  label.textContent=cadence==='weeks'?'Semana del '+bucket.key:bucket.key;
+  label.textContent=cadence==='weeks'?'Semana del '+bucket.key:cadence==='months'?'Mes · '+monthLabel(bucket.key):bucket.key;
   bar.min=0;bar.max=1;bar.value=bucket.quality;bar.setAttribute('aria-label',label.textContent);
   value.textContent=qualityPercent(bucket.quality);
   row.append(label,bar,value);graph.appendChild(row);
@@ -3028,7 +3069,7 @@ $('confirmCalidadImport').addEventListener('click',async()=>{
   $('qualityArchive').disabled=false;$('qualityFindArchives').disabled=false;
  }
 });
-$('openUpload').addEventListener('click',()=>{if(!canImportBases())return;selectAdminSection('cargar');$('publicationActions').appendChild($('publishKpis'));$('publicationActions').appendChild($('publishStatus'));$('publishKpis').classList.remove('hidden');$('publishStatus').classList.remove('hidden');});
+$('openUpload').addEventListener('click',()=>{if(!canImportBases())return;selectAdminSection('cargar');});
 $('settingsPassword').addEventListener('click',()=>$('changePasswordButton').click());
 $('settingsLogout').addEventListener('click',async()=>{if(importBusy||holdsBusy||gestionBusy||calidadBusy||publishing){$('logoutStatus').textContent='Esperá a que termine la carga o publicación en curso.';return;}$('settingsLogout').disabled=true;try{await signOut(auth);}catch(error){$('logoutStatus').textContent='No se pudo cerrar la sesión. Intentá nuevamente.';}finally{$('settingsLogout').disabled=false;}});
 function permissionLabel(permission){
@@ -3086,6 +3127,7 @@ $('permissionForm').addEventListener('submit',async event=>{
  if(isAdmin){$('pmOverview').classList.toggle('hidden',section!=='resumen');$('pmOverview').dataset.adminHide=section==='resumen'?'false':'true';$('mainCards').dataset.adminHide='true';$('summaryVisual').dataset.adminHide='true';renderPmOverview();}else{$('pmOverview').classList.add('hidden');$('pmOverview').dataset.adminHide='true';}
  if(isAdmin){if(section==='resumen')$('pmOverview').insertBefore($('pmFilterBar'),$('pmOverview').querySelector('.pm-metrics'));else if(section==='productividad-holds')$('pmProductivityFilters').appendChild($('pmFilterBar'));else if(section==='flujos-tiempos')$('pmFlowsFilters').appendChild($('pmFilterBar'));else $('viewDashboard').insertBefore($('pmFilterBar'),$('viewDashboard').firstChild);renderPmProductivity();}
  if(!upload)devFilters.mount($('viewDashboard'));
+ else{const publication=$('publicationActions');publication.append($('publishKpis'),$('publishStatus'));$('publishKpis').classList.remove('hidden');$('publishStatus').classList.remove('hidden');}
  if(quality){renderQuality();window.scrollTo(0,0);}
  requestAnimationFrame(centerSingleWeekCharts);
  $('welcome').textContent=section==='cargar'?'Cargar bases':({resumen:'Resumen',calidad:'Calidad','productividad-holds':'Productividad / Holds','flujos-tiempos':'Flujos / Tiempos'}[section]||'Dashboard KPI');
@@ -3153,9 +3195,9 @@ function renderPmProductivity(){
 
 function minimumText(average,minimum){
  if(minimum==null)return 'Sin objetivo';
- if(average==null)return 'Sin jornadas para evaluar el mínimo';
- if(average===minimum)return 'Cumplió el mínimo esperado · '+fmt(minimum);
- return fmt(Math.abs(average-minimum))+' tareas '+(average>minimum?'por encima':'por debajo')+' del mínimo esperado de '+fmt(minimum);
+ if(average==null)return 'Sin jornadas para evaluar el piso';
+ if(average===minimum)return 'Alcanzó el piso · '+fmt(minimum);
+ return fmt(Math.abs(average-minimum))+' tareas '+(average>minimum?'por encima':'por debajo')+' del piso de '+fmt(minimum);
 }
 function renderPmOverview(){
  if(!isAdmin)return;

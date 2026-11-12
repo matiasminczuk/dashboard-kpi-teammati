@@ -1,4 +1,4 @@
-import {operationalFlows,productivityTotals,achievement,creationSeries,holdsErrorRanking,inPeriod} from './gestion-desarrollo.mjs';
+import {operationalFlows,productivityTotals,achievement,creationSeries,holdsErrorRanking,inPeriod} from './gestion-desarrollo.mjs?v=productividad-personal';
 
 const format=new Intl.NumberFormat('es-AR',{maximumFractionDigits:1});
 const fmt=value=>value==null?'—':format.format(value);
@@ -34,11 +34,11 @@ export function renderOperationalCards(container,rows,period,goals,onlyActive=fa
 
     const goal=element('div',undefined,'dev-metric-goal');
     const status=target===null?'Sin objetivo':kpi.percent===null?'Sin jornadas para evaluar':
-      kpi.difference>=0?'En objetivo':'Por debajo del objetivo';
+      kpi.difference>=0?'En el piso o por encima':'Por debajo del piso';
     const badge=element('span',status,'dev-metric-badge');
     if(kpi.percent!==null)badge.dataset.state=kpi.difference>=0?'met':'below';
     goal.append(badge);
-    if(target!==null)goal.append(element('p','Mínimo '+fmt(target)+' tareas por jornada'));
+    if(target!==null)goal.append(element('p','Piso '+fmt(target)+' tareas por jornada'));
     if(kpi.percent!==null){
       const progress=element('progress');
       progress.max=100;progress.value=Math.min(kpi.percent,100);
@@ -92,13 +92,13 @@ export function renderComparison({chart,body,rows,period,group,sort,goals,drilld
     }
     return;
   }
-  for(const item of ranking){
+  comparisons.sort((a,b)=>(b[sort]??-Infinity)-(a[sort]??-Infinity)||a.team.localeCompare(b.team,'es'));
+  for(const item of comparisons){
     const row=element('div',undefined,'dev-comparison-bar'),label=element('span',item.team),meter=element('meter');
     meter.min=0;meter.max=max;meter.value=item.average;
     meter.setAttribute('aria-label',item.team+' · '+fmt(item.average)+' tareas por jornada');
     row.append(label,meter,element('strong',fmt(item.average)));chart.append(row);
   }
-  comparisons.sort((a,b)=>(b[sort]??-Infinity)-(a[sort]??-Infinity)||a.team.localeCompare(b.team,'es'));
   for(const item of comparisons){
     const row=body.insertRow();
     row.insertCell().textContent=positions.get(item.team);
@@ -110,8 +110,8 @@ export function renderComparison({chart,body,rows,period,group,sort,goals,drilld
   }
 }
 
-export function renderCreationChart(container,rows,cadence,isoWeek){
-  const points=creationSeries(rows,cadence);
+export function renderCreationChart(container,rows,cadence,isoWeek,averageDaily=false){
+  const points=creationSeries(rows,cadence,averageDaily);
   container.replaceChildren();
   if(!points.length){container.textContent='Sin registros de Creaciones o Correcciones en el período.';return;}
   const ns='http://www.w3.org/2000/svg', svg=document.createElementNS(ns,'svg');
@@ -143,7 +143,7 @@ export function renderCreationChart(container,rows,cadence,isoWeek){
       if(last)add('line',{x1:last[0],y1:last[1],x2:next[0],y2:next[1],stroke:color,'stroke-width':3});
       const circle=add('circle',{cx:next[0],cy:next[1],r:4,fill:color,tabindex:0});
       const periodLabel=cadence==='weeks'?labelFor(point.key)+' · lunes '+point.key:point.key;
-      const tooltip=periodLabel+' · '+name+' '+fmt(value);circle.setAttribute('aria-label',tooltip);
+      const tooltip=periodLabel+' · '+name+' '+fmt(value)+(averageDaily?' por jornada':'');circle.setAttribute('aria-label',tooltip);
       const title=document.createElementNS(ns,'title');title.textContent=tooltip;circle.append(title);
       last=next;
     });
@@ -152,14 +152,14 @@ export function renderCreationChart(container,rows,cadence,isoWeek){
   if(points.every(point=>point.correcciones==null))container.append(element('p','La publicación no contiene registros de Correcciones.','muted'));
 }
 
-export function renderHoldsRanking(container,rows,cadence,top){
+export function renderHoldsRanking(container,rows,cadence,top,{column='Acción correcta',unit='errores'}={}){
   container.replaceChildren();
   const ranking=holdsErrorRanking(rows,cadence).slice(0,top);
-  if(!ranking.length){container.textContent='Sin registros con «Acción correcta» en las bases de Holds publicadas para esta selección.';return;}
+  if(!ranking.length){container.textContent='Sin registros con «'+column+'» en las bases de Holds publicadas para esta selección.';return;}
   const list=element('ol',undefined,'dev-holds-list');
   for(const entry of ranking){
     const row=element('li'),detail=element('details');
-    detail.append(element('summary',entry.action+' · '+fmt(entry.count)+' errores · '+fmt(entry.percent)+'%'));
+    detail.append(element('summary',entry.action+' · '+fmt(entry.count)+' '+unit+' · '+fmt(entry.percent)+'%'));
     const trend=element('p',entry.trend.map(([date,count])=>date+' · '+fmt(count)).join(' | '),'muted');
     detail.append(trend);
     const records=element('ul');

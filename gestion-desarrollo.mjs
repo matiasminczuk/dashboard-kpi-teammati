@@ -85,8 +85,9 @@ export function itemUrl(item) {
   url.searchParams.set('item_id',id.replace('-',''));
   return url.href;
 }
-export function creationSeries(rows,cadence) {
+export function creationSeries(rows,cadence,averageDaily=false) {
   const series=new Map();
+  const counts=new Map();
   for(const row of rows){
     if(!['creaciones','correcciones'].includes(row.tipo)||!Number.isFinite(row.cantidad)||row.cantidad<0)continue;
     const key=periodBucket(row.fecha,cadence);
@@ -94,8 +95,18 @@ export function creationSeries(rows,cadence) {
     if(!series.has(key))series.set(key,{key,creaciones:null,correcciones:null});
     const point=series.get(key);
     point[row.tipo]=(point[row.tipo]??0)+row.cantidad;
+    if(averageDaily){
+      const countKey=key+'|'+row.tipo;
+      counts.set(countKey,(counts.get(countKey)||0)+1);
+    }
   }
-  return [...series.values()].sort((a,b)=>a.key.localeCompare(b.key));
+  const points=[...series.values()].sort((a,b)=>a.key.localeCompare(b.key));
+  if(averageDaily){
+    for(const point of points)for(const type of ['creaciones','correcciones']){
+      if(point[type]!==null)point[type]/=counts.get(point.key+'|'+type);
+    }
+  }
+  return points;
 }
 export function holdsErrorRanking(rows,cadence) {
   const actions=new Map();

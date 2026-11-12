@@ -297,6 +297,12 @@ service cloud.firestore {
       return lead.rol == 'tl' && lead.equipo == data.equipo;
     }
 
+    function auditResponseOpen(data) {
+      let weekday = (data.publicadaEn - duration.value(3, 'h')).dayOfWeek();
+      let days = weekday == 7 ? 12 : weekday == 6 ? 13 : 14;
+      return request.time < data.publicadaEn + duration.value(days, 'd');
+    }
+
     function auditChange(old, data) {
       let fields = data.diff(old).affectedKeys();
       return (old.estado == 'sin_asignar' && puedeVerTodosEquipos()
@@ -305,7 +311,7 @@ service cloud.firestore {
         && data.estado == 'pendiente_colaborador' && data.asignacionManual == true
         && data.asignadaPor == request.auth.uid && data.publicadaEn == request.time && auditAssignment(data))
         || (old.estado == 'pendiente_colaborador' && perfil().rol == 'catalogador'
-          && auditOwner(old) && fields.hasOnly(['estado','respuesta'])
+          && auditOwner(old) && auditResponseOpen(old) && fields.hasOnly(['estado','respuesta'])
           && data.estado == 'pendiente_tl' && auditLeadActive(old) && auditAction(data.respuesta,['responder','devolver'],true))
         || (old.estado == 'pendiente_tl' && esTLDelEquipo(old.equipo) && old.tlUid == request.auth.uid
           && fields.hasOnly(['estado','decision']) && auditAction(data.decision,['aprobar','rechazar'],false)

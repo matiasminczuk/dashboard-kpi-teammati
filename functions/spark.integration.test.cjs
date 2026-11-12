@@ -69,6 +69,14 @@ test('Spark importa y protege auditorías, estados y avisos sin Cloud Functions'
   await assert.rejects(store.setDoc(store.doc(audits,'falso'),first.data()),{code:'permission-denied'});
   await assert.rejects(store.updateDoc(first.ref,{estado:'pendiente_tl',
     respuesta:{uid:outsider.uid,accion:'responder',texto:'Suplantación',fecha:store.serverTimestamp()}}),{code:'permission-denied'});
+  const originalAudit = await backend.doc(first.ref.path).get();
+  await originalAudit.ref.update({publicadaEn:new Date(Date.now()-15*86400000)});
+  for(const accion of ['responder','devolver']){
+    await assert.rejects(store.updateDoc(first.ref,{estado:'pendiente_tl',
+      respuesta:{uid:person.uid,accion,texto:'Fuera de plazo',fecha:store.serverTimestamp()}}),{code:'permission-denied'});
+  }
+  await assert.rejects(person.call('auditoriasActuar',{id:first.id,accion:'responder',texto:'Fuera de plazo'}),/Venció el plazo/);
+  await originalAudit.ref.update({publicadaEn:originalAudit.data().publicadaEn});
 
   const stops=[], inbox = new Map();
   function subscribe(account) {
