@@ -92,8 +92,10 @@ export function setupAudits(api) {
   let notificationError = false, onlyUnread = false, listError = false, auditLoading = false, saving = false;
   const format = number => new Intl.NumberFormat('es-AR').format(number);
   const ctx = () => session;
+  let detailVersion = 0;
 
   function stopDetail() {
+    detailVersion++;
     clearTimeout(deadlineTimer);
     detailListener?.(); historyListener?.(); detailListener = historyListener = undefined;
     selectedAudit = undefined; history = [];
@@ -143,6 +145,12 @@ export function setupAudits(api) {
     $('auditFilterPerson').closest('label').hidden = profile.role === 'catalogador';
     filter.querySelectorAll('[data-audit-staff]').forEach(node => {node.hidden = profile.role === 'catalogador';});
     filter.reset();
+    const stateFilter = filter.elements.estado;
+    const collaborator = profile.role === 'catalogador';
+    for (const option of stateFilter.options) {
+      if (['','sin_asignar','sin_error'].includes(option.value)) option.disabled = option.hidden = collaborator;
+    }
+    if (collaborator) stateFilter.value = 'pendiente_colaborador';
     inbox = api.collection(api.db, 'usuarios', profile.uid, 'notificaciones');
     watchInbox();
     listeners.push(watch(api.query(inbox, api.where('leidaEn','==',null)), snap => {
@@ -449,25 +457,35 @@ export function setupAudits(api) {
     const canRespond = session.role === 'catalogador' && ownsAudit(audit,session.uid,session.idMeli) && audit.estado === 'pendiente_colaborador' && auditResponseOpen(audit);
     const canDecide = session.role === 'tl' && audit.tlUid === session.uid && audit.equipo === session.team && audit.estado === 'pendiente_tl';
     const canClose = ['pm','admin'].includes(session.role) && audit.estado === 'pendiente_pm';
+    detailBody.classList.toggle('audit-responding', canRespond);
     if (canRespond || canDecide || canClose) renderActions(audit, canRespond, canClose);
     if (session.global && audit.estado === 'sin_asignar') renderAssignment(audit);
     const list = element('ol',undefined,'audit-history');list.id = 'auditHistory';
-    detailBody.append(element('h4','Historial'), list);
+    const timeline = element('details',undefined,'audit-timeline');
+    timeline.append(element('summary','Historial'), list);
+    detailBody.append(timeline);
     renderHistory();
   }
-  async function perform(container, operation) {
+  async function perform(container, operation, closeAfterSave = false) {
     if (saving) return;
     const current = ctx(), buttons = [...container.querySelectorAll('button')], feedback = container.querySelector('[role=status]');
+    const version = detailVersion;
     saving = true; buttons.forEach(node => {node.disabled = true;});
     feedback.textContent = 'Guardando…';
-    try {await operation(); if (ctx() === current) feedback.textContent = 'Guardado.';}
+    try {
+      await operation();
+      if (ctx() === current && version === detailVersion) {
+        if (closeAfterSave) stopDetail();
+        else feedback.textContent = 'Guardado.';
+      }
+    }
     catch (error) {if (ctx() === current) feedback.textContent = errorText(error);}
     finally {if (ctx() === current) {saving = false;buttons.forEach(node => {node.disabled = false;});}}
   }
   function renderActions(audit, responding, closing) {
     const form = element('div',undefined,'audit-action');
-    const textarea = element('textarea');textarea.id = 'auditResponse';textarea.maxLength = 3000;textarea.rows = 3;
-    const card = element('section', undefined, 'audit-card');
+    const textarea = element('textarea');textarea.id = 'auditResponse';textarea.maxLength = 3000;textarea.rows = 2;
+    const card = element('section', undefined, 'audit-card audit-response-card');
     card.append(element('h4', responding ? 'Tu respuesta' : 'Revisión de la auditoría', 'audit-card-heading'));
     if (responding) textarea.placeholder = 'Explicá el motivo si devolvés la auditoría al TL…';
     const label = element('label', responding ? 'Motivo de devolución al TL' : 'Comentario de la decisión (opcional)',
@@ -484,7 +502,7 @@ export function setupAudits(api) {
         if (action === 'responder' && !window.confirm('¿Confirmás que estás de acuerdo con el hallazgo de la auditoría?')) return;
         if (!responding && !window.confirm(closing ? '¿Confirmás el cierre definitivo de esta auditoría?' :
           '¿Confirmás tu decisión y el envío al PM?')) return;
-        void perform(form, () => api.call('auditoriasActuar',{id:audit.id, accion:action, texto}));
+        void perform(form, () => api.call('auditoriasActuar',{id:audit.id, accion:action, texto}), true);
       }));
     }
     form.append(label,textarea,buttons,feedback);
