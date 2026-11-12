@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
-import {analysisPeriod,inPeriod,periodBucket,normalizeQualityFlow,operationalFlow,achievement,creationSeries,holdsErrorRanking,itemUrl,productivityTotals} from './gestion-desarrollo.mjs';
+import {analysisPeriod,inPeriod,periodBucket,normalizeQualityFlow,operationalFlow,achievement,creationSeries,holdsErrorRanking,itemUrl,productivityTotals,publishedProductivity} from './gestion-desarrollo.mjs';
 
 test('rol de la base, mínimos sin tope y Know Values sin cumplimiento',()=>{
  assert.equal(operationalFlow('Analista KV'),'kv');
@@ -10,6 +10,22 @@ test('rol de la base, mínimos sin tope y Know Values sin cumplimiento',()=>{
  assert.deepEqual(achievement(14,11),{difference:3,percent:14/11*100});
  assert.deepEqual(achievement(70,null),{difference:null,percent:null});
  assert.equal(productivityTotals([]).average,null);
+});
+test('recupera las jornadas de publicaciones anteriores con el criterio histórico de Flujo Mixto',()=>{
+ const publication={idMeli:123,equipo:'Equipo A',tareas:[
+  {fecha:'2026-11-02',tipo:'tareas',cantidad:110},
+  {fecha:'2026-11-03',tipo:'tareas',cantidad:19},
+  {fecha:'2026-11-04',tipo:'tareas',cantidad:12,rolOrigen:'Analista Soporte'},
+  {fecha:'2026-11-05',tipo:'tareas',cantidad:10,flujoOperativo:'kv'}
+ ],gestion:[
+  {fecha:'2026-11-02',flujos:{SOPORTE:0,CCC:8}},
+  {fecha:'2026-11-03',flujos:{KNOWN_VALUE:3,CCC:5}},
+  {fecha:'2026-11-04',flujos:{SOPORTE:8}}
+ ]};
+ const rows=publishedProductivity(publication,initiative=>initiative);
+ assert.deepEqual(rows.map(row=>row.flujoOperativo),['mixto',null,'soporte','kv']);
+ assert.equal(rows[0].id,'123');
+ assert.deepEqual(productivityTotals(rows.filter(row=>row.flujoOperativo==='mixto')),{days:1,people:1,average:110});
 });
 test('período inclusivo, comparación anterior de igual duración y agrupaciones',()=>{
  const periods=analysisPeriod({from:'2026-11-03',to:'2026-11-08'},{});

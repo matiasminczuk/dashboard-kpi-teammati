@@ -1334,7 +1334,7 @@ import {initializeApp} from 'https://www.gstatic.com/firebasejs/12.6.0/firebase-
 import {getAuth,onAuthStateChanged,signInWithEmailAndPassword,createUserWithEmailAndPassword,sendPasswordResetEmail,signOut,EmailAuthProvider,reauthenticateWithCredential,updatePassword} from 'https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js';
 import {getFirestore,doc,getDoc,getDocs,collection,query,where,writeBatch,serverTimestamp,runTransaction,onSnapshot,orderBy,limit,documentId} from 'https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js';
 import {indexPeople,analyzeQuality,restoreArchivedQuality,qualityPeriods,selectQualityPeriod,summary,bucketQuality} from './calidad.mjs?v=archivo-1';
-import {analysisPeriod,inPeriod,operationalFlow,operationalFlows,defaultProductivityGoals,productivityTotals,normalizeQualityFlow} from './gestion-desarrollo.mjs';
+import {analysisPeriod,inPeriod,operationalFlow,operationalFlows,defaultProductivityGoals,productivityTotals,normalizeQualityFlow,publishedProductivity} from './gestion-desarrollo.mjs?v=historico';
 import {setupFilters} from './filtros-desarrollo.mjs?v=periodo';
 import {renderOperationalCards,renderComparison,renderCreationChart,renderHoldsRanking} from './visuales-desarrollo.mjs';
 const firebaseConfig={apiKey:'AIzaSyB7edb0wGmf86KVrca5zkBTju7wg_zVDFk',authDomain:'dashboard-kpi-teammati.firebaseapp.com',projectId:'dashboard-kpi-teammati',storageBucket:'dashboard-kpi-teammati.firebasestorage.app',messagingSenderId:'158470825794',appId:'1:158470825794:web:33eb0d3c862756b9d7cadb',measurementId:'G-7E8M7NSPV0'};
@@ -2007,12 +2007,8 @@ function devAuditPeriod(audit){
 }
 function applyPublishedData(items){
  const personalId=String(profileData?.idMeli||'').trim();
- publishedItems=!isAdmin?items.filter(item=>personalId&&String(item.idMeli)===personalId):!isPM?items.filter(item=>selectedTeam&&validTeam(item.equipo)===selectedTeam):items;renderPMComparison();applyTeamView();}
+ publishedItems=!isAdmin?items.filter(item=>personalId&&String(item.idMeli)===personalId):!isPM?items.filter(item=>selectedTeam&&validTeam(item.equipo)===selectedTeam):items;applyTeamView();}
 let devLeads=new Map();
-function scopedProductivity(){
- return publishedItems.filter(p=>devMatches(p.equipo,p.idMeli)).flatMap(p=>(p.tareas||[]).map(row=>({...row,
-   id:String(p.idMeli),equipo:p.equipo,flujoOperativo:row.flujoOperativo||p.flujoOperativo||(row.rolOrigen?operationalFlow(row.rolOrigen):null)})));
-}
 async function loadDevLeads(){
  const uid=auth.currentUser?.uid;
  devLeads=new Map();
@@ -2027,13 +2023,13 @@ async function loadDevLeads(){
 }
 function renderPMComparison(){
  if(!isPM)return;
- renderComparison({chart:$('devComparisonBars'),body:$('pmComparisonRows'),rows:scopedProductivity(),
+ renderComparison({chart:$('devComparisonBars'),body:$('pmComparisonRows'),rows:kpiCache,
   period:devFilters.period(),group:$('devCompareFlow').value,sort:$('devCompareSort').value,goals:productivityGoals,
   lead:team=>devLeads.get(team)?.join(', '),drilldown:team=>{devFilters.chooseTeam(team);selectAdminSection('productividad-holds');}});
 }
 function renderDevAnalytics(){
  if(!isAdmin)return;
- const rows=scopedProductivity(),period=devFilters.period(),cadence=devFilters.state().cadence;
+ const rows=kpiCache,period=devFilters.period(),cadence=devFilters.state().cadence;
  renderOperationalCards($('devOperationalCards'),rows,period,productivityGoals,!isPM);
  renderCreationChart($('devCreationChart'),rows.filter(row=>inPeriod(row.fecha,period?.current)),cadence);
  renderPMComparison();
@@ -2055,7 +2051,7 @@ function applyTeamView(){
  const old=$('personFilter').value;
  const personalId=String(profileData?.idMeli||'').trim();
  const personalRows=rows=>isAdmin?rows:rows.filter(row=>row.id===undefined||String(row.id)===personalId).map(row=>({...row,id:personalId}));
- kpiCache=personalRows(items.flatMap(x=>x.tareas||[]));
+ kpiCache=isAdmin?items.flatMap(item=>publishedProductivity(item,gCategory)):personalRows(items.flatMap(x=>x.tareas||[]));
  holdsCache=personalRows(items.flatMap(x=>x.holds||[]));
  gestionCache=personalRows(items.flatMap(x=>x.gestion||[]));
  kpiLoaded=true;if(isAdmin)loadExcludedPeople();
@@ -2481,7 +2477,7 @@ async function loadProductivityGoals(){
  }
 }
 function renderFlowProductivityGoals(){
- if(isAdmin)renderOperationalCards($('flowProductivityCards'),scopedProductivity(),devFilters.period(),productivityGoals,!isPM);
+ if(isAdmin)renderOperationalCards($('flowProductivityCards'),kpiCache,devFilters.period(),productivityGoals,!isPM);
 }
 $('productivityGoalForm').addEventListener('submit',async event=>{
  event.preventDefault();
@@ -3148,7 +3144,7 @@ function renderPmOverview(){
  const postponed=posts.reduce((n,r)=>n+(Number(r.cantidad)||0),0);
  const mixed=rows.filter(row=>row.flujoOperativo==='mixto');
  const average=productivityTotals(mixed).average,minimum=productivityGoals.mixto;
- $('pmAvg').textContent=average===null?'—':fmt(average);$('pmDone').textContent=fmt(done);$('pmPost').textContent=fmt(postponed);$('pmAll').textContent=fmt(done+postponed);$('pmDaysNote').textContent=fmt(rows.length)+(rows.length===1?' jornada computable':' jornadas computables');
+ $('pmAvg').textContent=average===null?'—':fmt(average);$('pmDone').textContent=fmt(done);$('pmPost').textContent=fmt(postponed);$('pmAll').textContent=fmt(done+postponed);$('pmDaysNote').textContent=fmt(mixed.length)+(mixed.length===1?' jornada computable':' jornadas computables');
  const flowTotal=gestionCache.filter(r=>weeklyMatches(r.fecha)&&(!who||r.id===who)&&includedRecord(r)).reduce((sum,r)=>sum+(Number(r.total)||0),0);
  $('pmFlowTotal').textContent=fmt(flowTotal);
  const goal=$('pmGoalStatus');

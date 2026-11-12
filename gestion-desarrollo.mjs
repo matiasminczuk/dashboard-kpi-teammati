@@ -35,6 +35,22 @@ export function operationalFlow(value) {
   if (/^(kv|know(n|s)? values?)$/.test(name)) return 'kv';
   return 'mixto';
 }
+export function publishedProductivity(publication, classifyInitiative) {
+  const excludedDates = new Set((publication.gestion || []).filter(record =>
+    Object.entries(record.flujos || {}).some(([initiative, count]) =>
+      Number(count) > 0 && ['SOPORTE','KNOWN_VALUE'].includes(classifyInitiative(initiative))
+    )
+  ).map(record => record.fecha));
+
+  return (publication.tareas || []).map(row => {
+    const flow = [row.flujoOperativo, publication.flujoOperativo]
+      .find(value => Object.hasOwn(operationalFlows, value));
+    const role = row.rolOrigen || publication.rolOrigen;
+    const historicalFlow = excludedDates.has(row.fecha) ? null : 'mixto';
+    return {...row, id:String(publication.idMeli), equipo:publication.equipo,
+      flujoOperativo:flow || (role ? operationalFlow(role) : historicalFlow)};
+  });
+}
 export function productivityTotals(rows) {
   const valid=rows.filter(row=>row.tipo==='tareas'&&Number.isFinite(row.cantidad)&&row.cantidad>=0);
   return {days:valid.length,people:new Set(valid.map(row=>row.id)).size,
