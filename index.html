@@ -1144,7 +1144,7 @@ body.employee-mode :is(#qualityOverviewCards,#qualityFlowCards) .quality-goal{gr
 }
 </style>
 <link rel="stylesheet" href="./auditorias.css?v=barra-y-filtro">
-<link rel="stylesheet" href="./gestion-desarrollo.css?v=periodo">
+<link rel="stylesheet" href="./gestion-desarrollo.css?v=resumen">
 </head>
 <body class="auth-screen">
 <button id="employeeHeaderReveal" type="button" aria-label="Mostrar barra de navegación" aria-controls="dashboardHeader" aria-expanded="false"><span aria-hidden="true"></span></button>
@@ -1245,7 +1245,7 @@ body.employee-mode :is(#qualityOverviewCards,#qualityFlowCards) .quality-goal{gr
 <div class="pm-bottom-grid"><article class="pm-post-panel"><div class="pm-chart-heading"><h2><i class="purple-square"></i>Evolución de holds</h2><small>Eventos registrados por semana</small></div><div class="pm-post-chart" id="pmPostChart"></div></article><article class="pm-flow-panel"><div class="pm-flow-heading"><div><h2>Distribución de flujos</h2><p>Período seleccionado</p></div><div class="pm-flow-total">Total de tareas <strong id="pmFlowTotal">—</strong></div></div><div id="pmFlowsSlot"></div></article></div>
 </section><section id="pmComparison" class="panel hidden"><h2>Comparativa de equipos</h2>
  <div class="audit-controls"><label>Flujo<select id="devCompareFlow"><option value="mixto">Flujo Mixto</option><option value="soporte">Soporte</option><option value="kv">Know Values</option></select></label>
- <label>Ordenar por<select id="devCompareSort"><option value="average">Promedio</option><option value="people">Catalogadores</option><option value="difference">Diferencia al mínimo</option><option value="delta">Evolución</option></select></label></div>
+ <label>Ordenar por<select id="devCompareSort"><option value="average">Promedio</option><option value="people">Catalogadores</option><option value="delta">Evolución</option></select></label></div>
  <div id="devComparisonBars"></div><div class="table-wrap"><table><thead><tr><th>Posición</th><th>Equipo</th><th>Promedio diario</th><th>Catalogadores</th><th>Mínimo</th><th>Diferencia</th><th>vs. período anterior</th></tr></thead><tbody id="pmComparisonRows"></tbody></table></div></section><div class="kpi-flow-controls" id="kpiFlowControls"><strong>Filtros de productividad</strong><label><input type="checkbox" id="excludeKnown" checked> Excluir jornadas con KNOWN_VALUE</label><label><input type="checkbox" id="excludeSupport" checked> Excluir jornadas con Soporte</label><small>Se excluye el día completo si hubo actividad de esos flujos. Los registros siguen visibles en Gestión.</small></div><section class="cards" id="mainCards"><div class="card"><span>Promedio diario de tareas (según filtros)</span><h1 id="kpiAverage">—</h1><small id="averageNote" class="muted">Por jornada con registro</small><p id="employeeGoal" class="employee-only"></p><small id="employeeTrend" class="employee-only"></small></div><div class="card"><span>Tareas totales</span><h1 id="kpiTasks">—</h1><small id="tasksNote" class="muted">Período seleccionado</small></div><div class="card"><span>Creaciones totales</span><h1 id="kpiCreations">—</h1><small class="muted">Período seleccionado</small></div><div class="card"><span>Jornadas computables</span><h1 id="kpiDays">—</h1><small class="muted">Colaborador + fecha</small></div></section>
 <section id="employeeFlowPercent" aria-label="Porcentaje de tareas accionadas por flujo"><div class="employee-flow-grid">
 <div class="employee-flow-card" style="--flow-color:#3483fa"><span>CCC</span><strong id="employeePctCcc">—</strong><small id="employeeCountCcc">Sin registros</small></div>
@@ -1339,8 +1339,8 @@ import {getAuth,onAuthStateChanged,signInWithEmailAndPassword,createUserWithEmai
 import {getFirestore,doc,getDoc,getDocs,collection,query,where,writeBatch,serverTimestamp,runTransaction,onSnapshot,orderBy,limit,documentId} from 'https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js';
 import {indexPeople,analyzeQuality,restoreArchivedQuality,qualityPeriods,selectQualityPeriod,summary,bucketQuality} from './calidad.mjs?v=archivo-1';
 import {analysisPeriod,inPeriod,operationalFlow,operationalFlows,defaultProductivityGoals,productivityTotals,normalizeQualityFlow,publishedProductivity} from './gestion-desarrollo.mjs?v=historico';
-import {setupFilters} from './filtros-desarrollo.mjs?v=periodo';
-import {renderOperationalCards,renderComparison,renderCreationChart,renderHoldsRanking} from './visuales-desarrollo.mjs?v=equipo';
+import {setupFilters} from './filtros-desarrollo.mjs?v=resumen';
+import {renderOperationalCards,renderComparison,renderCreationChart,renderHoldsRanking} from './visuales-desarrollo.mjs?v=resumen';
 const firebaseConfig={apiKey:'AIzaSyB7edb0wGmf86KVrca5zkBTju7wg_zVDFk',authDomain:'dashboard-kpi-teammati.firebaseapp.com',projectId:'dashboard-kpi-teammati',storageBucket:'dashboard-kpi-teammati.firebasestorage.app',messagingSenderId:'158470825794',appId:'1:158470825794:web:33eb0d3c862756b9d7cadb',measurementId:'G-7E8M7NSPV0'};
 const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app);
 import {setupAudits} from './auditorias-ui.mjs?v=barra-y-filtro';
@@ -2022,7 +2022,7 @@ function renderPMComparison(){
  if(!isPM)return;
  renderComparison({chart:$('devComparisonBars'),body:$('pmComparisonRows'),rows:kpiCache,
   period:devFilters.period(),group:$('devCompareFlow').value,sort:$('devCompareSort').value,goals:productivityGoals,
-  drilldown:team=>{devFilters.chooseTeam(team);selectAdminSection('productividad-holds');}});
+  chooseMonth:devFilters.chooseMonth,drilldown:team=>{devFilters.chooseTeam(team);selectAdminSection('productividad-holds');}});
 }
 function renderDevAnalytics(){
  if(!isAdmin)return;
@@ -2699,7 +2699,7 @@ function renderQuality(){
  const scoped=people.flatMap(p=>Object.values(p.registros||{}).map(r=>({...r,flow:normalizeQualityFlow(r.flow)||r.flow,id:p.id,name:p.nombre||p.id,team:p.equipo})));
  const dayView=isAdmin&&devFilters.state().cadence==='days';
  const eligible=scoped.filter(row=>row.source===source&&(!dayView||row.unit==='day'));
- const weekly=isAdmin?devFilters.state().cadence!=='months':$('weekMode').value==='weeks';
+ const weekly=isAdmin?devFilters.state().mode==='weeks':$('weekMode').value==='weeks';
  const inQualityPeriod=(rows,period)=>{
   if(!period)return [];
   const covered=isAdmin?rows.filter(row=>{
@@ -2721,15 +2721,20 @@ function renderQuality(){
   !now.length?(weekly?'Sin resultados semanales en este rango. Los totales mensuales se consultan por mes o trimestre.':'Sin datos para el origen, período y filtros elegidos.'):'');
  $('qualityRecoverLink').hidden=!canImportBases();
  const cardRows=inQualityPeriod(scoped,periods?.current);
+ const latestMonthly=isAdmin&&periods&&!cardRows.length?scoped.reduce((latest,row)=>
+  row.unit==='month'&&row.start<periods.current.end&&row.start>latest?row.start:latest,''):'';
+ const overviewRows=latestMonthly?scoped.filter(row=>row.unit==='month'&&row.start===latestMonthly):cardRows;
  const months=[...new Set(cardRows.map(row=>row.start.slice(0,7)))].sort();
  const monthLabel=month=>new Intl.DateTimeFormat('es-AR',{month:'long',year:'numeric',timeZone:'UTC'})
   .format(new Date(month+'-01T00:00:00Z'));
  const coverage=months.length===1?' Datos de '+monthLabel(months[0])+'.':
   months.length>1?' Datos en '+months.length+' meses del período.':'';
- $('qualityOverviewContext').textContent=qualityState.error||(weekly&&!cardRows.length
+ $('qualityOverviewContext').textContent=qualityState.error||(latestMonthly
+  ?'Último cierre mensual disponible · '+monthLabel(latestMonthly.slice(0,7))+'. Internas y MELI se muestran por separado.'
+  :weekly&&!cardRows.length
   ?'Sin resultados semanales. Consultá las auditorías mensuales por mes o trimestre.'
   :'Efectividad ponderada por tareas auditadas. Internas y MELI se muestran por separado.'+coverage);
- renderQualityFlowCards($('qualityOverviewCards'),cardRows);
+ renderQualityFlowCards($('qualityOverviewCards'),overviewRows);
  renderQualityFlowCards($('qualityFlowCards'),cardRows);
  $('qualitySelectedTotals').hidden=!current;
  if(current){

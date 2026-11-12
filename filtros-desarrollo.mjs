@@ -100,7 +100,7 @@ function setupPeriodPicker({$,today,state,change}) {
   for(const [id,key] of [['devFrom','from'],['devTo','to']])$(id).addEventListener('change',()=>{
     state()[key]=$(id).value;render();change();
   });
-  return {populate,render,close:()=>open(false)};
+  return {populate,render,close:()=>open(false),chooseMonth:date=>select('month',date.slice(0,7)+'-01')};
 }
 
 
@@ -158,7 +158,7 @@ export function setupFilters({period,readScope,refresh,today}) {
   }
   $('devClear').addEventListener('click',()=>{state=defaults();picker.render();picker.close();change();});
   return {
-    start,render, state:()=>state, period:()=>period(state),
+    start,render, state:()=>state, period:()=>period(state),chooseMonth:picker.chooseMonth,
     mount(container){picker.close();container.prepend(controls);controls.hidden=false;},
     teamMatches(team){const scope=readScope();return scope.global?(!state.teams.length||state.teams.includes(team)):team===scope.team;},
     personMatches(id){return !state.people.length||state.people.includes(String(id??''));},

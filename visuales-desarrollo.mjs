@@ -12,6 +12,15 @@ function element(tag,text,className){
 function report(rows,period,group){
   return productivityTotals(rows.filter(row=>row.flujoOperativo===group&&inPeriod(row.fecha,period)));
 }
+function comparisonChange(cell,value){
+  if(value==null||value===0){cell.textContent=fmt(value);return;}
+  const increasing=value>0;
+  const arrow=element('span',increasing?'↑':'↓','comparison-arrow');
+  arrow.dataset.direction=increasing?'up':'down';
+  arrow.setAttribute('role','img');
+  arrow.setAttribute('aria-label',increasing?'Aumento':'Disminución');
+  cell.append(arrow,document.createTextNode(' '+fmt(Math.abs(value))));
+}
 
 export function renderOperationalCards(container,rows,period,goals,onlyActive=false){
   container.replaceChildren();
@@ -31,7 +40,7 @@ export function renderOperationalCards(container,rows,period,goals,onlyActive=fa
   if(!container.children.length)container.append(element('p','Sin colaboradores con datos de flujo en el período.'));
 }
 
-export function renderComparison({chart,body,rows,period,group,sort,goals,drilldown}){
+export function renderComparison({chart,body,rows,period,group,sort,goals,drilldown,chooseMonth}){
   const teams=new Map();
   for(const row of rows){
     if(!teams.has(row.equipo))teams.set(row.equipo,[]);
@@ -48,7 +57,18 @@ export function renderComparison({chart,body,rows,period,group,sort,goals,drilld
   const max=Math.max(1,minimum||0,...ranking.map(item=>item.average));
   chart.replaceChildren();
   body.replaceChildren();
-  if(!ranking.length){chart.textContent='Sin productividad del flujo seleccionado en este período.';return;}
+  if(!ranking.length){
+    const dates=rows.filter(row=>row.tipo==='tareas'&&row.flujoOperativo===group).map(row=>row.fecha).sort();
+    chart.textContent='Sin jornadas de '+operationalFlows[group]+' para la selección actual.';
+    if(dates.length){
+      const latest=dates.at(-1);
+      const month=new Intl.DateTimeFormat('es-AR',{month:'long',year:'numeric',timeZone:'UTC'}).format(new Date(latest+'T00:00:00Z'));
+      const button=element('button','Ver '+month,'audit-link');
+      button.type='button';button.onclick=()=>chooseMonth(latest);
+      chart.append(document.createTextNode(' '),button);
+    }
+    return;
+  }
   for(const item of ranking){
     const row=element('div',undefined,'dev-comparison-bar'),label=element('span',item.team),meter=element('meter');
     meter.min=0;meter.max=max;meter.value=item.average;
@@ -61,8 +81,9 @@ export function renderComparison({chart,body,rows,period,group,sort,goals,drilld
     row.insertCell().textContent=positions.get(item.team);
     const button=element('button',item.team,'audit-link');button.type='button';button.onclick=()=>drilldown(item.team);
     row.insertCell().append(button);
-    for(const value of [fmt(item.average),fmt(item.people),minimum===null?'Sin objetivo':fmt(minimum),
-      signed(item.difference),signed(item.delta)])row.insertCell().textContent=value;
+    for(const value of [fmt(item.average),fmt(item.people),minimum===null?'Sin objetivo':fmt(minimum)])row.insertCell().textContent=value;
+    comparisonChange(row.insertCell(),item.difference);
+    comparisonChange(row.insertCell(),item.delta);
   }
 }
 
