@@ -36,9 +36,27 @@ function options(select, values, placeholder) {
 function lines(container, entries) {
   container.replaceChildren(...entries.map(([label, value]) => {
     const row = element('div');
-    row.append(element('dt', label), element('dd', value || '—'));
+    const detail = element('dd');
+    detail.append(value && value !== 'null' ? value : '—');
+    row.append(element('dt', label), detail);
     return row;
   }));
+}
+function auditedCaseLink(audit) {
+  let url;
+  try {
+    const reference = new URL(String(audit.referencia ?? '').trim());
+    if (reference.protocol === 'https:' && !reference.username && !reference.password) url = reference.href;
+  } catch {
+    // Historical records may only have an Item ID.
+  }
+  url ||= itemUrl(audit.item);
+  if (!url) return null;
+  const link = element('a','Abrir caso auditado','audit-link');
+  link.href = url;
+  link.target = '_blank';
+  link.rel = 'noopener noreferrer';
+  return link;
 }
 function errorText(error) {
   const code = error.code?.split('/').at(-1);
@@ -353,24 +371,15 @@ export function setupAudits(api) {
   function renderDetail(audit) {
     const fields = element('dl', undefined, 'audit-fields');
     lines(fields, [
-      ['Auditoría',audit.cdm || audit.externo], ['Colaborador',[audit.nombreColaborador,audit.idMeli].filter(Boolean).join(' · ')], ['Equipo',audit.equipo],
-      ...(audit.colaboradorIdMeli ? [['ID MELI',String(audit.colaboradorIdMeli)]] : []),
-      ['TL',nameOf(roster.get(audit.tlUid),audit.nombreTL || audit.tlUid)], ['Estado',states[audit.estado]], ['Fecha',audit.fecha],
-      ['Período',audit.periodo], ['Flujo',normalizeQualityFlow(audit.flujo)||audit.flujo], ['Tipo',audit.tipo], ['Auditor',audit.auditor],
-      ['Resultado original',audit.resultado], ['Observaciones',audit.observaciones],
-      ...[['Product ID',audit.producto],['Item ID',audit.item],['Variation ID',audit.variante],
-        ['Referencia de origen',audit.referencia],['Comentario de origen',audit.comentarioOrigen],
-        ['Decisión de origen',audit.decisionOrigen],['Estado de origen',audit.estadoOrigen],
-        ['Estado antes de marcar sin error',states[audit.estadoPrevioSinError]],
-        ['Motivo de origen',audit.motivoOrigen],['Incidencia',audit.incidencia]].filter(([,value]) => value && value !== 'null')
+      ['Auditoría',audit.cdm || audit.externo],
+      ['ID MELI',audit.colaboradorIdMeli || audit.idMeli],
+      ['Equipo',audit.equipo], ['Estado',states[audit.estado]], ['Fecha',audit.fecha || audit.periodo],
+      ['Flujo',normalizeQualityFlow(audit.flujo)||audit.flujo], ['Auditor',audit.auditor],
+      ['Resultado original',audit.resultado], ['Comentario Auditor',audit.observaciones],
+      ['Product ID',audit.producto], ['Item ID',audit.item], ['Caso auditado',auditedCaseLink(audit)],
+      ['Comentario colaborador',audit.comentarioOrigen], ['Decisión colaborador',audit.decisionOrigen]
     ]);
     detailBody.replaceChildren(fields);
-    const url=itemUrl(audit.item);
-    if(url){
-      const link=element('a','Ver publicación original','audit-link');
-      link.href=url;link.target='_blank';link.rel='noopener noreferrer';
-      detailBody.append(link);
-    }
     for (const [label, entry] of [['Respuesta del colaborador',audit.respuesta],['Decisión del TL',audit.decision],['Decisión final del PM',audit.decisionPm]]) {
       if (entry) detailBody.append(element('h4',label), element('p',recordedActions[entry.accion] + ' · ' +
         dateText(entry.fecha)), element('p',entry.texto || 'Sin comentario.', 'audit-message'));
