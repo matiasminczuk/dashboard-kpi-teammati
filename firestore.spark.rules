@@ -53,6 +53,10 @@ service cloud.firestore {
               || esSuperAdminConUid(get(ruta).data.otorgadoPor))));
     }
 
+    function puedeVerTodosEquipos() {
+      return esAdministradorGeneral() || esSuperAdmin();
+    }
+
     function puedeGestionarDatos() {
       return esAdministradorGeneral() || esDelegado();
     }
@@ -86,7 +90,7 @@ service cloud.firestore {
     }
 
     match /usuarios/{userId} {
-      allow read: if autenticado() && (request.auth.uid == userId || puedeGestionarDatos());
+      allow read: if autenticado() && (request.auth.uid == userId || puedeVerTodosEquipos() || esTLDelEquipo(resource.data.equipo));
       allow create: if autenticado() && request.auth.uid == userId
         && request.resource.data.keys().hasOnly(['rol','creadoEn'])
         && request.resource.data.rol == 'catalogador'
@@ -104,43 +108,51 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    function equipoKpi(id) {
+      return get(/databases/$(database)/documents/kpis/$(id)).data.equipo;
+    }
+
     match /kpis/{userId} {
-      allow read: if autenticado() && (request.auth.uid == userId || puedeGestionarDatos());
-      allow create, update: if puedeGestionarDatos();
+      allow read: if puedeVerTodosEquipos() || esCatalogadorDelDocumento(userId) || esTLDelEquipo(resource.data.equipo);
+      allow create: if puedeVerTodosEquipos() || (esDelegado() && esTLDelEquipo(request.resource.data.equipo));
+      allow update: if puedeVerTodosEquipos() || (esDelegado() && esTLDelEquipo(resource.data.equipo)
+        && request.resource.data.equipo == resource.data.equipo);
       allow delete: if esAdministradorGeneral();
 
       match /semanas/{semanaId} {
-        allow read: if autenticado() && (request.auth.uid == userId || puedeGestionarDatos());
-        allow create, update: if puedeGestionarDatos();
+        allow read: if puedeVerTodosEquipos() || esCatalogadorDelDocumento(userId) || esTLDelEquipo(equipoKpi(userId));
+        allow create, update: if puedeVerTodosEquipos() || (esDelegado() && esTLDelEquipo(equipoKpi(userId)));
         allow delete: if esAdministradorGeneral();
       }
 
       match /registros/{registroId} {
-        allow read: if autenticado() && (request.auth.uid == userId || puedeGestionarDatos());
-        allow create, update: if puedeGestionarDatos();
+        allow read: if puedeVerTodosEquipos() || esCatalogadorDelDocumento(userId) || esTLDelEquipo(equipoKpi(userId));
+        allow create, update: if puedeVerTodosEquipos() || (esDelegado() && esTLDelEquipo(equipoKpi(userId)));
         allow delete: if esAdministradorGeneral();
       }
     }
 
     match /importaciones/{importacionId} {
-      allow read, create, update: if puedeGestionarDatos();
+      allow read, create, update: if puedeVerTodosEquipos();
       allow delete: if esAdministradorGeneral();
     }
 
     match /bases_calidad/{baseId} {
-      allow read, create, update: if puedeGestionarDatos();
+      allow read, create, update: if puedeVerTodosEquipos();
 
       // La carga guarda los bloques antes de completar el documento de la base.
       match /hojas/{bloqueId} {
-        allow read, create, update: if puedeGestionarDatos();
+        allow read, create, update: if puedeVerTodosEquipos();
       }
     }
 
     match /calidad_publicada/{documentoId} {
-      allow read: if puedeGestionarDatos()
+      allow read: if puedeVerTodosEquipos()
         || esCatalogadorDelDocumento(documentoId)
         || esTLDelEquipo(resource.data.equipo);
-      allow create, update: if puedeGestionarDatos();
+      allow create: if puedeVerTodosEquipos() || (esDelegado() && esTLDelEquipo(request.resource.data.equipo));
+      allow update: if puedeVerTodosEquipos() || (esDelegado() && esTLDelEquipo(resource.data.equipo)
+        && request.resource.data.equipo == resource.data.equipo);
     }
 
     match /calidad_config/objetivo {
@@ -151,6 +163,21 @@ service cloud.firestore {
         && (request.resource.data.valor == null
           || (request.resource.data.valor is number
             && request.resource.data.valor >= 0 && request.resource.data.valor <= 100));
+    }
+
+    function objetivoCalidadValido(valor) {
+      return valor == null || (valor is number && valor >= 0 && valor <= 100);
+    }
+
+    match /calidad_config/objetivos_flujo {
+      allow get: if autenticado() && perfil().rol in ['admin','pm','tl','catalogador'];
+      allow create, update: if esAdministradorGeneral()
+        && request.resource.data.keys().hasOnly(['SDC','SCP','FO','CCC','actualizadoEn'])
+        && objetivoCalidadValido(request.resource.data.SDC)
+        && objetivoCalidadValido(request.resource.data.SCP)
+        && objetivoCalidadValido(request.resource.data.FO)
+        && objetivoCalidadValido(request.resource.data.CCC)
+        && request.resource.data.actualizadoEn == request.time;
     }
 
     match /calidad_config/productividad {
@@ -168,15 +195,17 @@ service cloud.firestore {
     }
 
     match /kpi_publicados/{documentoId} {
-      allow read: if puedeGestionarDatos()
+      allow read: if puedeVerTodosEquipos()
         || esCatalogadorDelDocumento(documentoId)
         || esTLDelEquipo(resource.data.equipo);
-      allow create, update: if puedeGestionarDatos();
+      allow create: if puedeVerTodosEquipos() || (esDelegado() && esTLDelEquipo(request.resource.data.equipo));
+      allow update: if puedeVerTodosEquipos() || (esDelegado() && esTLDelEquipo(resource.data.equipo)
+        && request.resource.data.equipo == resource.data.equipo);
       allow delete: if esAdministradorGeneral();
     }
     // Auditorías e historial. Cloud Functions valida las escrituras y transiciones.
     function puedeLeerAuditoria(datos) {
-      return puedeGestionarDatos() || (autenticado()
+      return puedeVerTodosEquipos() || (autenticado()
         && ((perfil().rol == 'catalogador' && auditOwner(datos)
           && datos.estado in ['pendiente_colaborador','pendiente_tl','pendiente_pm','cerrada_aprobada','cerrada_rechazada'])
           || (perfil().rol == 'tl' && datos.equipo != '' && datos.equipo == perfil().equipo)));
@@ -270,7 +299,7 @@ service cloud.firestore {
 
     function auditChange(old, data) {
       let fields = data.diff(old).affectedKeys();
-      return (old.estado == 'sin_asignar' && puedeGestionarDatos()
+      return (old.estado == 'sin_asignar' && puedeVerTodosEquipos()
         && fields.hasOnly(['estado','colaboradorUid','colaboradorIdMeli','nombreColaborador','equipo',
           'tlUid','nombreTL','incidencia','publicadaEn','asignacionManual','asignadaPor'])
         && data.estado == 'pendiente_colaborador' && data.asignacionManual == true
@@ -299,7 +328,7 @@ service cloud.firestore {
 
     match /auditorias/{auditoriaId} {
       allow get, list: if puedeLeerAuditoria(resource.data);
-      allow create: if puedeGestionarDatos() && auditCreate(auditoriaId,request.resource.data);
+      allow create: if puedeVerTodosEquipos() && auditCreate(auditoriaId,request.resource.data);
       allow update: if autenticado() && resource.data.resultado.trim().lower() != 'null'
         && auditChange(resource.data,request.resource.data);
       allow delete: if false;
@@ -312,12 +341,12 @@ service cloud.firestore {
     }
 
     match /importaciones_auditorias/{importacionId} {
-      allow get, list: if puedeGestionarDatos();
-      allow create: if puedeGestionarDatos() && importacionId.matches('^[a-f0-9]{64}$')
+      allow get, list: if puedeVerTodosEquipos();
+      allow create: if puedeVerTodosEquipos() && importacionId.matches('^[a-f0-9]{64}$')
         && request.resource.data.keys().hasOnly(['archivo','usuario','fecha','estado'])
         && auditText(request.resource.data.archivo,250) && request.resource.data.usuario == request.auth.uid
         && request.resource.data.fecha == request.time && request.resource.data.estado == 'procesando';
-      allow update: if puedeGestionarDatos() && resource.data.estado == 'procesando'
+      allow update: if puedeVerTodosEquipos() && resource.data.estado == 'procesando'
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['estado','completadaEn','resumen','incidenciasArchivo','duplicadosArchivo'])
         && request.resource.data.estado == 'completado' && request.resource.data.completadaEn == request.time
         && request.resource.data.resumen is map && request.resource.data.resumen.size() <= 6

@@ -356,7 +356,7 @@ export function observeSparkNotices(api, profile, watch, onChange) {
         'Ya podés consultar los indicadores actualizados.','calidad',date)] : [];
     }));
   }
-  for (const [id,destination] of [['objetivo','calidad'],['productividad','productividad']]) {
+  for (const [id,destination] of [['objetivo','calidad'],['objetivos_flujo','calidad'],['productividad','productividad']]) {
     stops.push(add('meta-'+id,doc(db,'calidad_config',id),snapshot => {
       const date = snapshot.data()?.actualizadoEn;
       return date ? [item('meta-'+id+'-'+timestampKey(date),'meta','Objetivos actualizados',

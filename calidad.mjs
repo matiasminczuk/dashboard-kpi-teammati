@@ -1,4 +1,4 @@
-const flows = ['SDC', 'CCC', 'FO', 'SCP'];
+import {normalizeQualityFlow} from './gestion-desarrollo.mjs';
 const clean = value => String(value ?? '').trim();
 const normalize = value => clean(value).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/\s+/g, ' ');
 const number = value => clean(value) === '' ? NaN : Number(clean(value).replace(',', '.'));
@@ -60,7 +60,7 @@ export function qualityPeriods({mode, year, month, quarter, from, to}) {
 const monthKey = value => /^\d{4}-(0[1-9]|1[0-2])$/.test(clean(value)) ? clean(value) : '';
 const sourceOf = value => /\binternas?\b/.test(normalize(value)) ? 'interna' :
   /\bmeli\b|mercado libre/.test(normalize(value)) ? 'meli' : '';
-const flowOf = value => flows.find(flow => normalize(value).split(/[^a-z]+/).includes(flow.toLowerCase())) || '';
+const flowOf = normalizeQualityFlow;
 const columns = {
   person: ['id meli', 'id colaborador', 'colaborador', 'usuario', 'catalogador'],
   audited: ['q tareas auditadas', 'tareas auditadas', 'auditorias', 'evaluaciones', 'cantidad auditada'],
@@ -199,9 +199,10 @@ export function bucketQuality(records, cadence) {
   const buckets = new Map();
   for (const row of records) {
     if (cadence === 'weeks' && row.unit === 'month') continue;
+    if (cadence === 'days' && row.unit !== 'day') continue;
     const key = cadence === 'weeks'
       ? shiftDay(row.start, -((new Date(row.start).getUTCDay() + 6) % 7))
-      : row.start.slice(0, 7);
+      : cadence === 'days' ? row.start : row.start.slice(0, 7);
     if (!buckets.has(key)) buckets.set(key, []);
     buckets.get(key).push(row);
   }

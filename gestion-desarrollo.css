@@ -1,0 +1,43 @@
+body.pm-design #dashboard #pmHeaderFilters,body.pm-design #dashboard #pmFilterBar{display:none!important}
+#devGlobalFilters[hidden]{display:none}
+.dev-controls{display:flex;flex-wrap:wrap;gap:10px;align-items:end;padding:12px;margin:0 0 16px;background:var(--kpi-surface);border:1px solid var(--kpi-border);border-radius:12px}
+.dev-controls>label{margin:0;font-size:12px}
+.dev-controls input[type=date],.dev-controls select{display:block;margin-top:4px;width:auto;min-height:36px;padding:6px 8px;font:inherit}
+.dev-controls>details{position:relative}
+.dev-controls summary{cursor:pointer;padding:9px;border:1px solid var(--kpi-border);border-radius:7px;font-size:13px}
+.dev-controls details>div{position:absolute;z-index:30;inset:calc(100% + 4px) auto auto 0;width:min(240px,80vw);max-height:250px;overflow:auto;background:var(--kpi-surface);border:1px solid var(--kpi-border);border-radius:8px;padding:8px}
+.dev-controls details label{display:flex;align-items:center;gap:8px;margin:0;padding:6px;font-size:13px}
+.dev-controls input[type=checkbox]{width:auto}
+.dev-controls button{padding:9px 12px;font-size:13px}
+.dev-controls [role=status]{font-size:12px}
+.dev-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(180px,100%),1fr));gap:10px}
+.dev-metric{min-width:0;padding:12px;border:1px solid var(--kpi-border);border-radius:10px}
+.dev-metric h3,.dev-metric p{margin:0 0 6px}
+.dev-metric p{font-size:13px;color:var(--kpi-muted)}
+.dev-comparison-bar{display:grid;grid-template-columns:minmax(100px,1fr) minmax(48px,3fr) 45px;align-items:center;gap:10px;margin:7px 0;font-size:13px}
+.dev-comparison-bar meter{width:100%;height:15px}
+.dev-comparison-bar meter::-webkit-meter-optimum-value{background:#1765d1}
+.dev-chart{overflow:auto;color:var(--kpi-muted);font-size:13px}
+.dev-chart svg{display:block;width:100%;max-height:340px}
+.dev-chart text{font:11px system-ui;fill:currentColor}
+.dev-chart-grid{stroke:var(--kpi-border)}
+.dev-legend{display:flex;gap:16px;flex-wrap:wrap;font-size:13px}
+.dev-legend span::before{content:'';display:inline-block;width:16px;height:3px;margin-right:6px;vertical-align:middle;background:#1765d1}
+.dev-legend span+span::before{background:#d17b12}
+.dev-holds-list details>ul{max-height:180px;overflow:auto}
+.dev-holds-list li{margin:6px 0}
+#devTeamComparison[hidden],#devHoldsRanking[hidden]{display:none}
+body.pm-design #peopleControl{display:none!important}
+#devGlobalFilters .pm-period-control{position:relative;min-width:160px}
+#devGlobalFilters .pm-filter-caption{display:block;margin-bottom:4px;font-size:12px;font-weight:700}
+#devGlobalFilters #pmPeriodToggle{height:36px;font-size:13px;border-color:var(--kpi-border);gap:10px}
+#devGlobalFilters #pmPeriodPopover{width:min(340px,calc(100vw - 48px));box-sizing:border-box;z-index:40}
+#devGlobalFilters .pm-period-tabs{grid-template-columns:repeat(4,minmax(0,1fr))}
+#devGlobalFilters .pm-period-tabs button{padding:0 4px}
+#devGlobalFilters .pm-period-tabs button:focus-visible{outline-offset:-3px}
+#devGlobalFilters #pmCustomArea[hidden]{display:none}
+#devGlobalFilters input[type=date]{box-sizing:border-box;width:100%;min-width:0;margin:0}
+@media(max-width:700px){
+ #devGlobalFilters .pm-period-control{flex-basis:100%}
+ #devGlobalFilters #pmPeriodPopover{position:static;width:100%;max-width:none;margin-top:6px}
+}

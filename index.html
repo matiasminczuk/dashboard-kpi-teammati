@@ -1141,10 +1141,16 @@ body.employee-mode :is(#qualityOverviewCards,#qualityFlowCards) .quality-goal{gr
 }
 </style>
 <link rel="stylesheet" href="./auditorias.css?v=barra-y-filtro">
+<link rel="stylesheet" href="./gestion-desarrollo.css?v=periodo">
 </head>
 <body class="auth-screen">
 <button id="employeeHeaderReveal" type="button" aria-label="Mostrar barra de navegación" aria-controls="dashboardHeader" aria-expanded="false"><span aria-hidden="true"></span></button>
-<header id="dashboardHeader" class="kpi-header"><div class="header-brand"><img class="auth-brand-lockup" src="./assets/logo-acceso.png" width="1200" height="200" alt="Grupo Kelsoft y Mercado Libre"></div><div id="pmHeaderFilters" class="pm-header-filters" hidden><label>Equipo<span id="pmTeamSlot"></span></label><div id="tlTeamScope" class="tl-team-scope" role="group" aria-label="Equipo asignado" hidden><span>Equipo asignado</span><strong id="tlTeamName"></strong></div><div class="pm-period-control"><span class="pm-filter-caption">Período</span><button type="button" id="pmPeriodToggle" class="pm-period-toggle" aria-expanded="false">Q4 2026 <span>⌄</span></button><div id="pmPeriodPopover" class="pm-period-popover" hidden><div class="pm-period-tabs"><button type="button" data-pm-mode="quarter" class="active">Trimestre</button><button type="button" data-pm-mode="month">Mes</button><button type="button" data-pm-mode="weeks">Semanas</button></div><div id="pmQuarterArea"><label>Trimestre<select id="pmQuarterChoice"></select></label></div><div id="pmMonthArea" hidden><label>Mes<select id="pmMonthChoice"></select></label></div><div id="pmWeeksArea" hidden><div class="pm-week-pair"><label>Desde semana<select id="pmWeekFrom"></select></label><label>Hasta semana<select id="pmWeekTo"></select></label></div><div class="pm-period-shortcuts"><button type="button" data-pm-last="1">Última semana</button><button type="button" data-pm-last="4">Últimas 4</button><button type="button" data-pm-last="8">Últimas 8</button></div></div></div></div><label>Catalogador<span id="pmPersonSlot"></span></label></div><div id="headerKpi" class="header-kpi hidden" aria-live="polite"><span class="header-kpi-title">Productividad promedio</span><div class="header-kpi-bottom"><strong id="headerAverage">—</strong><div id="headerTrend" class="header-trend neutral"><span id="headerArrow">—</span><span><b id="headerDelta">Sin comparación</b><small id="headerCompare">Semanas disponibles</small></span></div></div></div><div class="header-actions"><button id="publishKpis" class="hidden" type="button">☁️ Publicar actualización</button><div class="settings-wrap"><button id="settingsButton" type="button" aria-expanded="false" aria-controls="settingsMenu">⚙️ Configuración</button><div id="settingsMenu" class="settings-menu hidden"><button id="changePasswordButton" type="button">🔑 Cambiar contraseña</button></div></div><button id="logout" class="hidden">Cerrar sesión</button></div><div class="header-welcome"><h2 id="employeeGreeting"></h2><p id="headerWelcomeDescription"></p><p id="employeePeriodNote"></p></div><button id="themeToggle" type="button" aria-label="Activar modo oscuro" title="Activar modo oscuro"><svg class="theme-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 14a9 9 0 0 1-10.8-10.8A9 9 0 1 0 20.8 14Z"/></svg><svg class="theme-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4m0-14.2-1.4 1.4M6.3 17.7l-1.4 1.4"/></svg></button><div id="notificationControl" hidden>
+<header id="dashboardHeader" class="kpi-header"><div class="header-brand"><img class="auth-brand-lockup" src="./assets/logo-acceso.png" width="1200" height="200" alt="Grupo Kelsoft y Mercado Libre"></div><div id="devGlobalFilters" class="dev-controls" hidden>
+ <details id="devTeams"><summary>Equipos</summary><div id="devTeamOptions"></div></details>
+ <details><summary>Catalogadores</summary><div id="devPeopleOptions"></div></details>
+ <div class="pm-period-control"><span class="pm-filter-caption">Período</span><button type="button" id="pmPeriodToggle" class="pm-period-toggle" aria-expanded="false" aria-controls="pmPeriodPopover">Período <span>⌄</span></button><div id="pmPeriodPopover" class="pm-period-popover" hidden><div class="pm-period-tabs"><button type="button" data-pm-mode="quarter" class="active">Trimestre</button><button type="button" data-pm-mode="month">Mes</button><button type="button" data-pm-mode="weeks">Semanas</button><button type="button" data-pm-mode="custom">Fechas</button></div><div id="pmQuarterArea"><label>Trimestre<select id="pmQuarterChoice"></select></label></div><div id="pmMonthArea" hidden><label>Mes<select id="pmMonthChoice"></select></label></div><div id="pmWeeksArea" hidden><div class="pm-week-pair"><label>Desde semana<select id="pmWeekFrom"></select></label><label>Hasta semana<select id="pmWeekTo"></select></label></div><div class="pm-period-shortcuts"><button type="button" data-pm-last="1">Última semana</button><button type="button" data-pm-last="4">Últimas 4</button><button type="button" data-pm-last="8">Últimas 8</button></div></div><div id="pmCustomArea" class="pm-week-pair" hidden><label>Desde<input type="date" id="devFrom"></label><label>Hasta<input type="date" id="devTo"></label></div></div></div>
+ <button id="devClear" type="button">Limpiar filtros</button><span id="devFilterStatus" role="status"></span>
+</div><div id="pmHeaderFilters" class="pm-header-filters" hidden><label>Equipo<span id="pmTeamSlot"></span></label><div id="tlTeamScope" class="tl-team-scope" role="group" aria-label="Equipo asignado" hidden><span>Equipo asignado</span><strong id="tlTeamName"></strong></div><label>Catalogador<span id="pmPersonSlot"></span></label></div><div id="headerKpi" class="header-kpi hidden" aria-live="polite"><span class="header-kpi-title">Productividad promedio</span><div class="header-kpi-bottom"><strong id="headerAverage">—</strong><div id="headerTrend" class="header-trend neutral"><span id="headerArrow">—</span><span><b id="headerDelta">Sin comparación</b><small id="headerCompare">Semanas disponibles</small></span></div></div></div><div class="header-actions"><button id="publishKpis" class="hidden" type="button">☁️ Publicar actualización</button><div class="settings-wrap"><button id="settingsButton" type="button" aria-expanded="false" aria-controls="settingsMenu">⚙️ Configuración</button><div id="settingsMenu" class="settings-menu hidden"><button id="changePasswordButton" type="button">🔑 Cambiar contraseña</button></div></div><button id="logout" class="hidden">Cerrar sesión</button></div><div class="header-welcome"><h2 id="employeeGreeting"></h2><p id="headerWelcomeDescription"></p><p id="employeePeriodNote"></p></div><button id="themeToggle" type="button" aria-label="Activar modo oscuro" title="Activar modo oscuro"><svg class="theme-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 14a9 9 0 0 1-10.8-10.8A9 9 0 1 0 20.8 14Z"/></svg><svg class="theme-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4m0-14.2-1.4 1.4M6.3 17.7l-1.4 1.4"/></svg></button><div id="notificationControl" hidden>
  <button id="notificationsToggle" type="button" popovertarget="notificationsPanel" aria-controls="notificationsPanel" aria-expanded="false" aria-label="Notificaciones">
   <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 6-3 6-3 8a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1c0-2-3-2-3-8m-8 12a2 2 0 0 0 4 0"/></svg>
   <span id="notificationBadge" aria-hidden="true" hidden></span>
@@ -1204,7 +1210,7 @@ body.employee-mode :is(#qualityOverviewCards,#qualityFlowCards) .quality-goal{gr
 <div class="pm-overview-heading"><div><p class="pm-eyebrow">PANEL DE GESTIÓN</p><h1>Resumen</h1><p id="pmScope" aria-live="polite">Indicadores del período seleccionado</p></div></div>
 <div id="pmFilterBar" class="pm-filter-bar"></div>
 <div class="pm-metrics">
-<article class="pm-primary-metric"><small>Productividad diaria</small><div><strong id="pmAvg">—</strong><span class="pm-unit">tareas / jornada</span></div><span id="pmGoalStatus" class="pm-goal-status">Objetivo: 100 tareas / jornada</span><span id="pmDaysNote">Jornadas computables</span><span id="pmTrendNote"></span></article>
+<article class="pm-primary-metric"><small>Flujo Mixto · productividad diaria</small><div><strong id="pmAvg">—</strong><span class="pm-unit">tareas / jornada</span></div><span id="pmGoalStatus" class="pm-goal-status">Objetivo: 100 tareas / jornada</span><span id="pmDaysNote">Jornadas computables</span><span id="pmTrendNote"></span></article>
 <article><small>Tareas gestionadas</small><strong id="pmAll">—</strong><span>Finalizadas + postergadas</span></article>
 <article><small>Tareas finalizadas</small><strong id="pmDone">—</strong><span id="pmDoneNote">Cierres del período</span></article>
 <article class="pm-postponed-metric"><small>Tareas postergadas</small><strong id="pmPost">—</strong><span id="pmPostNote">Postergaciones del período</span></article>
@@ -1228,11 +1234,16 @@ body.employee-mode :is(#qualityOverviewCards,#qualityFlowCards) .quality-goal{gr
  <div id="qualityTrend" class="quality-trend"></div>
  <h3>Desglose por flujo</h3><div class="table-wrap"><table><thead><tr><th scope="col">Flujo</th><th scope="col">Auditadas</th><th scope="col">Calidad</th><th scope="col">Objetivo</th></tr></thead><tbody id="qualityFlows"></tbody></table></div>
  <p id="qualityOpportunity"></p>
+ <section id="devHoldsRanking" hidden><div class="quality-chart-heading"><h3>Errores de Holds</h3><label>Mostrar<select id="devHoldsTop"><option value="5">Top 5</option><option value="10">Top 10</option></select></label></div>
+ <div id="devHoldsRows"></div></section>
  <div id="qualityComparison"><h3 id="qualityComparisonTitle">Comparativa</h3><div class="table-wrap"><table><thead><tr><th scope="col">Grupo</th><th scope="col">Auditadas</th><th scope="col">Calidad</th><th scope="col">Variación</th></tr></thead><tbody id="qualityComparisonRows"></tbody></table></div></div>
  <p class="quality-method">La efectividad se pondera por la cantidad de tareas auditadas. El origen se mantiene separado. Los totales de un mes tienen prioridad si también hay detalle del mismo mes.</p>
  </section>
 <div class="pm-bottom-grid"><article class="pm-post-panel"><div class="pm-chart-heading"><h2><i class="purple-square"></i>Evolución de holds</h2><small>Eventos registrados por semana</small></div><div class="pm-post-chart" id="pmPostChart"></div></article><article class="pm-flow-panel"><div class="pm-flow-heading"><div><h2>Distribución de flujos</h2><p>Período seleccionado</p></div><div class="pm-flow-total">Total de tareas <strong id="pmFlowTotal">—</strong></div></div><div id="pmFlowsSlot"></div></article></div>
-</section><section id="pmComparison" class="panel hidden"><h2>Comparativa de equipos</h2><p class="muted">Promedio de tareas por jornada computable, según filtros de flujos, calculado con la última publicación.</p><div class="table-wrap"><table><thead><tr><th>Equipo</th><th>Catalogadores</th><th>Jornadas</th><th>Promedio diario</th><th>Tareas</th></tr></thead><tbody id="pmComparisonRows"></tbody></table></div></section><div class="kpi-flow-controls" id="kpiFlowControls"><strong>Filtros de productividad</strong><label><input type="checkbox" id="excludeKnown" checked> Excluir jornadas con KNOWN_VALUE</label><label><input type="checkbox" id="excludeSupport" checked> Excluir jornadas con Soporte</label><small>Se excluye el día completo si hubo actividad de esos flujos. Los registros siguen visibles en Gestión.</small></div><section class="cards" id="mainCards"><div class="card"><span>Promedio diario de tareas (según filtros)</span><h1 id="kpiAverage">—</h1><small id="averageNote" class="muted">Por jornada con registro</small><p id="employeeGoal" class="employee-only"></p><small id="employeeTrend" class="employee-only"></small></div><div class="card"><span>Tareas totales</span><h1 id="kpiTasks">—</h1><small id="tasksNote" class="muted">Período seleccionado</small></div><div class="card"><span>Creaciones totales</span><h1 id="kpiCreations">—</h1><small class="muted">Período seleccionado</small></div><div class="card"><span>Jornadas computables</span><h1 id="kpiDays">—</h1><small class="muted">Colaborador + fecha</small></div></section>
+</section><section id="pmComparison" class="panel hidden"><h2>Comparativa de equipos</h2>
+ <div class="audit-controls"><label>Flujo<select id="devCompareFlow"><option value="mixto">Flujo Mixto</option><option value="soporte">Soporte</option><option value="kv">Know Values</option></select></label>
+ <label>Ordenar por<select id="devCompareSort"><option value="average">Promedio</option><option value="people">Catalogadores</option><option value="difference">Diferencia al mínimo</option><option value="delta">Evolución</option></select></label></div>
+ <div id="devComparisonBars"></div><div class="table-wrap"><table><thead><tr><th>Posición</th><th>Equipo</th><th>TL</th><th>Promedio diario</th><th>Catalogadores</th><th>Mínimo</th><th>Diferencia</th><th>vs. período anterior</th></tr></thead><tbody id="pmComparisonRows"></tbody></table></div></section><div class="kpi-flow-controls" id="kpiFlowControls"><strong>Filtros de productividad</strong><label><input type="checkbox" id="excludeKnown" checked> Excluir jornadas con KNOWN_VALUE</label><label><input type="checkbox" id="excludeSupport" checked> Excluir jornadas con Soporte</label><small>Se excluye el día completo si hubo actividad de esos flujos. Los registros siguen visibles en Gestión.</small></div><section class="cards" id="mainCards"><div class="card"><span>Promedio diario de tareas (según filtros)</span><h1 id="kpiAverage">—</h1><small id="averageNote" class="muted">Por jornada con registro</small><p id="employeeGoal" class="employee-only"></p><small id="employeeTrend" class="employee-only"></small></div><div class="card"><span>Tareas totales</span><h1 id="kpiTasks">—</h1><small id="tasksNote" class="muted">Período seleccionado</small></div><div class="card"><span>Creaciones totales</span><h1 id="kpiCreations">—</h1><small class="muted">Período seleccionado</small></div><div class="card"><span>Jornadas computables</span><h1 id="kpiDays">—</h1><small class="muted">Colaborador + fecha</small></div></section>
 <section id="employeeFlowPercent" aria-label="Porcentaje de tareas accionadas por flujo"><div class="employee-flow-grid">
 <div class="employee-flow-card" style="--flow-color:#3483fa"><span>CCC</span><strong id="employeePctCcc">—</strong><small id="employeeCountCcc">Sin registros</small></div>
 <div class="employee-flow-card" style="--flow-color:#e3a900"><span>Demanda</span><strong id="employeePctDemanda">—</strong><small id="employeeCountDemanda">Sin registros</small></div>
@@ -1246,7 +1257,10 @@ body.employee-mode :is(#qualityOverviewCards,#qualityFlowCards) .quality-goal{gr
  <article class="panel summary-visual"><h2>Distribución de flujos</h2><p class="summary-sub">CCC, Demanda y Otros</p><div id="sumFlows" class="summary-chart"></div></article>
  <article class="panel summary-visual"><h2>Cierres por franja horaria</h2><p class="summary-sub">Tareas finalizadas · Gestión</p><div id="sumHours" class="summary-chart"></div></article>
 </section>
-<section id="pmProductivity" class="panel" data-admin-hide="true" aria-labelledby="pmProductivityTitle"><div class="pm-overview-heading"><p class="pm-eyebrow">RENDIMIENTO Y SEGUIMIENTO</p><h1 id="pmProductivityTitle">Productividad / Holds</h1><p id="pmProductivityScope" aria-live="polite">Indicadores del período seleccionado</p></div><div id="pmProductivityFilters"></div><div class="pm-productivity-metrics" aria-live="polite"><article class="pm-productivity-primary"><span>Productividad diaria</span><strong id="pmProductivityAverage">—</strong><small id="pmProductivityGoal">Tareas por jornada computable</small></article><article><span>Creaciones por jornada</span><strong id="pmCreationAverage">—</strong><small id="pmCreationDays">Jornadas con creaciones</small></article><article class="pm-hold-metric"><span>Registros de holds</span><strong id="pmHoldCount">—</strong><small id="pmHoldContext">Eventos del período</small></article><article><span>Catalogadores con registros</span><strong id="pmActivePeople">—</strong><small id="pmActivityDays">Jornadas computables</small></article></div><details class="pm-methodology"><summary>Criterios del cálculo y exclusiones</summary><p>Productividad y creaciones se calculan por jornada registrada de cada indicador. Las exclusiones por flujo se aplican a ambos gráficos semanales. Los holds cuentan eventos según «Último Hold», incluidos los registros repetidos de un mismo CDM.</p><div id="pmProductivityCriteria"></div><p>La referencia de 100 tareas diarias es la misma del Resumen. El cumplimiento formal del Excel todavía requiere incorporar sus reglas.</p></details></section>
+<section id="pmProductivity" class="panel" data-admin-hide="true" aria-labelledby="pmProductivityTitle"><div class="pm-overview-heading"><p class="pm-eyebrow">RENDIMIENTO Y SEGUIMIENTO</p><h1 id="pmProductivityTitle">Productividad / Holds</h1><p id="pmProductivityScope" aria-live="polite">Indicadores del período seleccionado</p></div><div id="pmProductivityFilters"></div><div class="pm-productivity-metrics" aria-live="polite"><article class="pm-productivity-primary"><span>Flujo Mixto · productividad diaria</span><strong id="pmProductivityAverage">—</strong><small id="pmProductivityGoal">Tareas por jornada computable</small></article><article><span>Creaciones por jornada</span><strong id="pmCreationAverage">—</strong><small id="pmCreationDays">Jornadas con creaciones</small></article><article class="pm-hold-metric"><span>Registros de holds</span><strong id="pmHoldCount">—</strong><small id="pmHoldContext">Eventos del período</small></article><article><span>Catalogadores con registros</span><strong id="pmActivePeople">—</strong><small id="pmActivityDays">Jornadas computables</small></article></div><details class="pm-methodology"><summary>Criterios del cálculo y exclusiones</summary><p>La productividad se calcula por jornada registrada. Los objetivos se evalúan dentro de cada flujo operativo. Los holds cuentan eventos según «Último Hold», incluidos los registros repetidos de un mismo CDM.</p> <div id="pmProductivityCriteria" hidden></div></details><section class="panel"><h2>Productividad por flujo</h2><div id="devOperationalCards" class="dev-metrics"></div></section>
+ <section class="panel"><h2>Creaciones y Correcciones</h2><div class="dev-legend"><span>Creaciones</span><span>Correcciones</span></div>
+ <div id="devCreationChart" class="dev-chart" tabindex="0" aria-label="Gráfico de Creaciones y Correcciones"></div></section>
+</section>
 <section class="panel" id="weeklyPanel"><h2>Evolución semanal</h2><p class="muted">Productividad y creaciones en escalas independientes · promedio por jornada registrada · semanas de lunes a domingo.</p>
 <div class="week-filters"><div><label for="weekMode">Período</label><select id="weekMode"><option value="quarter" selected>Trimestre</option><option value="month">Mes</option><option value="weeks">Semanas</option></select></div><div><label for="weekYear">Año</label><select id="weekYear"></select></div><div id="monthWrap" class="hidden"><label for="weekMonth">Mes</label><select id="weekMonth"><option value="10" selected>Octubre</option><option value="11">Noviembre</option><option value="12">Diciembre</option></select></div><div id="quarterWrap"><label for="weekQuarter">Trimestre</label><select id="weekQuarter"><option value="4" selected>Q4</option></select></div><div id="startWeekWrap" class="hidden"><label for="weekStart">Desde semana</label><select id="weekStart"></select></div><div id="endWeekWrap" class="hidden"><label for="weekEnd">Hasta semana</label><select id="weekEnd"></select></div></div>
 <p id="weeklyStatus" class="muted"></p><div id="weeklyChart" class="weekly-chart"><p class="muted">Cargando gráfico…</p></div><div class="table-wrap week-table"><table><thead><tr><th>Semana</th><th>Período</th><th>Promedio diario de tareas</th><th>Promedio diario de creaciones</th><th>Jornadas tareas</th><th>Jornadas creaciones</th></tr></thead><tbody id="weeklyRows"></tbody></table></div><p class="week-chart-note">El promedio semanal se calcula como total de tareas o creaciones dividido por las jornadas registradas de ese indicador. En la vista general se promedian todas las jornadas registradas del equipo. Las semanas que cruzan un mes o un Q usan solo los días del período elegido.</p></section>
@@ -1255,7 +1269,7 @@ body.employee-mode :is(#qualityOverviewCards,#qualityFlowCards) .quality-goal{gr
 
 <section class="panel employee-only" id="employeeWeeklyTablePanel"><h2>Detalle semanal</h2><details><summary>Consultar promedios y jornadas por semana</summary><div id="employeeWeeklyTableSlot"></div></details></section>
 <section id="pmFlowsIntro" data-admin-hide="true"><div class="pm-overview-heading"><p class="pm-eyebrow">OPERACIÓN Y DISTRIBUCIÓN</p><h1>Flujos / Tiempos</h1><p id="pmFlowsScope">Indicadores del período seleccionado</p></div><div id="pmFlowsFilters"></div><section id="flowProductivityGoals" class="quality-overview" aria-labelledby="flowProductivityTitle"><div class="quality-overview-head"><div><h2 id="flowProductivityTitle">Productividad por grupo</h2><p>Promedio por jornada con actividad registrada en cada grupo, según los filtros seleccionados.</p></div></div><div class="quality-flow-grid productivity-goal-grid" id="flowProductivityCards"></div></section><div class="pm-operation-metrics"><article><span>Tareas finalizadas</span><strong id="gTotalTasks">—</strong><small>Base de finalizadas · según filtros</small></article><article><span>Catalogadores con registros</span><strong id="gPeopleTotal">—</strong><small id="gDayCoverage">Jornadas de gestión</small></article><article><span>Cierres con horario válido</span><strong id="gTimeCoverage">—</strong><small id="gTimeCoverageNote">Cobertura de la base</small></article></div></section>
-<section class="panel" id="gestionPanel"><h2>Distribución de flujos</h2><p class="muted">Participación de cada grupo en las tareas finalizadas del período y los catalogadores seleccionados.</p><div id="gFlowComposition" aria-label="Distribución de tareas por grupo"></div><div class="gestion-cards"><div class="gestion-card"><span>CCC</span><strong id="gCcc">—</strong><small id="gCccCount">—</small></div><div class="gestion-card orange"><span>DEMANDA</span><strong id="gDemanda">—</strong><small id="gDemandaCount">—</small></div><div class="gestion-card"><span>SOPORTE</span><strong id="gSoporte">—</strong><small id="gSoporteCount">—</small></div><div class="gestion-card"><span>KNOWN VALUE</span><strong id="gKnown">—</strong><small id="gKnownCount">—</small></div><div class="gestion-card purple"><span>OTROS</span><strong id="gOtros">—</strong><small id="gOtrosCount">—</small></div></div><p id="gestionStatus" class="muted">Consultando gestión…</p><h3>Detalle de iniciativas</h3><div class="table-wrap"><table><thead><tr><th>Iniciativa</th><th>Grupo</th><th>Tareas</th><th>% del total</th></tr></thead><tbody id="gFlowRows"></tbody></table></div><details class="pm-methodology"><summary>Cómo se agrupan las iniciativas</summary><p>CCC corresponde a MAO. KNOWN_VALUE se muestra por separado. Demanda incluye «Sugerencia de corrección» y «Sugerencia de creación». Soporte reúne las iniciativas de denuncias, familias, merge y correcciones definidas en la clasificación. El resto se muestra en Otros. La tabla indica el grupo de cada iniciativa.</p></details></section>
+<section class="panel" id="gestionPanel"><h2>Distribución de flujos</h2><p class="muted">Participación de cada grupo en las tareas finalizadas del período y los catalogadores seleccionados.</p><div id="gFlowComposition" aria-label="Distribución de tareas por grupo"></div><div class="gestion-cards"><div class="gestion-card"><span>CCC</span><strong id="gCcc">—</strong><small id="gCccCount">—</small></div><div class="gestion-card orange"><span>DEMANDA</span><strong id="gDemanda">—</strong><small id="gDemandaCount">—</small></div><div class="gestion-card"><span>SOPORTE</span><strong id="gSoporte">—</strong><small id="gSoporteCount">—</small></div><div class="gestion-card"><span>KNOWN VALUE</span><strong id="gKnown">—</strong><small id="gKnownCount">—</small></div><div class="gestion-card purple"><span>OTROS</span><strong id="gOtros">—</strong><small id="gOtrosCount">—</small></div></div><p id="gestionStatus" class="muted">Consultando gestión…</p><h3>Detalle de iniciativas</h3><div class="table-wrap"><table><thead><tr><th>Iniciativa</th><th>Grupo</th><th>Tareas</th><th>% del total</th></tr></thead><tbody id="gFlowRows"></tbody></table></div><details class="pm-methodology"><summary>Cómo se agrupan las iniciativas</summary><p>CCC se muestra por separado de Know Values. Demanda incluye «Sugerencia de corrección» y «Sugerencia de creación». Soporte reúne las iniciativas de denuncias, familias, merge y correcciones definidas en la clasificación. El resto se muestra en Otros. La tabla indica el grupo de cada iniciativa.</p></details></section>
 <section class="panel" id="tiemposPanel"><h2>Horarios observados</h2><p class="muted">Inicio de la primera tarea y finalización de la última tarea de cada catalogador por día. Las tarjetas muestran el promedio diario del período. Horas 01–07 del CSV se interpretan como 13–19 (hipótesis de formato 12 h sin AM/PM).</p><p id="employeeTimeCoverage" class="employee-only"></p><div class="gestion-cards four"><div class="gestion-card"><span>INICIO OBSERVADO</span><strong id="gStart">—</strong><small>Promedio del inicio de la primera tarea diaria</small></div><div class="gestion-card"><span>FIN OBSERVADO</span><strong id="gEnd">—</strong><small>Promedio del fin de la última tarea diaria</small></div><div class="gestion-card orange"><span>CIERRES DE 15 A 18 H</span><strong id="gLast3">—</strong><small>Cierres entre 15:00 y 18:00</small></div><div class="gestion-card purple"><span>FRANJA CON MÁS CIERRES</span><strong id="gPeak">—</strong><small id="gPeakPct">De los cierres con horario</small></div></div><div class="gestion-two"><div><h3>Distribución de cierres</h3><div id="gHourBars"></div></div><div><h3>Patrón observado</h3><p id="gPattern" class="muted">Cargá la base de Gestión para ver los resultados.</p><p class="gestion-note">La distribución usa franjas 09–11, 11–13, 13–15, 15–17, 17–18 y «Fuera de franja». El porcentaje siempre se calcula sobre cierres con hora válida.</p></div></div></section>
 <section class="panel" id="teamPeoplePanel"><h2>Resumen por catalogador</h2><div class="table-wrap"><table><thead><tr><th>Catalogador</th><th>ID MELI</th><th>Jornadas</th><th>Tareas</th><th>Promedio diario</th><th>Creaciones</th></tr></thead><tbody id="peopleRows"><tr><td colspan="6">Cargando…</td></tr></tbody></table></div></section>
 <section class="panel" id="pendingPanel"><h2>Indicadores pendientes</h2><p class="muted">El objetivo diario y el porcentaje de cumplimiento requieren incorporar los criterios correspondientes del Excel. Todavía no están guardados en los registros importados; no se calculan valores ficticios.</p></section>
@@ -1305,7 +1319,8 @@ body.employee-mode :is(#qualityOverviewCards,#qualityFlowCards) .quality-goal{gr
  <details id="calidadIssues"><summary>Motivos de rechazo</summary><ul id="calidadIssueList"></ul></details>
  </div><div class="importbox"><button id="confirmCalidadImport" type="button" disabled>Guardar y publicar Calidad</button><p id="calidadImportStatus" class="status" role="status"></p></div>
  </section></div>
-<section id="viewSettings" class="hidden" aria-labelledby="configurationTitle"><div class="pm-overview-heading"><p class="pm-eyebrow">CUENTA Y ADMINISTRACIÓN</p><h1 id="configurationTitle">Configuración</h1><p id="settingsAccount"></p></div><section id="qualityGoalPanel" class="panel" hidden><h2>Objetivo de Calidad</h2><p>Definí el porcentaje que se compara con los resultados. Dejá el campo vacío para quitar el objetivo.</p><form id="qualityGoalForm" class="settings-goal-form"><div><label for="qualityTarget">Objetivo (%)</label><input id="qualityTarget" type="number" min="0" max="100" step="0.01"></div><button type="submit">Guardar objetivo</button></form><p id="qualityGoalStatus" role="status"></p></section><section id="productivityGoalPanel" class="panel" hidden>
+<section id="viewSettings" class="hidden" aria-labelledby="configurationTitle"><div class="pm-overview-heading"><p class="pm-eyebrow">CUENTA Y ADMINISTRACIÓN</p><h1 id="configurationTitle">Configuración</h1><p id="settingsAccount"></p></div><section id="qualityGoalPanel" class="panel" hidden><h2>Objetivos de Calidad</h2><p>Objetivos globales por indicador. Dejá un campo vacío para quitar su objetivo.</p>
+ <form id="qualityGoalForm" class="settings-goal-form"><label>SDC (%)<input id="qualityTargetSDC" type="number" min="0" max="100" step="0.01"></label><label>SCP (%)<input id="qualityTargetSCP" type="number" min="0" max="100" step="0.01"></label><label>FO (%)<input id="qualityTargetFO" type="number" min="0" max="100" step="0.01"></label><label>CCC (%)<input id="qualityTargetCCC" type="number" min="0" max="100" step="0.01"></label><button type="submit">Guardar objetivos</button></form><p id="qualityGoalStatus" role="status"></p></section><section id="productivityGoalPanel" class="panel" hidden>
  <h2>Objetivos de productividad</h2><p>Metas en tareas por jornada con actividad del grupo. Dejá un campo vacío para quitar esa meta.</p>
  <form id="productivityGoalForm" class="settings-goal-form">
   <div><label for="mixedTarget">Flujo mixto</label><input id="mixedTarget" type="number" min="0.01" max="100000" step="0.01" aria-describedby="mixedScope"><small id="mixedScope">SDC, FO, CCC y SCP.</small></div>
@@ -1319,6 +1334,9 @@ import {initializeApp} from 'https://www.gstatic.com/firebasejs/12.6.0/firebase-
 import {getAuth,onAuthStateChanged,signInWithEmailAndPassword,createUserWithEmailAndPassword,sendPasswordResetEmail,signOut,EmailAuthProvider,reauthenticateWithCredential,updatePassword} from 'https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js';
 import {getFirestore,doc,getDoc,getDocs,collection,query,where,writeBatch,serverTimestamp,runTransaction,onSnapshot,orderBy,limit,documentId} from 'https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js';
 import {indexPeople,analyzeQuality,restoreArchivedQuality,qualityPeriods,selectQualityPeriod,summary,bucketQuality} from './calidad.mjs?v=archivo-1';
+import {analysisPeriod,inPeriod,operationalFlow,operationalFlows,defaultProductivityGoals,productivityTotals,normalizeQualityFlow} from './gestion-desarrollo.mjs';
+import {setupFilters} from './filtros-desarrollo.mjs?v=periodo';
+import {renderOperationalCards,renderComparison,renderCreationChart,renderHoldsRanking} from './visuales-desarrollo.mjs';
 const firebaseConfig={apiKey:'AIzaSyB7edb0wGmf86KVrca5zkBTju7wg_zVDFk',authDomain:'dashboard-kpi-teammati.firebaseapp.com',projectId:'dashboard-kpi-teammati',storageBucket:'dashboard-kpi-teammati.firebasestorage.app',messagingSenderId:'158470825794',appId:'1:158470825794:web:33eb0d3c862756b9d7cadb',measurementId:'G-7E8M7NSPV0'};
 const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app);
 import {setupAudits} from './auditorias-ui.mjs?v=barra-y-filtro';
@@ -1329,7 +1347,9 @@ const auditFeatures = setupAudits({
  db, doc, getDocs, collection, query, where, writeBatch, serverTimestamp, onSnapshot, orderBy, limit,
  loadXlsx:()=>loadXlsx(),
  call:sparkAuditCall,
+ auditFilter:audit=>!isAdmin||(devMatches(audit.equipo,audit.colaboradorIdMeli)&&devAuditPeriod(audit)),
  openAuditView(){
+  if(isAdmin)devFilters.mount($('viewAuditorias'));
   for(const id of ['viewDashboard','viewUpload','viewSettings'])$(id).classList.add('hidden');
   document.body.classList.remove('pm-settings','pm-productivity','pm-flows');
   document.querySelectorAll('#adminSidebar .side-link').forEach(button=>{
@@ -1357,12 +1377,12 @@ const auditFeatures = setupAudits({
 const ACCESS_OWNER_UID='zzCZDpLLzvaGpxe3zuqAp2sVtB42';
 let accessPermission=null,permissionAccounts=[],permissionGrants=new Map();
 function ownsAccess(){return auth.currentUser?.uid===ACCESS_OWNER_UID&&String(profileData?.rol||'').toLowerCase()==='pm';}
-function canImportBases(){return ['pm','admin'].includes(String(profileData?.rol||'').toLowerCase())||accessPermission!==null;}
+function canImportBases(){return ['pm','admin'].includes(String(profileData?.rol||'').toLowerCase())||accessPermission?.nivel==='superadmin';}
 function canManageAccess(){return ownsAccess()||accessPermission?.nivel==='superadmin';}
 function dashboardScope(){
- const period=$('pmPeriodToggle').textContent.replace('⌄','').trim();
- const team=isPM?$('pmTeamFilter').selectedOptions[0]?.textContent:(selectedTeam||'Equipo sin asignar');
- return [period,team,$('personFilter').selectedOptions[0]?.textContent].filter(Boolean).join(' · ');
+ const range=devFilters.period()?.current,period=range?range.start+' a '+range.end:'Período inválido';
+ const team=isPM?(devFilters.state().teams.join(', ')||'Todos los equipos'):(selectedTeam||'Equipo sin asignar');
+ return [period,team,devFilters.state().people.length?devFilters.state().people.length+' catalogadores':null].filter(Boolean).join(' · ');
 }
 async function loadImportPeople(){
  if(!canImportBases())throw Error('Tu cuenta no tiene permiso para cargar bases.');
@@ -1405,7 +1425,7 @@ function arrangeEmployeePanels(){
   $('mainCards').after($('employeeFlowPercent'));$('employeeFlowPercent').after(summary);summary.after(weekly);weekly.after(holds);holds.after(gestion);gestion.after(times);
  }
 }
-function showDashboard(name,admin){document.body.classList.remove('auth-screen');isAdmin=admin;isPM=canImportBases();selectedTeam=isPM?'':validTeam(profileData?.equipo);publishedItems=[];kpiCache=[];holdsCache=[];gestionCache=[];excludedPeople=new Set();$('personFilter').replaceChildren(new Option(admin?'Todos los catalogadores':'Mi productividad',''));document.body.classList.toggle('admin-mode',admin);const welcome=$('employeeGreeting').closest('.header-welcome');const header=document.querySelector('header.kpi-header');header.insertBefore(welcome,$('themeToggle'));$('adminSidebar').classList.toggle('hidden',!admin);document.body.classList.toggle('employee-mode',!admin);$('employeeGreeting').textContent='¡Hola, '+name+'!';$('headerWelcomeDescription').textContent=admin?'Productividad, creaciones, holds y horarios de gestión.':'Tu productividad, creaciones, holds y horarios de gestión en un solo lugar.';$('welcome').textContent=admin?'Bienvenido, '+name:'Mi productividad';$('login').classList.add('hidden');$('dashboard').classList.remove('hidden');$('logout').classList.remove('hidden');$('tabUpload').classList.toggle('hidden',!isPM);$('publishKpis').classList.toggle('hidden',!isPM);$('pmTeamWrap').classList.toggle('hidden',!isPM);$('pmComparison').classList.toggle('hidden',!isPM);$('pmTeamFilter').value=isPM?'':selectedTeam;switchTab(false);arrangeEmployeePanels();if(admin)selectAdminSection('resumen');loadDashboardKpis().catch(console.error);loadQuality();}
+function showDashboard(name,admin){document.body.classList.remove('auth-screen');isAdmin=admin;isPM=qualityGoalEditor()||accessPermission?.nivel==='superadmin';selectedTeam=isPM?'':validTeam(profileData?.equipo);publishedItems=[];kpiCache=[];holdsCache=[];gestionCache=[];excludedPeople=new Set();$('personFilter').replaceChildren(new Option(admin?'Todos los catalogadores':'Mi productividad',''));document.body.classList.toggle('admin-mode',admin);const welcome=$('employeeGreeting').closest('.header-welcome');const header=document.querySelector('header.kpi-header');header.insertBefore(welcome,$('themeToggle'));$('adminSidebar').classList.toggle('hidden',!admin);document.body.classList.toggle('employee-mode',!admin);$('employeeGreeting').textContent='¡Hola, '+name+'!';$('headerWelcomeDescription').textContent=admin?'Productividad, creaciones, holds y horarios de gestión.':'Tu productividad, creaciones, holds y horarios de gestión en un solo lugar.';$('welcome').textContent=admin?'Bienvenido, '+name:'Mi productividad';$('login').classList.add('hidden');$('dashboard').classList.remove('hidden');$('logout').classList.remove('hidden');$('tabUpload').classList.toggle('hidden',!isPM);$('publishKpis').classList.toggle('hidden',!isPM);$('pmTeamWrap').classList.toggle('hidden',!isPM);$('pmComparison').classList.toggle('hidden',!isPM);$('pmTeamFilter').value=isPM?'':selectedTeam;switchTab(false);arrangeEmployeePanels();if(admin){devFilters.start(auth.currentUser.uid);selectAdminSection('resumen');loadDevLeads();}loadDashboardKpis().catch(console.error);loadQuality();}
 function switchTab(upload){if(upload&&!canImportBases())return;auditFeatures.closeView();$('viewSettings').classList.add('hidden');$('viewDashboard').classList.toggle('hidden',upload);$('viewUpload').classList.toggle('hidden',!upload);$('tabDashboard').classList.toggle('active',!upload);$('tabUpload').classList.toggle('active',upload);}
 $('tabDashboard').addEventListener('click',()=>switchTab(false));$('tabUpload').addEventListener('click',()=>switchTab(true));
 const authViews={
@@ -1457,25 +1477,35 @@ const table=$('previewTable');table.replaceChildren();if(!data.length){table.tex
 function normalize(v){return String(v??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLowerCase().replace(/\s+/g,' ');}
 function numeric(v){if(typeof v==='number')return Number.isFinite(v)?v:NaN;const t=String(v??'').trim();if(!t)return NaN;return Number(t.replace(',','.'));}
 function dateKey(v){if(v instanceof Date&&!isNaN(v))return v.toISOString().slice(0,10);if(typeof v==='number'&&v>30000&&v<80000){const d=XLSX.SSF.parse_date_code(v);if(d)return `${d.y}-${String(d.m).padStart(2,'0')}-${String(d.d).padStart(2,'0')}`;}const t=String(v??'').trim();if(/^\d{4}-\d{2}-\d{2}/.test(t))return t.slice(0,10);const m=t.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);if(m)return `${m[3]}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`;return '';}
-function analyzeBase(sheet,metric){const matrix=XLSX.utils.sheet_to_json(workbook.Sheets[sheet],{header:1,defval:'',raw:true,blankrows:false});const header=matrix[0]||[];const col=name=>header.findIndex(h=>normalize(h)===normalize(name));const indices={date:col('Fecha'),id:col('ID MELI'),name:col('Colaborador'),team:col('Equipo'),value:col(metric)};if(Object.values(indices).some(i=>i<0))throw Error(`La hoja «${sheet}» no tiene todas las columnas requeridas: Fecha, ID MELI, Colaborador, Equipo, ${metric}.`);const selected=new Map(),issues=[];let teamRows=0,duplicates=0;for(let i=1;i<matrix.length;i++){const r=matrix[i];const rowTeam=validTeam(r[indices.team]);if(isPM?!rowTeam:rowTeam!==selectedTeam)continue;teamRows++;const date=dateKey(r[indices.date]),id=String(r[indices.id]??'').trim(),name=String(r[indices.name]??'').trim(),value=numeric(r[indices.value]);if(!date||!id||!name||!Number.isFinite(value)||value<0){issues.push(`Fila ${i+1} de «${sheet}»: fecha, ID, nombre o cantidad inválidos.`);continue;}const key=`${date}|${id}`;if(selected.has(key))duplicates++;selected.set(key,{date,id,name,value,equipo:rowTeam});}return {sheet,metric,teamRows,duplicates,issues,records:[...selected.values()]};}
-function validateWorkbook(){const box=$('validation');box.classList.remove('hidden');try{const daily=analyzeBase('Base diaria','Tareas totales'),creations=analyzeBase('Base creaciones','Creaciones');const all=[...daily.records,...creations.records],people=new Map();for(const r of all)people.set(r.id,r.name);const dates=all.map(r=>r.date).sort(),issues=[...daily.issues,...creations.issues];const esc=v=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));const valid=issues.length===0&&daily.duplicates===0&&creations.duplicates===0&&daily.records.length>0&&creations.records.length>0; if(valid){prepareImport(daily,creations).catch(e=>{console.error(e);$('importStatus').textContent='No se pudo comparar con Firebase: '+e.message;$('importStatus').className='status bad';});}else{$('importPanel').classList.add('hidden');importPlan=null;}box.innerHTML=`<h3>✓ Análisis del equipo ${esc(TEAM)}</h3><p class="muted">Se procesaron las bases originales. No se incluyen registros de otros equipos.</p><div class="summary"><div>Tareas (registros)<strong>${daily.records.length.toLocaleString('es-AR')}</strong></div><div>Creaciones (registros)<strong>${creations.records.length.toLocaleString('es-AR')}</strong></div><div>IDs MELI distintos<strong>${people.size}</strong></div><div>Fechas disponibles<strong>${dates.length?esc(dates[0]+' a '+dates.at(-1)):'—'}</strong></div></div><p><strong>Filas del equipo:</strong> ${daily.teamRows} en Base diaria y ${creations.teamRows} en Base creaciones.</p><p><strong>Registros repetidos por fecha + ID:</strong> ${daily.duplicates+creations.duplicates}. Se consideran una sola vez en esta vista previa; antes de importar se deberán revisar.</p><p><strong>Registros inválidos:</strong> ${issues.length}.</p>${issues.length?`<ul class="bad">${issues.slice(0,8).map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:'<p class="good">✓ Todos los registros seleccionados tienen fecha, ID MELI, colaborador y cantidad válidos.</p>'}<h3>Catalogadores detectados</h3><div class="table-wrap"><table><thead><tr><th>ID MELI</th><th>Colaborador</th></tr></thead><tbody>${[...people].sort((a,b)=>a[1].localeCompare(b[1])).map(([id,name])=>`<tr><td>${esc(id)}</td><td>${esc(name)}</td></tr>`).join('')}</tbody></table></div><p class="muted">Los datos aún no se guardaron. La importación definitiva incluirá controles de duplicados, cambios y autorización del administrador.</p>`;}catch(e){console.error(e);box.innerHTML='';const p=document.createElement('p');p.className='bad';p.textContent='No se pudo validar el equipo: '+e.message;box.appendChild(p);}}
+function analyzeBase(sheet,metric){const matrix=XLSX.utils.sheet_to_json(workbook.Sheets[sheet],{header:1,defval:'',raw:true,blankrows:false});const header=matrix[0]||[];const col=name=>header.findIndex(h=>normalize(h)===normalize(name));const indices={date:col('Fecha'),id:col('ID MELI'),name:col('Colaborador'),team:col('Equipo'),value:col(metric)};if(Object.values(indices).some(i=>i<0))throw Error(`La hoja «${sheet}» no tiene todas las columnas requeridas: Fecha, ID MELI, Colaborador, Equipo, ${metric}.`);const roleColumn=col('Rol'),selected=new Map(),issues=[];let teamRows=0,duplicates=0;for(let i=1;i<matrix.length;i++){const r=matrix[i];const rowTeam=validTeam(r[indices.team]);if(isPM?!rowTeam:rowTeam!==selectedTeam)continue;teamRows++;const date=dateKey(r[indices.date]),id=String(r[indices.id]??'').trim(),name=String(r[indices.name]??'').trim(),value=numeric(r[indices.value]);if(!date||!id||!name||!Number.isFinite(value)||value<0){issues.push(`Fila ${i+1} de «${sheet}»: fecha, ID, nombre o cantidad inválidos.`);continue;}const key=`${date}|${id}`;if(selected.has(key))duplicates++;selected.set(key,{date,id,name,value,equipo:rowTeam,rolOrigen:String(r[roleColumn]??'').trim()});}return {sheet,metric,teamRows,duplicates,issues,records:[...selected.values()]};}
+function correctionBase(){
+ const candidates=['Base correcciones','Base diaria','Base creaciones'].filter(sheet=>{
+  if(!workbook.Sheets[sheet])return false;
+  const [header=[]]=XLSX.utils.sheet_to_json(workbook.Sheets[sheet],{header:1,range:0,blankrows:false}).slice(0,1);
+  return header.some(value=>normalize(value)==='correcciones');
+ });
+ if(candidates.length>1)throw Error('Hay varias fuentes de Correcciones. Conservá una sola columna de origen.');
+ return candidates.length?analyzeBase(candidates[0],'Correcciones'):null;
+}
+function validateWorkbook(){const box=$('validation');box.classList.remove('hidden');try{const daily=analyzeBase('Base diaria','Tareas totales'),creations=analyzeBase('Base creaciones','Creaciones');const corrections=correctionBase(),all=[...daily.records,...creations.records,...(corrections?.records||[])],people=new Map();for(const r of all)people.set(r.id,r.name);const dates=all.map(r=>r.date).sort(),issues=[...daily.issues,...creations.issues,...(corrections?.issues||[])];const esc=v=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));const valid=issues.length===0&&daily.duplicates===0&&creations.duplicates===0&&!(corrections?.duplicates)&&daily.records.length>0&&creations.records.length>0; if(valid){prepareImport(daily,creations,corrections).catch(e=>{console.error(e);$('importStatus').textContent='No se pudo comparar con Firebase: '+e.message;$('importStatus').className='status bad';});}else{$('importPanel').classList.add('hidden');importPlan=null;}box.innerHTML=`<h3>✓ Análisis del equipo ${esc(TEAM)}</h3><p class="muted">Se procesaron las bases originales. No se incluyen registros de otros equipos.</p><div class="summary"><div>Tareas (registros)<strong>${daily.records.length.toLocaleString('es-AR')}</strong></div><div>Creaciones (registros)<strong>${creations.records.length.toLocaleString('es-AR')}</strong></div><div>IDs MELI distintos<strong>${people.size}</strong></div><div>Fechas disponibles<strong>${dates.length?esc(dates[0]+' a '+dates.at(-1)):'—'}</strong></div></div><p><strong>Filas del equipo:</strong> ${daily.teamRows} en Base diaria y ${creations.teamRows} en Base creaciones.</p><p><strong>Registros repetidos por fecha + ID:</strong> ${daily.duplicates+creations.duplicates}. Se consideran una sola vez en esta vista previa; antes de importar se deberán revisar.</p><p><strong>Registros inválidos:</strong> ${issues.length}.</p>${issues.length?`<ul class="bad">${issues.slice(0,8).map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:'<p class="good">✓ Todos los registros seleccionados tienen fecha, ID MELI, colaborador y cantidad válidos.</p>'}<h3>Catalogadores detectados</h3><div class="table-wrap"><table><thead><tr><th>ID MELI</th><th>Colaborador</th></tr></thead><tbody>${[...people].sort((a,b)=>a[1].localeCompare(b[1])).map(([id,name])=>`<tr><td>${esc(id)}</td><td>${esc(name)}</td></tr>`).join('')}</tbody></table></div><p class="muted">Los datos aún no se guardaron. La importación definitiva incluirá controles de duplicados, cambios y autorización del administrador.</p>`;}catch(e){console.error(e);box.innerHTML='';const p=document.createElement('p');p.className='bad';p.textContent='No se pudo validar el equipo: '+e.message;box.appendChild(p);}}
 
 
 // Guardado en Firestore: cada ID MELI tiene un documento kpis/{idMeli} y
 // sus registros diarios en kpis/{idMeli}/registros/{tipo_YYYY-MM-DD}.
 // Se comparan primero los valores existentes para evitar escrituras innecesarias.
-async function prepareImport(daily,creations){
+async function prepareImport(daily,creations,corrections){
   if(!canImportBases()||!auth.currentUser)throw Error('Tu cuenta no tiene permiso para importar bases.');
   const panel=$('importPanel');panel.classList.remove('hidden');
   $('confirmImport').disabled=true;$('importStats').classList.add('hidden');
   $('importSummary').textContent='Comparando el Excel con los registros guardados en Firebase…';
   $('importStatus').textContent='';
   const byId=new Map();
-  for(const [tipo,base] of [['tareas',daily],['creaciones',creations]]){
+  for(const [tipo,base] of [['tareas',daily],['creaciones',creations],['correcciones',corrections]]){
+    if(!base)continue;
     for(const r of base.records){
       if(!/^[a-zA-Z0-9_-]{1,100}$/.test(r.id))throw Error('ID MELI incompatible con Firestore: '+r.id);
       if(!byId.has(r.id))byId.set(r.id,{name:r.name,equipo:r.equipo,records:[]});
-      byId.get(r.id).records.push({id:r.id,fecha:r.date,tipo,cantidad:r.value,colaborador:r.name,equipo:r.equipo});
+      byId.get(r.id).records.push({id:r.id,fecha:r.date,tipo,cantidad:r.value,colaborador:r.name,equipo:r.equipo,...(r.rolOrigen?{rolOrigen:r.rolOrigen,flujoOperativo:operationalFlow(r.rolOrigen)}:{})});
     }
   }
   const changes=[],stats={newCount:0,updatedCount:0,unchangedCount:0,people:byId.size};
@@ -1486,7 +1516,7 @@ async function prepareImport(daily,creations){
       const recordId=record.tipo+'_'+record.fecha;
       const old=existing.get(recordId);
       if(!old){stats.newCount++;changes.push({recordId,record});}
-      else if(Number(old.cantidad)!==record.cantidad||old.colaborador!==record.colaborador||old.equipo!==record.equipo){
+      else if(Number(old.cantidad)!==record.cantidad||old.colaborador!==record.colaborador||old.equipo!==record.equipo||(record.rolOrigen&&old.rolOrigen!==record.rolOrigen)){
         stats.updatedCount++;changes.push({recordId,record});
       }else stats.unchangedCount++;
     }
@@ -1547,7 +1577,7 @@ const pad2=n=>String(n).padStart(2,'0');
 function isoWeek(date){const d=new Date(date+'T12:00:00');d.setDate(d.getDate()+4-(d.getDay()||7));const year=d.getFullYear();const first=new Date(year,0,1,12);const week=Math.ceil((((d-first)/86400000)+1)/7);return {year,week,key:`${year}-W${pad2(week)}`};}
 function mondayLabel(date){const d=new Date(date+'T12:00:00');d.setDate(d.getDate()-((d.getDay()+6)%7));return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;}
 const localToday=()=>{const d=new Date();return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;};
-const isVisiblePeriod=date=>typeof date==='string' && /^2026-(10|11|12)-\d{2}$/.test(date) && date<=localToday();
+const isVisiblePeriod=date=>typeof date==='string' && /^\d{4}-\d{2}-\d{2}$/.test(date) && date<=localToday();
 function updateWeekMode(){const mode=$('weekMode').value;for(const [id,on] of [['monthWrap',mode==='month'],['quarterWrap',mode==='quarter'],['startWeekWrap',mode==='weeks'],['endWeekWrap',mode==='weeks']])$(id).classList.toggle('hidden',!on);}
 function initWeekFilters(){
   const years=[2026];
@@ -1565,6 +1595,7 @@ function initWeekFilters(){
   updateWeekMode();
 }
 function weeklyMatches(date){
+  if(isAdmin)return inPeriod(date,devFilters.period()?.current);
   if(!isVisiblePeriod(date))return false;
   const mode=$('weekMode').value,year=Number($('weekYear').value),dYear=Number(date.slice(0,4)),month=Number(date.slice(5,7));
   if(mode==='month')return dYear===year&&month===Number($('weekMonth').value);
@@ -1575,7 +1606,7 @@ function weeklyMatches(date){
 function peopleStorageKey(){return 'dashboard-matim-excluidos-'+(auth.currentUser?.uid||'anon');}
 function loadExcludedPeople(){try{const ids=JSON.parse(localStorage.getItem(peopleStorageKey())||'[]');excludedPeople=new Set(Array.isArray(ids)?ids.filter(x=>typeof x==='string'):[]);}catch(e){excludedPeople=new Set();}}
 function saveExcludedPeople(){try{localStorage.setItem(peopleStorageKey(),JSON.stringify([...excludedPeople]));}catch(e){console.warn('No se pudo recordar la selección en este navegador',e);}}
-function includedRecord(r){return !isAdmin||$('personFilter').value||!excludedPeople.has(r.id);}
+function includedRecord(){return true;}
 function refreshPeopleCount(){const names=new Set(kpiCache.map(r=>r.id));const included=[...names].filter(id=>!excludedPeople.has(id)).length;$('peopleCount').textContent=`${included} de ${names.size} catalogadores incluidos en el promedio general.`;}
 function renderPeopleChecklist(){
  const box=$('peopleControl'),list=$('peopleChecklist');box.hidden=!isAdmin;if(!isAdmin){list.replaceChildren();$('peopleCount').textContent='';return;}
@@ -1594,6 +1625,7 @@ $('clearAllPeople').addEventListener('click',()=>{excludedPeople=new Set(kpiCach
 // Solo se consulta la información ya publicada; no se escribe en Firebase.
 function excludedFlowDays(){
  const days=new Set();
+ if(isAdmin||kpiCache.some(row=>row.flujoOperativo==='soporte'||row.flujoOperativo==='kv'))return days;
  const excludeKnown=$('excludeKnown').checked,excludeSupport=$('excludeSupport').checked;
  for(const r of gestionCache){
   const matched=Object.entries(r.flujos||{}).some(([flow,count])=>{
@@ -1653,7 +1685,7 @@ function renderWeeklyChart(){
     $('weeklyStatus').textContent='La semana inicial debe ser anterior o igual a la final.';return;
   }
   const excludedDays=excludedFlowDays();
-  const rows=kpiCache.filter(r=>isVisiblePeriod(r.fecha)&&(!who||r.id===who)&&includedRecord(r)&&weeklyMatches(r.fecha)&&isKpiDay(r,excludedDays));
+  const rows=kpiCache.filter(r=>isVisiblePeriod(r.fecha)&&(!who||r.id===who)&&includedRecord(r)&&weeklyMatches(r.fecha)&&isKpiDay(r,excludedDays)&&(!isAdmin||r.tipo==='tareas'&&r.flujoOperativo==='mixto'));
   const weeks=new Map();
   for(const r of rows){
     const k=isoWeek(r.fecha).key;
@@ -1673,7 +1705,9 @@ function renderWeeklyChart(){
     const name=document.createElement('strong');name.textContent=title;
     const summary=document.createElement('span');summary.className='muted';
     if(valid.length>1){const change=valid.at(-1)-valid[0];summary.textContent=`Variación del período: ${change>0?'+':''}${fmt(change)} por jornada`;}
-    if(tipo==='tareas')summary.textContent='Referencia 100 tareas · '+(summary.textContent||'Sin comparación entre semanas');
+    const flow=isAdmin?'mixto':rows.find(row=>row.tipo==='tareas'&&row.flujoOperativo)?.flujoOperativo;
+    const target=tipo==='tareas'&&flow?(Object.hasOwn(productivityGoals,flow)?productivityGoals[flow]:defaultProductivityGoals[flow]):null;
+    if(tipo==='tareas')summary.textContent=(target==null?'Sin objetivo':'Mínimo esperado '+fmt(target)+' tareas')+' · '+(summary.textContent||'Sin comparación entre semanas');
     heading.append(name,summary);section.appendChild(heading);
     if(!valid.length){const empty=document.createElement('p');empty.className='pm-chart-empty';empty.textContent='Sin registros de '+(tipo==='tareas'?'tareas':'creaciones')+' para los filtros seleccionados.';section.appendChild(empty);(tipo==='creaciones'&&!isAdmin?$('employeeCreationsChart'):chart).appendChild(section);return;}
     const scroll=document.createElement('div');scroll.className='line-chart-scroll';scroll.dataset.singleWeek=String(ordered.length===1);
@@ -1687,7 +1721,7 @@ function renderWeeklyChart(){
       const el=(tag,attrs={},txt)=>{const node=document.createElementNS(svgNS,tag);for(const [k,v] of Object.entries(attrs))node.setAttribute(k,String(v));if(txt!==undefined)node.textContent=txt;svg.appendChild(node);return node;};
       const dataMin=Math.min(...valid),dataMax=Math.max(...valid);
       const padding=Math.max(2,(dataMax-dataMin)*.18);
-      const min=0,max=tipo==='tareas'?Math.max(110,dataMax+padding):dataMax+padding;
+      const min=0,max=Math.max(dataMax+padding,target??0);
       const x=i=>left+(ordered.length===1?plotW/2:i*plotW/(ordered.length-1));
       const y=v=>top+plotH-(v-min)/(max-min)*plotH;
       for(let i=0;i<=4;i++){
@@ -1696,7 +1730,7 @@ function renderWeeklyChart(){
         el('text',{x:left-11,y:py+4,'text-anchor':'end',fill:'#65758a','font-size':12},fmt(value));
       }
       el('line',{x1:left,y1:top+plotH,x2:width-right,y2:top+plotH,stroke:'#aebcd0'});
-      if(tipo==='tareas'){const targetY=y(100);el('line',{x1:left,y1:targetY,x2:width-right,y2:targetY,stroke:'#64748b','stroke-width':1.5,'stroke-dasharray':'6 5'});}
+      if(target!=null){const targetY=y(target);el('line',{x1:left,y1:targetY,x2:width-right,y2:targetY,stroke:'#64748b','stroke-width':1.5,'stroke-dasharray':'6 5'});}
       for(let i=0;i<ordered.length;i++){
         el('text',{x:x(i),y:height-bottom+(isAdmin?32:20),'text-anchor':'middle',fill:'#52647d','font-size':12},ordered[i][0].replace(/^\d{4}-/,''));
       }
@@ -1715,8 +1749,8 @@ function renderWeeklyChart(){
     section.appendChild(scroll);(tipo==='creaciones'&&!isAdmin?$('employeeCreationsChart'):chart).appendChild(section);
   }
   if(!isAdmin)$('employeeCreationsChart').replaceChildren();
-  drawLineChart('tareas','Productividad · promedio diario de tareas','#1765d1');
-  drawLineChart('creaciones','Creaciones · promedio diario','#996000');
+  drawLineChart('tareas',isAdmin?'Flujo Mixto · promedio diario':'Productividad · promedio diario de tareas','#1765d1');
+  if(!isAdmin)drawLineChart('creaciones','Creaciones · promedio diario','#996000');
 
   for(const [key,w] of ordered){
     const tr=document.createElement('tr');
@@ -1950,18 +1984,74 @@ function renderKpis(){
   renderEmployeeOverview(tasks.length,taskSum);
   renderQuality();
   renderPmProductivity();
-  const people=new Map();for(const r of filtered){if(!people.has(r.id))people.set(r.id,{name:r.colaborador,id:r.id,days:0,tasks:0,creations:0});const p=people.get(r.id);if(r.tipo==='tareas'){if(isKpiDay(r,excludedDays)){p.days++;p.tasks+=r.cantidad;}}else p.creations+=r.cantidad;}
+  renderDevAnalytics();
+  const people=new Map();for(const r of filtered){if(!people.has(r.id))people.set(r.id,{name:r.colaborador,id:r.id,days:0,tasks:0,creations:0});const p=people.get(r.id);if(r.tipo==='tareas'){if(isKpiDay(r,excludedDays)){p.days++;p.tasks+=r.cantidad;}}else if(r.tipo==='creaciones')p.creations+=r.cantidad;}
   const body=$('peopleRows');body.replaceChildren();if(!people.size){const tr=document.createElement('tr'),td=document.createElement('td');td.colSpan=6;td.textContent='No hay registros para este período.';tr.appendChild(td);body.appendChild(tr);}
   for(const p of [...people.values()].sort((a,b)=>a.name.localeCompare(b.name,'es'))){const tr=document.createElement('tr');for(const v of [p.name,p.id,fmt(p.days),fmt(p.tasks),p.days?fmt(p.tasks/p.days):'—',fmt(p.creations)]){const td=document.createElement('td');td.textContent=v;tr.appendChild(td);}body.appendChild(tr);}
 }
 // V16: las vistas consultan SOLO los documentos publicados; nunca el historial crudo.
+const devFilters=setupFilters({
+ today:localToday,
+ period:state=>analysisPeriod(state,{from:localToday().slice(0,4)+'-01-01',to:localToday()}),
+ readScope(){
+  const people=new Map([...publishedItems.map(p=>[String(p.idMeli),{id:String(p.idMeli),label:p.nombre,team:p.equipo}]),
+   ...qualityState.people.map(p=>[p.id,{id:p.id,label:p.nombre,team:p.equipo}])]);
+  return {global:isPM,team:selectedTeam,people:[...people.values()]};
+ },
+ refresh(){ $('personFilter').value='';applyTeamView();renderPmOverview();renderPMComparison();auditFeatures.refresh();}
+});
+const devMatches=(team,id)=>devFilters.teamMatches(team)&&devFilters.personMatches(id);
+function devAuditPeriod(audit){
+ const period=devFilters.period()?.current;
+ return audit.fecha?inPeriod(audit.fecha,period):Boolean(period&&audit.periodo>=period.start.slice(0,7)&&audit.periodo<=period.end.slice(0,7));
+}
 function applyPublishedData(items){
  const personalId=String(profileData?.idMeli||'').trim();
  publishedItems=!isAdmin?items.filter(item=>personalId&&String(item.idMeli)===personalId):!isPM?items.filter(item=>selectedTeam&&validTeam(item.equipo)===selectedTeam):items;renderPMComparison();applyTeamView();}
-function renderPMComparison(){if(!isPM){$('pmComparisonRows').replaceChildren();return;}const body=$('pmComparisonRows');body.replaceChildren();for(const team of TEAMS){const items=publishedItems.filter(x=>validTeam(x.equipo)===team);const excluded=new Set(items.flatMap(x=>(x.gestion||[]).filter(g=>Object.entries(g.flujos||{}).some(([f,n])=>Number(n)>0&&(($('excludeKnown').checked&&gCategory(f)==='KNOWN_VALUE')||($('excludeSupport').checked&&gCategory(f)==='SOPORTE')))).map(g=>x.idMeli+'|'+g.fecha)));const tasks=items.flatMap(x=>(x.tareas||[]).filter(r=>r.tipo==='tareas'&&weeklyMatches(r.fecha)&&!excluded.has(x.idMeli+'|'+r.fecha)));const total=tasks.reduce((n,r)=>n+(Number(r.cantidad)||0),0);const tr=document.createElement('tr');for(const v of [team,items.length,tasks.length,tasks.length?fmt(total/tasks.length):'—',fmt(total)]){const td=document.createElement('td');td.textContent=String(v);tr.appendChild(td);}body.appendChild(tr);}}
+let devLeads=new Map();
+function scopedProductivity(){
+ return publishedItems.filter(p=>devMatches(p.equipo,p.idMeli)).flatMap(p=>(p.tareas||[]).map(row=>({...row,
+   id:String(p.idMeli),equipo:p.equipo,flujoOperativo:row.flujoOperativo||p.flujoOperativo||(row.rolOrigen?operationalFlow(row.rolOrigen):null)})));
+}
+async function loadDevLeads(){
+ const uid=auth.currentUser?.uid;
+ devLeads=new Map();
+ if(!isPM||!uid)return;
+ try{
+  const profiles=await getDocs(query(collection(db,'usuarios'),where('rol','==','tl')));
+  if(auth.currentUser?.uid!==uid)return;
+  for(const doc of profiles.docs){const p=doc.data();if(!p.equipo)continue;
+   const names=devLeads.get(p.equipo)||[];if(p.nombre)names.push(p.nombre);devLeads.set(p.equipo,names);}
+  renderPMComparison();
+ }catch(error){console.error('No se pudo consultar a los TL',error.code);}
+}
+function renderPMComparison(){
+ if(!isPM)return;
+ renderComparison({chart:$('devComparisonBars'),body:$('pmComparisonRows'),rows:scopedProductivity(),
+  period:devFilters.period(),group:$('devCompareFlow').value,sort:$('devCompareSort').value,goals:productivityGoals,
+  lead:team=>devLeads.get(team)?.join(', '),drilldown:team=>{devFilters.chooseTeam(team);selectAdminSection('productividad-holds');}});
+}
+function renderDevAnalytics(){
+ if(!isAdmin)return;
+ const rows=scopedProductivity(),period=devFilters.period(),cadence=devFilters.state().cadence;
+ renderOperationalCards($('devOperationalCards'),rows,period,productivityGoals,!isPM);
+ renderCreationChart($('devCreationChart'),rows.filter(row=>inPeriod(row.fecha,period?.current)),cadence);
+ renderPMComparison();
+}
+function renderDevHolds(){
+ $('devHoldsRanking').hidden=!isAdmin;
+ if(!isAdmin)return;
+ const period=devFilters.period();
+ const rows=publishedItems.filter(p=>devMatches(p.equipo,p.idMeli)).flatMap(p=>p.holdsErrores||[])
+  .filter(row=>inPeriod(row.fecha,period?.current));
+ renderHoldsRanking($('devHoldsRows'),rows,devFilters.state().cadence,Number($('devHoldsTop').value));
+}
+for(const id of ['devCompareFlow','devCompareSort'])$(id).addEventListener('change',renderPMComparison);
+$('devHoldsTop').addEventListener('change',renderDevHolds);
 $('pmTeamFilter').addEventListener('change',event=>{if(!isPM)return;selectedTeam=event.target.value;applyTeamView();});
 function applyTeamView(){
- const items=publishedItems.filter(x=>isPM?(!selectedTeam||validTeam(x.equipo)===selectedTeam):(!isAdmin||(selectedTeam&&validTeam(x.equipo)===selectedTeam)));
+ const items=publishedItems.filter(x=>!isAdmin||devMatches(x.equipo,x.idMeli));
+ if(isAdmin)devFilters.render();
  const old=$('personFilter').value;
  const personalId=String(profileData?.idMeli||'').trim();
  const personalRows=rows=>isAdmin?rows:rows.filter(row=>row.id===undefined||String(row.id)===personalId).map(row=>({...row,id:personalId}));
@@ -2018,17 +2108,17 @@ $('publishKpis').addEventListener('click',async()=>{
   for(const person of persons.docs){
    const id=person.id,name=String(person.data().nombre||id);
    const snap=await getDocs(collection(db,'kpis',id,'registros'));totalRead+=snap.size;
-   const tareas=[],gestion=[],holdsByDay=new Map();
+   const tareas=[],gestion=[],holdsByDay=new Map(),holdsErrores=[];
    const newerHolds=new Set(snap.docs.filter(d=>d.data().tipo==='hold'&&d.data().versionHold===2).map(d=>String(d.data().idCDM)));
    for(const item of snap.docs){const r=item.data();if(!r.fecha)continue;
-    if((r.tipo==='tareas'||r.tipo==='creaciones')&&Number.isFinite(Number(r.cantidad)))tareas.push({id,fecha:r.fecha,tipo:r.tipo,cantidad:Number(r.cantidad),colaborador:String(r.colaborador||name)});
+    if(['tareas','creaciones','correcciones'].includes(r.tipo)&&Number.isFinite(Number(r.cantidad)))tareas.push({id,fecha:r.fecha,tipo:r.tipo,cantidad:Number(r.cantidad),colaborador:String(r.colaborador||name),...(r.rolOrigen?{rolOrigen:r.rolOrigen,flujoOperativo:operationalFlow(r.rolOrigen)}:{})});
     else if(r.tipo==='gestion')gestion.push({id,fecha:r.fecha,colaborador:name,tipo:'gestion',versionGestion:r.versionGestion,total:Number(r.total)||0,flujos:r.flujos||{},franjas:r.franjas||[],cierresValidos:Number(r.cierresValidos)||0,ultimas3:Number(r.ultimas3)||0,primerInicio:r.primerInicio??null,ultimoCierre:r.ultimoCierre??null});
-    else if(r.tipo==='hold'){if(r.versionHold!==2&&newerHolds.has(String(r.idCDM)))continue;const qty=r.versionHold===2?(Number(r.cantidad)||0):1;holdsByDay.set(r.fecha,(holdsByDay.get(r.fecha)||0)+qty);}
+    else if(r.tipo==='hold'){if(r.versionHold!==2&&newerHolds.has(String(r.idCDM)))continue;const qty=r.versionHold===2?(Number(r.cantidad)||0):1;holdsByDay.set(r.fecha,(holdsByDay.get(r.fecha)||0)+qty);for(const action of r.accionesCorrectas||[])holdsErrores.push({...action,fecha:r.fecha,idCDM:r.idCDM,id,colaborador:name});}
    }
    const holds=[...holdsByDay].map(([fecha,cantidad])=>({id,fecha,cantidad,colaborador:name}));
    // Firestore limita cada documento a 1 MiB; avisar antes de publicar documentos demasiado grandes.
    if(auth.currentUser?.uid!==uid)throw Error('La sesión cambió durante la publicación.');
-   const payload={idMeli:id,nombre:name,equipo:validTeam(person.data().equipo),tareas,holds,gestion,version:16};
+   const payload={idMeli:id,nombre:name,equipo:validTeam(person.data().equipo),tareas,holds,gestion,holdsErrores,version:16};
    payload.notificacionVersion=await notificationDigest(payload);
    payload.notificacionSecciones=Object.fromEntries(await Promise.all(
     Object.entries({productividad:tareas,holds,finalizadas:gestion}).map(async ([seccion,datos])=>[seccion,await notificationDigest(datos)])
@@ -2116,7 +2206,7 @@ $('holdsFile').addEventListener('change',async event=>{
  try{
   if(!/\.csv$/i.test(file.name))throw Error('Seleccioná un archivo CSV.');
   await loadXlsx();const raw=await file.arrayBuffer();const wb=XLSX.read(raw,{type:'array',raw:true,codepage:65001});const matrix=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,defval:'',raw:false,blankrows:false});
-  const head=matrix[0]||[],col=name=>head.findIndex(h=>normalize(h)===normalize(name));const ci=col('ID CDM'),cp=col('Colaborador'),cd=col('Ultimo Hold');
+  const head=matrix[0]||[],col=name=>head.findIndex(h=>normalize(h)===normalize(name));const ci=col('ID CDM'),cp=col('Colaborador'),cd=col('Ultimo Hold'),ca=col('Acción correcta');
   if([ci,cp,cd].some(x=>x<0))throw Error('Faltan columnas: ID CDM, Colaborador o Ultimo Hold.');
   const {people,teams}=await loadImportPeople();const selected=new Map();let skipped=0,invalid=0,duplicates=0;
   for(let i=1;i<matrix.length;i++){
@@ -2127,6 +2217,13 @@ $('holdsFile').addEventListener('change',async event=>{
    const key=id+'|'+cdm+'|'+fecha;
    if(selected.has(key)){duplicates++;selected.get(key).cantidad++;}
    else selected.set(key,{id,idCDM:cdm,fecha,tipo:'hold',cantidad:1,versionHold:2,colaborador:people.get(id),equipo:teams.get(id)});
+   const action=ca<0?'':String(r[ca]??'').trim();
+   if(action&&action.toLowerCase()!=='null'){
+    const record=selected.get(key);record.accionesCorrectas??=[];
+    const found=record.accionesCorrectas.find(row=>row.accionCorrecta===action);
+    if(found)found.cantidad++;else record.accionesCorrectas.push({accionCorrecta:action,cantidad:1});
+   }
+   if(ca>=0)selected.get(key).accionesCorrectas??=[];
   }
   if(!selected.size)throw Error('El CSV no contiene holds válidos de catalogadores presentes en tu equipo.');
   const changes=[],stats={newCount:0,updatedCount:0,unchangedCount:0};const grouped=new Map();
@@ -2134,7 +2231,7 @@ $('holdsFile').addEventListener('change',async event=>{
   for(const [id,recs] of grouped){const snap=await getDocs(collection(db,'kpis',id,'registros'));const existing=new Map(snap.docs.map(d=>[d.id,d.data()]));
    for(const record of recs){const recordId=holdRecordId(record.idCDM,record.fecha),old=existing.get(recordId);
     if(!old){stats.newCount++;changes.push({recordId,record});}
-    else if(old.fecha!==record.fecha||old.colaborador!==record.colaborador||old.idCDM!==record.idCDM||Number(old.cantidad)!==record.cantidad){stats.updatedCount++;changes.push({recordId,record});}
+    else if(old.fecha!==record.fecha||old.colaborador!==record.colaborador||old.idCDM!==record.idCDM||Number(old.cantidad)!==record.cantidad||('accionesCorrectas' in record&&JSON.stringify(old.accionesCorrectas||[])!==JSON.stringify(record.accionesCorrectas))){stats.updatedCount++;changes.push({recordId,record:{...record,...(!('accionesCorrectas' in record)&&old.accionesCorrectas?{accionesCorrectas:old.accionesCorrectas}:{})}});}
     else stats.unchangedCount++;
    }
   }
@@ -2182,7 +2279,7 @@ function parseGestionCSV(text){
 function gCategory(name){
  const n=normalize(name);
  if(n==='known_value')return 'KNOWN_VALUE';
- if(n==='mao')return 'CCC';
+ if(n==='mao'||n==='ccc')return 'CCC';
  if(['sugerencia de correccion','sugerencia de creacion'].includes(n))return 'DEMANDA';
  if(['denuncias_bpp','sugerencias de correccion','unificacion de familias','sugerencias de creacion','separacion de familias','merge de productos','denuncia bpp - uso indebido de marca','analisis y correccion de knowns values'].includes(n))return 'SOPORTE';
  return 'OTROS';
@@ -2316,8 +2413,12 @@ function renderEmployeeOverview(days,total){
  const period=mode==='quarter'?'Q'+$('weekQuarter').value+' '+year:mode==='month'?$('weekMonth').selectedOptions[0]?.textContent+' '+year:$('weekStart').value+' a '+$('weekEnd').value;
  $('employeePeriodNote').textContent='Mis indicadores · '+(year?period:'Período seleccionado');
  const average=days?total/days:null,goal=$('employeeGoal');
- goal.dataset.state=average===null?'empty':average>=100?'met':'below';
- goal.textContent=average===null?'Sin jornadas para comparar con la referencia':average===100?'En la referencia · 100 tareas por jornada':'Referencia 100 · Brecha '+(average>100?'+':'')+fmt(average-100)+' tareas por jornada';
+ const flow=kpiCache.find(row=>row.tipo==='tareas'&&row.flujoOperativo)?.flujoOperativo;
+ const target=flow?(Object.hasOwn(productivityGoals,flow)?productivityGoals[flow]:defaultProductivityGoals[flow]):null;
+ if(target===null){goal.dataset.state='empty';goal.textContent=flow==='kv'?'Know Values · Sin objetivo':'Sin objetivo verificable para esta ficha';
+  $('employeeTrend').textContent=$('headerDelta').textContent+' · '+$('headerCompare').textContent;return;}
+ goal.dataset.state=average===null?'empty':average>=target?'met':'below';
+ goal.textContent=average===null?'Sin jornadas para comparar con el mínimo':average===target?'Cumplió el mínimo esperado · '+fmt(target):fmt(Math.abs(average-target))+' tareas '+(average>target?'por encima':'por debajo')+' del mínimo esperado de '+fmt(target);
  $('employeeTrend').textContent=$('headerDelta').textContent+' · '+$('headerCompare').textContent;
 }
 document.querySelectorAll('[data-employee-view]').forEach(button=>button.addEventListener('click',()=>{
@@ -2369,9 +2470,9 @@ async function loadProductivityGoals(){
  try{
   const snapshot=await getDoc(productivityGoalRef());
   if(auth.currentUser?.uid!==uid)return;
-  productivityGoals=snapshot.exists()?snapshot.data():{};
+  productivityGoals={...defaultProductivityGoals,...(snapshot.exists()?snapshot.data():{}),kv:null};
   setProductivityGoalForm(productivityGoals,'',true);
-  renderGestion();
+  renderKpis();
  }catch(error){
   if(auth.currentUser?.uid!==uid)return;
   setProductivityGoalForm({},error.code==='permission-denied'
@@ -2379,33 +2480,8 @@ async function loadProductivityGoals(){
    :'No se pudieron consultar las metas. Volvé a iniciar sesión para reintentar.',false);
  }
 }
-function renderFlowProductivityGoals(rows){
- const counts={mixto:new Map(),soporte:new Map()};
- for(const row of rows){
-  const day=row.id+'|'+row.fecha;
-  for(const [name,raw] of Object.entries(row.flujos||{})){
-   const tasks=Number(raw),category=gCategory(name);
-   const group=category==='SOPORTE'?'soporte':
-    category==='CCC'||/^(sdc|fo|ccc|scp)$/.test(normalize(name))?'mixto':null;
-   if(!group||!Number.isFinite(tasks)||tasks<=0)continue;
-   counts[group].set(day,(counts[group].get(day)||0)+tasks);
-  }
- }
- const cards=$('flowProductivityCards');cards.replaceChildren();
- for(const [group,label] of [['mixto','Flujo mixto'],['soporte','Soporte']]){
-  const card=document.createElement('article'),title=document.createElement('h3');
-  const value=document.createElement('strong'),coverage=document.createElement('p'),goal=document.createElement('p');
-  const days=counts[group].size,tasks=[...counts[group].values()].reduce((sum,n)=>sum+n,0);
-  const average=days?tasks/days:null,target=productivityGoals[group];
-  title.textContent=label;value.textContent=days?fmt(average)+' tareas por jornada':'Sin actividad registrada';
-  coverage.textContent=days?fmt(tasks)+' tareas · '+fmt(days)+(days===1?' jornada':' jornadas'):'';
-  goal.textContent=target==null?'Sin meta configurada':'Meta: '+fmt(target)+' tareas por jornada';
-  if(target!=null&&average!==null){
-   goal.textContent+=' · '+(average>=target?'Alcanzada':'Por debajo');
-   goal.className='quality-goal';goal.dataset.state=average>=target?'met':'below';
-  }
-  card.append(title,value,coverage,goal);cards.appendChild(card);
- }
+function renderFlowProductivityGoals(){
+ if(isAdmin)renderOperationalCards($('flowProductivityCards'),scopedProductivity(),devFilters.period(),productivityGoals,!isPM);
 }
 $('productivityGoalForm').addEventListener('submit',async event=>{
  event.preventDefault();
@@ -2418,7 +2494,7 @@ $('productivityGoalForm').addEventListener('submit',async event=>{
  try{
   const batch=writeBatch(db);batch.set(productivityGoalRef(),{...goals,actualizadoEn:serverTimestamp()});await batch.commit();
   if(auth.currentUser?.uid!==uid)return;
-  productivityGoals=goals;status.textContent='Metas guardadas.';renderGestion();
+  productivityGoals={...goals,kv:null};status.textContent='Metas guardadas.';renderKpis();renderPmOverview();
  }catch(error){
   if(auth.currentUser?.uid===uid)status.textContent=error.code==='permission-denied'
    ?'Firestore rechazó el guardado. Revisá los permisos para editar las metas.'
@@ -2444,7 +2520,7 @@ function clearQuality(){
  $('confirmCalidadImport').disabled=true;
  $('calidadFileStatus').textContent='';$('calidadImportStatus').textContent='';
  $('qualitySource').value='interna';$('qualityFlow').value='';$('qualityCadence').value='months';
- $('qualityTarget').value='';$('qualityGoalStatus').textContent='';
+ for(const flow of ['SDC','SCP','FO','CCC'])$('qualityTarget'+flow).value='';$('qualityGoalStatus').textContent='';
  $('qualityDetail').hidden=true;
 }
 onAuthStateChanged(auth,async user=>{
@@ -2465,7 +2541,7 @@ onAuthStateChanged(auth,async user=>{
   const nombrePerfil=[profile.nombre,profile.Nombre,profile.nombreCompleto,profile.nombre_completo,profile.displayName,profile.name].find(value=>typeof value==='string'&&value.trim());
   const nombreMostrado=nombrePerfil?.trim()||(rol==='tl'?validTeam(profile.equipo):'')||user.displayName||user.email?.split('@')[0]||'Catalogador';
   showDashboard(nombreMostrado,['admin','pm','tl'].includes(rol));
-  auditFeatures.start({uid:user.uid,role:rol,team:profile.equipo,idMeli:String(profile.idMeli??'').trim(),global:canImportBases()});
+  auditFeatures.start({uid:user.uid,role:rol,team:profile.equipo,idMeli:String(profile.idMeli??'').trim(),global:isPM});
  }catch(error){
   if(auth.currentUser?.uid!==user.uid)return;
   console.error(error);showLogin();$('error').textContent='No se pudo cargar tu perfil. Contactá al administrador.';await signOut(auth);
@@ -2544,23 +2620,13 @@ async function loadQuality(){
    const id=String(profileData?.idMeli||'').trim();
    data=id?getDoc(doc(db,'calidad_publicada',id)).then(d=>d.exists()?[{id,...d.data()}]:[]):Promise.resolve([]);
   }
-  let [people,goal]=await Promise.all([data,getDoc(doc(db,'calidad_config','objetivo'))]);
-  let recoveryError='';
-  if(auth.currentUser?.uid===uid&&canImportBases()){
-   try{
-    if(await recoverOctoberQuality(uid)){
-     const refreshed=await getDocs(coll);
-     people=refreshed.docs.map(d=>({id:d.id,...d.data()}));
-    }
-   }catch(error){
-    console.error('Recuperación de Calidad:',error.code||error.message);
-    recoveryError='No se pudo recuperar octubre automáticamente. Podés usar la base ya cargada desde este panel.';
-   }
-  }
+  const [people,goal,byFlow]=await Promise.all([data,getDoc(doc(db,'calidad_config','objetivo')),getDoc(doc(db,'calidad_config','objetivos_flujo'))]);
   if(auth.currentUser?.uid!==uid)return;
-  qualityState={people,target:goal.exists()?goal.data().valor??null:null,error:recoveryError,loading:false};
-  $('qualityTarget').value=qualityState.target??'';
+  const targets=Object.fromEntries(qualityFlows.map(flow=>[flow,byFlow.exists()?byFlow.data()[flow]??null:goal.data()?.valor??null]));
+  qualityState={people,targets,error:'',loading:false};
+  for(const flow of qualityFlows)$('qualityTarget'+flow).value=targets[flow]??'';
   appendQualityPeople();
+  if(isAdmin)devFilters.render();
  }catch(error){
   if(auth.currentUser?.uid!==uid)return;
   qualityState={people:[],target:null,loading:false,error:error.code==='permission-denied'
@@ -2590,13 +2656,14 @@ function qualityDelta(current,previous){
  const change=Math.round((current-previous)*10000)/100;
  return {text:(change>0?'↑ +':change<0?'↓ ':'')+new Intl.NumberFormat('es-AR',{maximumFractionDigits:2}).format(change)+' pp vs. período anterior',state:change>0?'up':change<0?'down':''};
 }
-function qualityGoal(value){
+function qualityGoal(value,flow){
  if(value===null)return '—';
- const target=qualityState.target;
+ const target=qualityState.targets?.[flow]??null;
  if(target===null)return 'Sin objetivo configurado';
  return (value*100>=target?'Alcanza':'Por debajo de')+' '+qualityPercent(target/100);
 }
 function qualitySelection(){
+ if(isAdmin){const p=devFilters.period();return p&&Object.fromEntries(Object.entries(p).map(([k,v])=>[k,{start:v.start,end:new Date(Date.parse(v.end+'T00:00:00Z')+86400000).toISOString().slice(0,10)}]));}
  return qualityPeriods({mode:$('weekMode').value,year:Number($('weekYear').value),month:Number($('weekMonth').value),
   quarter:Number($('weekQuarter').value),from:$('weekStart').value,to:$('weekEnd').value});
 }
@@ -2615,10 +2682,10 @@ function renderQualityFlowCards(container,rows){
    label.textContent=qualitySourceLabel(origin)+' · '+fmt(total.audited)+' auditadas';
    value.textContent=qualityPercent(total.quality);
    block.append(label,value);
-   if(qualityState.target!==null){
+   if(qualityState.targets?.[code]!=null){
     const goal=document.createElement('p');
-    goal.className='quality-goal';goal.textContent=qualityGoal(total.quality);
-    goal.dataset.state=total.quality*100>=qualityState.target?'met':'below';
+    goal.className='quality-goal';goal.textContent=qualityGoal(total.quality,code);
+    goal.dataset.state=total.quality*100>=qualityState.targets[code]?'met':'below';
     block.appendChild(goal);
    }
    card.appendChild(block);
@@ -2632,13 +2699,25 @@ function renderQualityFlowCards(container,rows){
  }
 }
 function renderQuality(){
+ renderDevHolds();
  const periods=qualitySelection(),source=$('qualitySource').value,flow=$('qualityFlow').value;
- const who=$('personFilter').value,team=isPM?$('pmTeamFilter').value:selectedTeam;
- const people=qualityState.people.filter(p=>(!isAdmin||(!team||p.equipo===team))&&(!who||p.id===who)&&includedRecord(p));
- const scoped=people.flatMap(p=>Object.values(p.registros||{}).map(r=>({...r,id:p.id,name:p.nombre||p.id,team:p.equipo})));
- const eligible=scoped.filter(row=>row.source===source);
- const weekly=$('weekMode').value==='weeks';
- const byPeriod=period=>period?selectQualityPeriod(eligible,period,weekly):[];
+ const who=$('personFilter').value,team=isPM?(devFilters.state().teams.length===1?devFilters.state().teams[0]:''):selectedTeam;
+ const people=qualityState.people.filter(p=>(!isAdmin||devMatches(p.equipo,p.id))&&(!who||p.id===who)&&includedRecord(p));
+ const scoped=people.flatMap(p=>Object.values(p.registros||{}).map(r=>({...r,flow:normalizeQualityFlow(r.flow)||r.flow,id:p.id,name:p.nombre||p.id,team:p.equipo})));
+ const dayView=isAdmin&&devFilters.state().cadence==='days';
+ const eligible=scoped.filter(row=>row.source===source&&(!dayView||row.unit==='day'));
+ const weekly=isAdmin?devFilters.state().cadence!=='months':$('weekMode').value==='weeks';
+ const inQualityPeriod=(rows,period)=>{
+  if(!period)return [];
+  const covered=isAdmin?rows.filter(row=>{
+   if(dayView)return row.unit==='day';
+   if(row.unit!=='month')return true;
+   const monthEnd=new Date(Date.UTC(Number(row.start.slice(0,4)),Number(row.start.slice(5,7)),1)).toISOString().slice(0,10);
+   return row.start>=period.start&&monthEnd<=period.end;
+  }):rows;
+  return selectQualityPeriod(covered,period,weekly);
+ };
+ const byPeriod=period=>inQualityPeriod(eligible,period);
  const all=byPeriod(periods?.current),previousAll=byPeriod(periods?.previous);
  const withFlow=rows=>flow?rows.filter(r=>r.flow===flow):rows;
  const now=withFlow(all),before=withFlow(previousAll);
@@ -2648,7 +2727,7 @@ function renderQuality(){
  $('qualityStatus').textContent=qualityState.error||(qualityState.loading?'Consultando resultados…':!periods?'Elegí un período válido.':
   !now.length?(weekly?'Sin resultados semanales en este rango. Los totales mensuales se consultan por mes o trimestre.':'Sin datos para el origen, período y filtros elegidos.'):'');
  $('qualityRecoverLink').hidden=!canImportBases();
- const cardRows=periods?selectQualityPeriod(scoped,periods.current,weekly):[];
+ const cardRows=inQualityPeriod(scoped,periods?.current);
  const months=[...new Set(cardRows.map(row=>row.start.slice(0,7)))].sort();
  const monthLabel=month=>new Intl.DateTimeFormat('es-AR',{month:'long',year:'numeric',timeZone:'UTC'})
   .format(new Date(month+'-01T00:00:00Z'));
@@ -2665,7 +2744,8 @@ function renderQuality(){
   $('qualityAudited').textContent=now.length?fmt(current.audited):'—';
   $('qualityErrors').textContent=current.errors===null?'Sin datos':fmt(current.errors);
  }
- const cadence=$('qualityCadence').value;
+ const cadence=isAdmin?devFilters.state().cadence:$('qualityCadence').value;
+ $('qualityCadence').closest('div').hidden=isAdmin;
  const trendRecords=cadence==='weeks'&&periods?withFlow(selectQualityPeriod(eligible,periods.current,true)):now;
  const buckets=flow?bucketQuality(trendRecords,cadence):[];
  const graph=$('qualityTrend');graph.replaceChildren();
@@ -2678,9 +2758,9 @@ function renderQuality(){
   row.append(label,bar,value);graph.appendChild(row);
  }
  const flowStats=qualityFlows.map(f=>({flow:f,...summary(all.filter(r=>r.flow===f))}));
- qualityTable('qualityFlows',flowStats.map(s=>[s.flow,s.audited?fmt(s.audited):'—',qualityPercent(s.quality),qualityGoal(s.quality)]),'Sin datos',4);
+ qualityTable('qualityFlows',flowStats.map(s=>[s.flow,s.audited?fmt(s.audited):'—',qualityPercent(s.quality),qualityGoal(s.quality,s.flow)]),'Sin datos',4);
  const lowest=flowStats.filter(s=>s.quality!==null).sort((a,b)=>a.quality-b.quality)[0];
- $('qualityOpportunity').textContent=lowest&&(qualityState.target===null||lowest.quality*100<qualityState.target)
+ $('qualityOpportunity').textContent=lowest&&(qualityState.targets?.[lowest.flow]==null||lowest.quality*100<qualityState.targets[lowest.flow])
   ?'Prioridad de revisión · '+lowest.flow+' registra '+qualityPercent(lowest.quality)+' en '+fmt(lowest.audited)+' tareas auditadas.':'';
  $('qualityComparison').hidden=!isAdmin||!flow;
  if(isAdmin&&flow){
@@ -2703,14 +2783,15 @@ document.querySelectorAll('[data-open-quality]').forEach(button=>button.addEvent
 }));
 $('qualityGoalForm').addEventListener('submit',async event=>{
  event.preventDefault();if(!qualityGoalEditor()||!auth.currentUser)return;
- const uid=auth.currentUser.uid,field=$('qualityTarget'),value=field.value===''?null:field.valueAsNumber;
- if(value!==null&&(!Number.isFinite(value)||value<0||value>100))return;
+ const uid=auth.currentUser.uid;
+ const targets=Object.fromEntries(qualityFlows.map(flow=>{const field=$('qualityTarget'+flow);return [flow,field.value===''?null:field.valueAsNumber];}));
+ if(Object.values(targets).some(value=>value!==null&&(!Number.isFinite(value)||value<0||value>100)))return;
  const button=event.submitter;
  if(button)button.disabled=true;
  try{
-  const batch=writeBatch(db);batch.set(doc(db,'calidad_config','objetivo'),{valor:value,actualizadoEn:serverTimestamp()});await batch.commit();
+  const batch=writeBatch(db);batch.set(doc(db,'calidad_config','objetivos_flujo'),{...targets,actualizadoEn:serverTimestamp()});await batch.commit();
   if(auth.currentUser?.uid!==uid)return;
-  qualityState.target=value;$('qualityGoalStatus').textContent='Objetivo guardado.';renderQuality();
+  qualityState.targets=targets;$('qualityGoalStatus').textContent='Objetivos guardados.';renderQuality();
  }catch(error){$('qualityGoalStatus').textContent='No se pudo guardar el objetivo de Calidad.';}
  finally{if(button)button.disabled=false;}
 });
@@ -2965,7 +3046,7 @@ $('permissionForm').addEventListener('submit',async event=>{
 
 // Navegación local de las vistas de administración.
  const adminSections={
-  resumen:['summaryVisual','mainCards','pmOverview'],
+  resumen:['summaryVisual','mainCards','pmOverview','pmComparison'],
    'productividad-holds':['pmProductivity','weeklyPanel','holdsPanel','teamPeoplePanel','peopleControl','pendingPanel'],
   'flujos-tiempos':['pmFlowsIntro','gestionPanel','tiemposPanel']
  };function selectAdminSection(section){
@@ -2985,6 +3066,7 @@ $('permissionForm').addEventListener('submit',async event=>{
  }
  if(isAdmin){$('pmOverview').classList.toggle('hidden',section!=='resumen');$('pmOverview').dataset.adminHide=section==='resumen'?'false':'true';$('mainCards').dataset.adminHide='true';$('summaryVisual').dataset.adminHide='true';renderPmOverview();}else{$('pmOverview').classList.add('hidden');$('pmOverview').dataset.adminHide='true';}
  if(isAdmin){if(section==='resumen')$('pmOverview').insertBefore($('pmFilterBar'),$('pmOverview').querySelector('.pm-metrics'));else if(section==='productividad-holds')$('pmProductivityFilters').appendChild($('pmFilterBar'));else if(section==='flujos-tiempos')$('pmFlowsFilters').appendChild($('pmFilterBar'));else $('viewDashboard').insertBefore($('pmFilterBar'),$('viewDashboard').firstChild);renderPmProductivity();}
+ if(!upload)devFilters.mount($('viewDashboard'));
  if(quality){renderQuality();window.scrollTo(0,0);}
  requestAnimationFrame(centerSingleWeekCharts);
  $('welcome').textContent=section==='cargar'?'Cargar bases':({resumen:'Resumen',calidad:'Calidad','productividad-holds':'Productividad / Holds','flujos-tiempos':'Flujos / Tiempos'}[section]||'Dashboard KPI');
@@ -3030,12 +3112,13 @@ function renderPmProductivity(){
  const who=$('personFilter').value,excluded=excludedFlowDays();
  const selected=kpiCache.filter(r=>weeklyMatches(r.fecha)&&(!who||r.id===who)&&includedRecord(r));
  const computable=selected.filter(r=>isKpiDay(r,excluded));
- const tasks=computable.filter(r=>r.tipo==='tareas'),creations=computable.filter(r=>r.tipo==='creaciones');
+ const tasks=computable.filter(r=>r.tipo==='tareas'&&r.flujoOperativo==='mixto'),creations=computable.filter(r=>r.tipo==='creaciones');
  const total=tasks.reduce((sum,r)=>sum+(Number(r.cantidad)||0),0);
  const average=tasks.length?total/tasks.length:null;
  $('pmProductivityAverage').textContent=average===null?'—':fmt(average);
- $('pmProductivityGoal').textContent=average===null?'Sin jornadas computables':(average>=100?'Referencia alcanzada':'Bajo la referencia')+' · '+(average>100?'+':'')+fmt(average-100)+' frente a 100 tareas';
- $('pmProductivityGoal').dataset.state=average===null?'empty':average>=100?'met':'below';
+ const minimum=productivityGoals.mixto;
+ $('pmProductivityGoal').textContent=minimumText(average,minimum);
+ $('pmProductivityGoal').dataset.state=average===null||minimum==null?'empty':average>=minimum?'met':'below';
  $('pmCreationAverage').textContent=creations.length?fmt(creations.reduce((sum,r)=>sum+(Number(r.cantidad)||0),0)/creations.length):'—';
  $('pmCreationDays').textContent=fmt(creations.length)+' jornadas con registro de creaciones';
  const holds=holdsCache.filter(r=>weeklyMatches(r.fecha)&&(!who||r.id===who)&&includedRecord(r));
@@ -3050,6 +3133,12 @@ function renderPmProductivity(){
  if($('peopleControl').parentElement?.id!=='pmProductivity')$('pmProductivity').appendChild($('peopleControl'));
 }
 
+function minimumText(average,minimum){
+ if(minimum==null)return 'Sin objetivo';
+ if(average==null)return 'Sin jornadas para evaluar el mínimo';
+ if(average===minimum)return 'Cumplió el mínimo esperado · '+fmt(minimum);
+ return fmt(Math.abs(average-minimum))+' tareas '+(average>minimum?'por encima':'por debajo')+' del mínimo esperado de '+fmt(minimum);
+}
 function renderPmOverview(){
  if(!isAdmin)return;
  const who=$('personFilter').value,excluded=excludedFlowDays();
@@ -3057,13 +3146,14 @@ function renderPmOverview(){
  const done=rows.reduce((n,r)=>n+(Number(r.cantidad)||0),0);
  const posts=holdsCache.filter(r=>isVisiblePeriod(r.fecha)&&(!who||r.id===who)&&includedRecord(r)&&weeklyMatches(r.fecha));
  const postponed=posts.reduce((n,r)=>n+(Number(r.cantidad)||0),0);
- const average=rows.length?done/rows.length:null;
+ const mixed=rows.filter(row=>row.flujoOperativo==='mixto');
+ const average=productivityTotals(mixed).average,minimum=productivityGoals.mixto;
  $('pmAvg').textContent=average===null?'—':fmt(average);$('pmDone').textContent=fmt(done);$('pmPost').textContent=fmt(postponed);$('pmAll').textContent=fmt(done+postponed);$('pmDaysNote').textContent=fmt(rows.length)+(rows.length===1?' jornada computable':' jornadas computables');
  const flowTotal=gestionCache.filter(r=>weeklyMatches(r.fecha)&&(!who||r.id===who)&&includedRecord(r)).reduce((sum,r)=>sum+(Number(r.total)||0),0);
  $('pmFlowTotal').textContent=fmt(flowTotal);
  const goal=$('pmGoalStatus');
- goal.dataset.state=average===null?'empty':average>=100?'met':'below';
- goal.textContent=average===null?'Sin jornadas para evaluar el objetivo':(average>=100?'Objetivo alcanzado':'Bajo el objetivo')+' · '+(average>100?'+':'')+fmt(average-100)+' tareas frente a 100';
+ goal.dataset.state=average===null||minimum==null?'empty':average>=minimum?'met':'below';
+ goal.textContent=minimumText(average,minimum);
  $('pmPostNote').textContent=done+postponed?fmt(postponed/(done+postponed)*100)+'% del volumen gestionado':'Sin volumen en el período';
  $('pmDoneNote').textContent=done+postponed?fmt(done/(done+postponed)*100)+'% del volumen gestionado':'Sin volumen en el período';
  $('pmTrendNote').textContent=$('headerDelta').textContent+' · '+$('headerCompare').textContent;
@@ -3116,32 +3206,4 @@ showDashboard=function(...args){
 };
 const originalPmRender=renderPmOverview;
 renderPmOverview=function(){if(isAdmin)setupPmExactDesign();return originalPmRender();};
-(function(){
- const $p=id=>document.getElementById(id);
- const months=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
- let mode='quarter',from='2026-W40',to='2026-W44';
- const choice=$p('pmPeriodToggle'),popover=$p('pmPeriodPopover');
- function fill(sel,values){sel.replaceChildren();for(const [v,label] of values){const o=document.createElement('option');o.value=v;o.textContent=label;sel.append(o);}}
- fill($p('pmQuarterChoice'),[1,2,3,4].map(n=>[String(n),'Q'+n+' 2026']));$p('pmQuarterChoice').value='4';
- fill($p('pmMonthChoice'),months.map((m,i)=>[String(i+1),m+' 2026']));$p('pmMonthChoice').value='10';
- const weeks=[];const seen=new Set();for(let day=new Date(2025,11,29,12);day.getFullYear()<=2026;day.setDate(day.getDate()+7)){const monday=new Date(day);const key=isoWeek(monday.toISOString().slice(0,10)).key;if(!key.startsWith('2026-')||seen.has(key))continue;seen.add(key);weeks.push([key,'W'+key.split('W')[1]+' · '+String(monday.getDate()).padStart(2,'0')+'/'+String(monday.getMonth()+1).padStart(2,'0')]);}
- fill($p('pmWeekFrom'),weeks);fill($p('pmWeekTo'),weeks);
- const current=weeks.filter(w=>w[0]<=isoWeek(localToday()).key);const latest=current.length?current.at(-1)[0]:weeks.at(-1)[0];from=current.length?current[Math.max(0,current.length-4)][0]:weeks[0][0];to=latest;
- $p('pmWeekFrom').value=from;$p('pmWeekTo').value=to;
- function title(){if(mode==='quarter')return 'Q'+$p('pmQuarterChoice').value+' 2026';if(mode==='month')return months[Number($p('pmMonthChoice').value)-1]+' 2026';const a=$p('pmWeekFrom').value.split('W')[1],b=$p('pmWeekTo').value.split('W')[1];return 'W'+a+' a W'+b+' de 2026';}
- function apply(){if(!document.body.classList.contains('pm-design'))return;
-  $p('weekMode').value=mode;$p('weekYear').value='2026';
-  if(mode==='quarter')$p('weekQuarter').value=$p('pmQuarterChoice').value;
-  if(mode==='month'){$p('weekMonth').value=$p('pmMonthChoice').value;}
-  if(mode==='weeks'){from=$p('pmWeekFrom').value;to=$p('pmWeekTo').value;if(from>to){to=from;$p('pmWeekTo').value=to;} $p('weekStart').value=from;$p('weekEnd').value=to;}
-  choice.firstChild.textContent=title()+' ';updateWeekMode();renderKpis();renderPMComparison();if(typeof renderPmOverview==='function')renderPmOverview();
- }
- function setMode(v){mode=v;for(const b of popover.querySelectorAll('[data-pm-mode]'))b.classList.toggle('active',b.dataset.pmMode===mode);$p('pmQuarterArea').hidden=mode!=='quarter';$p('pmMonthArea').hidden=mode!=='month';$p('pmWeeksArea').hidden=mode!=='weeks';apply();}
- choice.addEventListener('click',()=>{popover.hidden=!popover.hidden;choice.setAttribute('aria-expanded',String(!popover.hidden));});
- document.addEventListener('click',e=>{if(!e.target.closest('.pm-period-control')){popover.hidden=true;choice.setAttribute('aria-expanded','false');}});
- for(const b of popover.querySelectorAll('[data-pm-mode]'))b.addEventListener('click',()=>setMode(b.dataset.pmMode));
- for(const id of ['pmQuarterChoice','pmMonthChoice','pmWeekFrom','pmWeekTo'])$p(id).addEventListener('change',apply);
- for(const b of popover.querySelectorAll('[data-pm-last]'))b.addEventListener('click',()=>{const n=Number(b.dataset.pmLast);const available=weeks.filter(w=>w[0]<=isoWeek(localToday()).key);if(!available.length)return;const last=available.length-1;$p('pmWeekFrom').value=available[Math.max(0,last-n+1)][0];$p('pmWeekTo').value=available[last][0];setMode('weeks');});
- const oldShow=showDashboard;showDashboard=function(...args){const out=oldShow.apply(this,args);if(isAdmin){requestAnimationFrame(()=>{setMode(mode);});}return out;};
-})();
 </script></body></html>

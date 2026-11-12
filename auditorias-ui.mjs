@@ -1,3 +1,4 @@
+import {itemUrl,normalizeQualityFlow} from './gestion-desarrollo.mjs';
 import {labels, mapHeaders, mapAuditRows, hasNetkelColumns} from './auditorias-import.mjs';
 import {auditReviewTotals, auditScope, observeSparkNotices, ownsAudit, watchAuditScope} from './auditorias-spark.mjs?v=solo-errores';
 
@@ -134,7 +135,7 @@ export function setupAudits(api) {
     session.auditListening = true;
     auditLoading = auditScope(api,session,session.global).length > 0;
     listeners.push(...watchAuditScope(api,session,watch,snap => {
-      audits = snap.docs.map(doc => ({...doc.data(), id:doc.id}));
+      audits = snap.docs.map(doc => ({...doc.data(), id:doc.id, flujo:normalizeQualityFlow(doc.data().flujo)||doc.data().flujo}));
       auditLoading = false; listError = false; renderAuditList();
     }, () => {auditLoading = false; listError = true; renderAuditList();},session.global));
     if (!session.global) return;
@@ -258,6 +259,7 @@ export function setupAudits(api) {
     options($('auditFilterPerson'), distinct('idMeli', id => namesByPerson.get(id) ? namesByPerson.get(id) + ' · ' + id : id), 'Todos');
     options($('auditFilterPeriod'), distinct('periodo').reverse(), 'Todos');
     options($('auditFilterFlow'), distinct('flujo'), 'Todos');
+    const scoped = api.auditFilter ? audits.filter(api.auditFilter) : audits;
     const criteria = [...filter.querySelectorAll('select')].filter(node => !node.closest('[hidden]') && node.value);
     const matches = (audit,node) => node.name === 'resultadoError'
       ? (audit.estado === 'sin_error' ? 'sin' : 'con') === node.value
@@ -266,7 +268,7 @@ export function setupAudits(api) {
     metrics.hidden = session.role === 'catalogador' || auditLoading || listError;
     if (!metrics.hidden) {
       const selected = criteria.filter(node => node.name !== 'estado');
-      const totals = auditReviewTotals(audits.filter(audit =>
+      const totals = auditReviewTotals(scoped.filter(audit =>
         (session.role !== 'tl' || audit.equipo === session.team) && selected.every(node => matches(audit,node))));
       lines(metrics,[
         ['Colaboradores al día',format(totals.revisaron)],['Colaboradores con revisiones pendientes',format(totals.sinRevisar)],
@@ -275,7 +277,7 @@ export function setupAudits(api) {
         ['Cierre rechazado por PM',format(totals.rechazadasPm)]
       ]);
     }
-    const visible = audits.filter(audit => criteria.every(node => matches(audit,node))).sort((a,b) =>
+    const visible = scoped.filter(audit => criteria.every(node => matches(audit,node))).sort((a,b) =>
       (b.fecha || b.periodo).localeCompare(a.fecha || a.periodo) || a.externo.localeCompare(b.externo));
     const list = $('auditRows');
     list.replaceChildren();
@@ -354,7 +356,7 @@ export function setupAudits(api) {
       ['Auditoría',audit.cdm || audit.externo], ['Colaborador',[audit.nombreColaborador,audit.idMeli].filter(Boolean).join(' · ')], ['Equipo',audit.equipo],
       ...(audit.colaboradorIdMeli ? [['ID MELI',String(audit.colaboradorIdMeli)]] : []),
       ['TL',nameOf(roster.get(audit.tlUid),audit.nombreTL || audit.tlUid)], ['Estado',states[audit.estado]], ['Fecha',audit.fecha],
-      ['Período',audit.periodo], ['Flujo',audit.flujo], ['Tipo',audit.tipo], ['Auditor',audit.auditor],
+      ['Período',audit.periodo], ['Flujo',normalizeQualityFlow(audit.flujo)||audit.flujo], ['Tipo',audit.tipo], ['Auditor',audit.auditor],
       ['Resultado original',audit.resultado], ['Observaciones',audit.observaciones],
       ...[['Product ID',audit.producto],['Item ID',audit.item],['Variation ID',audit.variante],
         ['Referencia de origen',audit.referencia],['Comentario de origen',audit.comentarioOrigen],
@@ -363,6 +365,12 @@ export function setupAudits(api) {
         ['Motivo de origen',audit.motivoOrigen],['Incidencia',audit.incidencia]].filter(([,value]) => value && value !== 'null')
     ]);
     detailBody.replaceChildren(fields);
+    const url=itemUrl(audit.item);
+    if(url){
+      const link=element('a','Ver publicación original','audit-link');
+      link.href=url;link.target='_blank';link.rel='noopener noreferrer';
+      detailBody.append(link);
+    }
     for (const [label, entry] of [['Respuesta del colaborador',audit.respuesta],['Decisión del TL',audit.decision],['Decisión final del PM',audit.decisionPm]]) {
       if (entry) detailBody.append(element('h4',label), element('p',recordedActions[entry.accion] + ' · ' +
         dateText(entry.fecha)), element('p',entry.texto || 'Sin comentario.', 'audit-message'));
@@ -554,5 +562,5 @@ export function setupAudits(api) {
     }
     finally {if (ctx() === current) importBusy(false);}
   };
-  return {start,stop,closeView,openView};
+  return {start,stop,closeView,openView,refresh:renderAuditList};
 }

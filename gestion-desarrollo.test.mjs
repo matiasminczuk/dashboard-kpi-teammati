@@ -1,0 +1,37 @@
+import assert from 'node:assert/strict';
+import {test} from 'node:test';
+import {analysisPeriod,inPeriod,periodBucket,normalizeQualityFlow,operationalFlow,achievement,creationSeries,holdsErrorRanking,itemUrl,productivityTotals} from './gestion-desarrollo.mjs';
+
+test('rol de la base, mínimos sin tope y Know Values sin cumplimiento',()=>{
+ assert.equal(operationalFlow('Analista KV'),'kv');
+ assert.equal(operationalFlow('Analista Soporte'),'soporte');
+ assert.equal(operationalFlow('Analista Validaciones'),'mixto');
+ assert.deepEqual(achievement(118,100),{difference:18,percent:118});
+ assert.deepEqual(achievement(14,11),{difference:3,percent:14/11*100});
+ assert.deepEqual(achievement(70,null),{difference:null,percent:null});
+ assert.equal(productivityTotals([]).average,null);
+});
+test('período inclusivo, comparación anterior de igual duración y agrupaciones',()=>{
+ const periods=analysisPeriod({from:'2026-11-03',to:'2026-11-08'},{});
+ assert.deepEqual(periods.previous,{start:'2026-10-28',end:'2026-11-02'});
+ assert.equal(inPeriod('2026-11-08',periods.current),true);
+ assert.equal(inPeriod('2026-11-09',periods.current),false);
+ assert.equal(periodBucket('2026-11-08','weeks'),'2026-11-02');
+ assert.equal(periodBucket('2026-11-08','months'),'2026-11');
+ assert.equal(analysisPeriod({from:'2026-02-30',to:'2026-03-01'},{}),null);
+});
+test('CCC histórico, enlaces seguros y series independientes sin valores inventados',()=>{
+ assert.equal(normalizeQualityFlow('Auditoría MAO'),'CCC');
+ assert.equal(itemUrl('MLA-123456'),'https://meli-one-source.adminml.com/item-view?item_id=MLA123456');
+ assert.equal(itemUrl('MLA123456&otro=1'),null);
+ const rows=[{fecha:'2026-11-03',tipo:'creaciones',cantidad:5},{fecha:'2026-11-04',tipo:'correcciones',cantidad:2}];
+ assert.deepEqual(creationSeries(rows,'days'),[
+  {key:'2026-11-03',creaciones:5,correcciones:null},{key:'2026-11-04',creaciones:null,correcciones:2}]);
+ assert.deepEqual(creationSeries(rows,'months'),[{key:'2026-11',creaciones:5,correcciones:2}]);
+});
+test('ranking agrega variantes sin dividir acciones múltiples ni contabilizar null',()=>{
+ const rows=['Revisar atributos',' revisar  atributos ','Revisar atributos / Validar','null'].map(accionCorrecta=>({accionCorrecta,fecha:'2026-11-03',cantidad:1}));
+ const result=holdsErrorRanking(rows,'weeks');
+ assert.equal(result.length,2);assert.equal(result[0].rank,1);assert.equal(result[0].count,2);
+ assert.equal(result[1].count,1);assert.deepEqual(result[0].trend,[['2026-11-02',2]]);
+});
