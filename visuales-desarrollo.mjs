@@ -110,45 +110,55 @@ export function renderComparison({chart,body,rows,period,group,sort,goals,drilld
   }
 }
 
-export function renderCreationChart(container,rows,cadence,isoWeek,averageDaily=false){
+export function renderCreationChart(container,rows,cadence,isoWeek,averageDaily=false,mountLine){
   const points=creationSeries(rows,cadence,averageDaily);
   container.replaceChildren();
   if(!points.length){container.textContent='Sin registros de Creaciones o Correcciones en el período.';return;}
   const ns='http://www.w3.org/2000/svg', svg=document.createElementNS(ns,'svg');
-  const width=Math.max(520,points.length*68),height=230,padding=38;
-  svg.setAttribute('viewBox','0 0 '+width+' '+height);
-  svg.style.minWidth=Math.min(width,Math.max(420,points.length*54))+'px';
   svg.setAttribute('role','img');svg.setAttribute('aria-label','Evolución de Creaciones y Correcciones');
-  const max=Math.max(1,...points.flatMap(p=>[p.creaciones??0,p.correcciones??0]));
-  const x=index=>points.length===1?width/2:padding+index*(width-2*padding)/(points.length-1);
-  const y=value=>height-padding-value*(height-2*padding)/max;
-  const add=(tag,attrs,text)=>{
-    const node=document.createElementNS(ns,tag);
-    for(const [key,value] of Object.entries(attrs))node.setAttribute(key,value);
-    if(text!==undefined)node.textContent=text;svg.append(node);return node;
+  const draw=(width,height,top,bottom)=>{
+    const left=mountLine?55:38,right=mountLine?32:38;
+    svg.setAttribute('viewBox','0 0 '+width+' '+height);
+    const max=Math.max(1,...points.flatMap(p=>[p.creaciones??0,p.correcciones??0]));
+    const x=index=>points.length===1?width/2:left+index*(width-left-right)/(points.length-1);
+    const y=value=>height-bottom-value*(height-top-bottom)/max;
+    const add=(tag,attrs,text)=>{
+      const node=document.createElementNS(ns,tag);
+      for(const [key,value] of Object.entries(attrs))node.setAttribute(key,value);
+      if(text!==undefined)node.textContent=text;svg.append(node);return node;
+    };
+    for(let tick=0;tick<=4;tick++){
+      const value=max*tick/4;
+      add('line',{x1:left,y1:y(value),x2:width-right,y2:y(value),class:'dev-chart-grid'});
+      add('text',{x:left-6,y:y(value)+4,'text-anchor':'end'},fmt(value));
+    }
+    const labelFor=key=>cadence==='weeks'?isoWeek(key).key.slice(5):key;
+    points.forEach((point,i)=>add('text',{x:x(i),y:height-12,'text-anchor':'middle'},labelFor(point.key)));
+    for(const [key,name,color] of [['creaciones','Creaciones','#1765d1'],['correcciones','Correcciones','#d17b12']]){
+      let last=null;
+      points.forEach((point,i)=>{
+        const value=point[key];
+        if(value==null){last=null;return;}
+        const next=[x(i),y(value)];
+        if(last)add('line',{x1:last[0],y1:last[1],x2:next[0],y2:next[1],stroke:color,'stroke-width':3});
+        const circle=add('circle',{cx:next[0],cy:next[1],r:4,fill:color,tabindex:0});
+        const periodLabel=cadence==='weeks'?labelFor(point.key)+' · lunes '+point.key:point.key;
+        const tooltip=periodLabel+' · '+name+' '+fmt(value)+(averageDaily?' por jornada':'');circle.setAttribute('aria-label',tooltip);
+        const title=document.createElementNS(ns,'title');title.textContent=tooltip;circle.append(title);
+        last=next;
+      });
+    }
   };
-  for(let tick=0;tick<=4;tick++){
-    const value=max*tick/4;
-    add('line',{x1:padding,y1:y(value),x2:width-padding,y2:y(value),class:'dev-chart-grid'});
-    add('text',{x:padding-6,y:y(value)+4,'text-anchor':'end'},fmt(value));
+  if(mountLine){
+    const scroll=element('div',undefined,'line-chart-scroll');
+    container.append(scroll);
+    mountLine(scroll,svg,points.length,draw);
+  }else{
+    const width=Math.max(520,points.length*68);
+    svg.style.minWidth=Math.min(width,Math.max(420,points.length*54))+'px';
+    draw(width,230,38,38);
+    container.append(svg);
   }
-  const labelFor=key=>cadence==='weeks'?isoWeek(key).key.slice(5):key;
-  points.forEach((point,i)=>add('text',{x:x(i),y:height-12,'text-anchor':'middle'},labelFor(point.key)));
-  for(const [key,name,color] of [['creaciones','Creaciones','#1765d1'],['correcciones','Correcciones','#d17b12']]){
-    let last=null;
-    points.forEach((point,i)=>{
-      const value=point[key];
-      if(value==null){last=null;return;}
-      const next=[x(i),y(value)];
-      if(last)add('line',{x1:last[0],y1:last[1],x2:next[0],y2:next[1],stroke:color,'stroke-width':3});
-      const circle=add('circle',{cx:next[0],cy:next[1],r:4,fill:color,tabindex:0});
-      const periodLabel=cadence==='weeks'?labelFor(point.key)+' · lunes '+point.key:point.key;
-      const tooltip=periodLabel+' · '+name+' '+fmt(value)+(averageDaily?' por jornada':'');circle.setAttribute('aria-label',tooltip);
-      const title=document.createElementNS(ns,'title');title.textContent=tooltip;circle.append(title);
-      last=next;
-    });
-  }
-  container.append(svg);
   if(points.every(point=>point.correcciones==null))container.append(element('p','La publicación no contiene registros de Correcciones.','muted'));
 }
 

@@ -582,7 +582,7 @@ body.employee-mode header.kpi-header{display:flex;align-items:center;justify-con
 body.employee-mode .meli-mark,body.employee-mode .brand-divider,body.employee-mode #headerKpi,body.employee-mode #pmHeaderQuality,body.employee-mode header .header-actions{display:none!important}
 body.employee-mode .brand-team strong{font-size:20px}
 body.employee-mode .brand-team small{font-size:13px}
-body.employee-mode #dashboard{display:block;max-width:1440px;margin:28px auto;padding:0 28px;box-sizing:border-box}
+body.employee-mode #dashboard{display:block;max-width:1094px;margin:28px auto;padding:0 28px;box-sizing:border-box}
 body.employee-mode #employeeTopRow{margin:0 0 20px}
 body.employee-mode .employee-tag{color:#52647d;font-size:11px;letter-spacing:.1em}
 body.employee-mode #employeeNavigation{display:grid;grid-template-columns:repeat(4,1fr);flex:0 1 auto;max-width:100%;min-width:0;gap:4px;padding:3px;background:#fff;border:1px solid #e2e7ef;border-radius:12px;margin:0;overflow-x:auto;box-sizing:border-box}
@@ -1101,10 +1101,11 @@ body.sidebar-collapsed #adminSidebar .sidebar-top .sidebar-heading{display:none}
 /* Densidad del panel personal. */
 body.employee-mode #employeeCriteria{padding:9px 14px;margin-bottom:12px}
 body.employee-mode #kpiStatus{margin-bottom:12px}
+body:not(.employee-mode) .employee-weekly-corrections{display:none}
 body.employee-mode #mainCards{gap:12px;margin-bottom:16px}
-body.employee-mode #mainCards .card{padding:14px 16px;gap:6px;min-height:0}
-body.employee-mode #mainCards h1{font-size:28px}
-body.employee-mode #mainCards #kpiAverage{font-size:34px}
+body.employee-mode #mainCards .card{padding:12px 14px;gap:5px;min-height:0}
+body.employee-mode #mainCards h1{font-size:26px}
+body.employee-mode #mainCards #kpiAverage{font-size:30px}
 body.employee-mode #employeeGoal{padding:4px 8px}
 body.employee-mode :is(#weeklyPanel,#employeeCreationsPanel,#holdsPanel,#gestionPanel,#tiemposPanel){
  padding:16px;margin-bottom:16px;
@@ -1143,7 +1144,7 @@ body.employee-mode :is(#qualityOverviewCards,#qualityFlowCards) .quality-goal{gr
  body.employee-mode :is(#weeklyPanel,#employeeCreationsPanel,#holdsPanel,#gestionPanel,#tiemposPanel){padding:12px}
 }
 </style>
-<link rel="stylesheet" href="./auditorias.css?v=detalle-caso-arriba">
+<link rel="stylesheet" href="./auditorias.css?v=panel-colaborador">
 <link rel="stylesheet" href="./gestion-desarrollo.css?v=productividad">
 </head>
 <body class="auth-screen">
@@ -1203,7 +1204,7 @@ body.employee-mode :is(#qualityOverviewCards,#qualityFlowCards) .quality-goal{gr
 </aside><div id="adminContent" class="admin-content"><div id="employeeTopRow" class="employee-top-row"><div id="employeeTitleGroup"><h1 id="welcome">Mi productividad</h1><p>Resumen de indicadores y evolución histórica</p>
 <nav class="tabs"><button id="tabDashboard" class="tab active" type="button">📊 Dashboard</button><button id="tabUpload" class="tab hidden" type="button">📁 Cargar bases</button></nav></div>
 </div>
-<nav id="employeeNavigation" class="employee-only" aria-label="Mi panel"><button type="button" data-employee-view="panel" aria-pressed="true">Mi panel</button><button type="button" data-employee-view="holds" aria-pressed="false">Mis holds</button><button type="button" data-employee-view="flujos" aria-pressed="false">Flujos / Tiempos</button><button type="button" data-employee-view="auditorias" aria-pressed="false">Auditorías</button><button type="button" data-employee-view="configuracion" aria-pressed="false">Configuración</button></nav><div id="viewDashboard">
+<nav id="employeeNavigation" class="employee-only" aria-label="Mi panel"><button type="button" data-employee-view="panel" aria-pressed="true">Mi panel</button><button type="button" data-employee-view="auditorias" aria-pressed="false">Auditorías</button><button type="button" data-employee-view="configuracion" aria-pressed="false">Configuración</button></nav><div id="viewDashboard">
 <div id="employeePeriodFilters"></div><details id="employeeCriteria" class="employee-only employee-criteria"><summary>Criterios de productividad</summary><p>La productividad se calcula por jornada con registro. Podés consultar y ajustar las exclusiones de flujos para interpretar tus promedios.</p><div id="employeeCriteriaSlot"></div></details>
 <div class="panel filters"><div id="pmTeamWrap" class="hidden"><label for="pmTeamFilter">Equipo / TL</label><select id="pmTeamFilter"><option value="">Todos los equipos</option><option>Matías Minczuk</option><option>José Puentes</option><option>Matías López</option><option>Celeste Cignoli</option></select></div><div id="personFilterWrap"><label for="personFilter">Catalogador</label><select id="personFilter"><option value="">Todos los catalogadores</option></select></div><div><label for="fromWeek">Desde semana</label><select id="fromWeek"></select></div><div><label for="toWeek">Hasta semana</label><select id="toWeek"></select></div><div class="filter-actions"><button id="resetFilters" type="button" class="tab">Limpiar filtros</button><button id="reloadKpis" type="button">↻ Actualizar</button></div></div>
 <details id="peopleControl" class="panel people-control" hidden><summary>☑ Catalogadores incluidos en el promedio del equipo</summary><p class="muted">Destildá a quienes estén en otros proyectos. No se borra su historial: podés consultarlos individualmente desde el selector de arriba.</p><div class="people-tools"><button id="selectAllPeople" type="button" class="tab">Seleccionar todos</button><button id="clearAllPeople" type="button" class="tab">Desmarcar todos</button></div><div id="peopleChecklist" class="people-list"></div><p id="peopleCount" class="people-count"></p><p class="muted">La selección se recuerda en este navegador. Afecta al promedio del equipo, el gráfico semanal y la tabla general.</p></details>
@@ -1267,7 +1268,7 @@ body.employee-mode :is(#qualityOverviewCards,#qualityFlowCards) .quality-goal{gr
 <section class="panel" id="weeklyPanel"><h2>Evolución semanal</h2><p class="muted">Productividad y creaciones en escalas independientes · promedio por jornada registrada · semanas de lunes a domingo.</p>
 <div id="weeklyFlowFilter" class="weekly-flow-filter" hidden><label for="weeklyFlow">Flujo</label><select id="weeklyFlow"></select></div>
 <div class="week-filters"><div><label for="weekMode">Período</label><select id="weekMode"><option value="quarter" selected>Trimestre</option><option value="month">Mes</option><option value="weeks">Semanas</option></select></div><div><label for="weekYear">Año</label><select id="weekYear"></select></div><div id="monthWrap" class="hidden"><label for="weekMonth">Mes</label><select id="weekMonth"><option value="10" selected>Octubre</option><option value="11">Noviembre</option><option value="12">Diciembre</option></select></div><div id="quarterWrap"><label for="weekQuarter">Trimestre</label><select id="weekQuarter"><option value="4" selected>Q4</option></select></div><div id="startWeekWrap" class="hidden"><label for="weekStart">Desde semana</label><select id="weekStart"></select></div><div id="endWeekWrap" class="hidden"><label for="weekEnd">Hasta semana</label><select id="weekEnd"></select></div></div>
-<p id="weeklyStatus" class="muted"></p><div id="weeklyChart" class="weekly-chart"><p class="muted">Cargando gráfico…</p></div><div class="table-wrap week-table"><table><thead><tr><th>Semana</th><th>Período</th><th>Promedio diario de tareas</th><th>Promedio diario de creaciones</th><th>Jornadas tareas</th><th>Jornadas creaciones</th></tr></thead><tbody id="weeklyRows"></tbody></table></div><p class="week-chart-note">El promedio semanal se calcula como total de tareas o creaciones dividido por las jornadas registradas de ese indicador. En la vista general se promedian todas las jornadas registradas del equipo. Las semanas que cruzan un mes o un Q usan solo los días del período elegido.</p></section>
+<p id="weeklyStatus" class="muted"></p><div id="weeklyChart" class="weekly-chart"><p class="muted">Cargando gráfico…</p></div><div class="table-wrap week-table"><table><thead><tr><th>Semana</th><th>Período</th><th>Promedio diario de tareas</th><th>Promedio diario de creaciones</th><th>Jornadas tareas</th><th>Jornadas creaciones</th><th class="employee-weekly-corrections">Promedio diario de correcciones</th><th class="employee-weekly-corrections">Jornadas correcciones</th></tr></thead><tbody id="weeklyRows"></tbody></table></div><p class="week-chart-note">El promedio semanal se calcula dividiendo el total de cada indicador por sus jornadas registradas. En la vista general se promedian todas las jornadas registradas del equipo. Las semanas que cruzan un mes o un Q usan solo los días del período elegido.</p></section>
 <section class="panel employee-only" id="employeeCreationsPanel"><h2>Creaciones y Correcciones · promedio diario</h2><div class="dev-legend"><span>Creaciones</span><span>Correcciones</span></div><div id="employeeCreationsChart" class="dev-chart"></div></section>
 <section class="panel" id="holdsPanel"><h2>⏸️ Evolución de tareas holdeadas</h2><p class="muted">Se cuenta cada fila del CSV, incluso cuando se repite el ID CDM, según la fecha de «Ultimo Hold». Se utilizan los mismos filtros de catalogador y período del gráfico superior.</p><div class="holds-stats"><div class="holds-stat"><span class="muted">Tareas holdeadas en el período</span><strong id="holdsTotal">—</strong></div><div class="holds-stat"><span class="muted">Semanas con holds</span><strong id="holdsWeeks">—</strong></div><div class="holds-stat"><span class="muted">Promedio por semana con holds</span><strong id="holdsAverage">—</strong></div></div><p id="holdsStatus" class="muted">Consultando historial de holds…</p><div id="holdsChart" class="weekly-chart"></div><details class="pm-methodology"><summary>Tareas holdeadas (filas del CSV)</summary><div class="table-wrap week-table"><table><thead><tr><th>Semana</th><th>Tareas holdeadas</th></tr></thead><tbody id="holdsWeeklyRows"></tbody></table></div></details><section id="holdReasonsPanel" hidden><h3>Ranking de motivos de Hold</h3><div id="holdReasonRows"></div></section></section>
 
@@ -1340,7 +1341,7 @@ import {getFirestore,doc,getDoc,getDocs,collection,query,where,writeBatch,server
 import {indexPeople,analyzeQuality,restoreArchivedQuality,qualityPeriods,selectQualityPeriod,summary,bucketQuality} from './calidad.mjs?v=archivo-1';
 import {analysisPeriod,inPeriod,operationalFlow,operationalFlows,defaultProductivityGoals,productivityTotals,normalizeQualityFlow,publishedProductivity} from './gestion-desarrollo.mjs?v=productividad-personal';
 import {setupFilters} from './filtros-desarrollo.mjs?v=resumen';
-import {renderOperationalCards,renderComparison,renderCreationChart,renderHoldsRanking} from './visuales-desarrollo.mjs?v=piso';
+import {renderOperationalCards,renderComparison,renderCreationChart,renderHoldsRanking} from './visuales-desarrollo.mjs?v=panel-colaborador';
 const firebaseConfig={apiKey:'AIzaSyB7edb0wGmf86KVrca5zkBTju7wg_zVDFk',authDomain:'dashboard-kpi-teammati.firebaseapp.com',projectId:'dashboard-kpi-teammati',storageBucket:'dashboard-kpi-teammati.firebasestorage.app',messagingSenderId:'158470825794',appId:'1:158470825794:web:33eb0d3c862756b9d7cadb',measurementId:'G-7E8M7NSPV0'};
 const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app);
 import {setupAudits} from './auditorias-ui.mjs?v=detalle-caso-arriba';
@@ -1372,7 +1373,7 @@ const auditFeatures = setupAudits({
   }
   switchTab(false);
   document.body.classList.remove('pm-settings');
-  $('employeeNavigation').querySelectorAll('button').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.employeeView===(destination==='holds'?'holds':destination==='finalizadas'?'flujos':'panel'))));
+  $('employeeNavigation').querySelectorAll('button').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.employeeView==='panel')));
   if(destination==='calidad' && $('qualityDetail').hidden){$('qualityDetail').hidden=false;renderQuality();}
   const target={productividad:'weeklyPanel',holds:'holdsPanel',calidad:'qualityDetail',finalizadas:'gestionPanel'}[destination];
   requestAnimationFrame(()=>$(target).scrollIntoView({block:'start'}));
@@ -1695,11 +1696,11 @@ function renderWeeklyChart(){
     $('weeklyStatus').textContent='La semana inicial debe ser anterior o igual a la final.';return;
   }
   const excludedDays=excludedFlowDays();
-  const rows=kpiCache.filter(r=>isVisiblePeriod(r.fecha)&&(!who||r.id===who)&&includedRecord(r)&&weeklyMatches(r.fecha)&&isKpiDay(r,excludedDays)&&(!isAdmin||r.tipo==='tareas'&&r.flujoOperativo===selectedFlow));
+  const rows=kpiCache.filter(r=>isVisiblePeriod(r.fecha)&&(!who||r.id===who)&&includedRecord(r)&&weeklyMatches(r.fecha)&&(r.tipo==='correcciones'||isKpiDay(r,excludedDays))&&(!isAdmin||r.tipo==='tareas'&&r.flujoOperativo===selectedFlow));
   const weeks=new Map();
   for(const r of rows){
     const k=isoWeek(r.fecha).key;
-    if(!weeks.has(k))weeks.set(k,{start:mondayLabel(r.fecha),tareas:{sum:0,count:0},creaciones:{sum:0,count:0}});
+    if(!weeks.has(k))weeks.set(k,{start:mondayLabel(r.fecha),tareas:{sum:0,count:0},creaciones:{sum:0,count:0},correcciones:{sum:0,count:0}});
     const item=weeks.get(k)[r.tipo];if(item){item.sum+=r.cantidad;item.count++;}
   }
   const ordered=[...weeks].sort((a,b)=>a[0].localeCompare(b[0]));
@@ -1766,7 +1767,7 @@ function renderWeeklyChart(){
     const tr=document.createElement('tr');
     const end=new Date(w.start+'T12:00:00');end.setDate(end.getDate()+6);
     const period=w.start+' a '+`${end.getFullYear()}-${pad2(end.getMonth()+1)}-${pad2(end.getDate())}`;
-    for(const value of [key,period,w.tareas.count?fmt(w.tareas.sum/w.tareas.count):'—',w.creaciones.count?fmt(w.creaciones.sum/w.creaciones.count):'—',w.tareas.count,w.creaciones.count]){
+    for(const value of [key,period,w.tareas.count?fmt(w.tareas.sum/w.tareas.count):'—',w.creaciones.count?fmt(w.creaciones.sum/w.creaciones.count):'—',w.tareas.count,w.creaciones.count,...(isAdmin?[]:[w.correcciones.count?fmt(w.correcciones.sum/w.correcciones.count):'—',w.correcciones.count])]){
       const td=document.createElement('td');td.textContent=value;tr.appendChild(td);
     }
     tbody.appendChild(tr);
@@ -1987,7 +1988,7 @@ function renderKpis(){
   const excludedCount=new Set(filtered.filter(r=>r.tipo==='tareas'&&!isKpiDay(r,excludedDays)).map(r=>r.id+'|'+r.fecha)).size;
   $('averageNote').textContent=tasks.length?`${tasks.length} jornadas computables${excludedCount?' · '+excludedCount+' excluidas por ${excludedFlowLabel()}':''}`:excludedCount?`${excludedCount} jornadas excluidas por ${excludedFlowLabel()}`:'Sin registros de tareas en este período';
   renderWeeklyChart();
-  if(!isAdmin)renderCreationChart($('employeeCreationsChart'),filtered,'weeks',isoWeek,true);
+  if(!isAdmin)renderCreationChart($('employeeCreationsChart'),filtered,'weeks',isoWeek,true,mountWeeklyLine);
   renderHolds();
   renderGestion();
   renderSummaryVisual();
@@ -2490,7 +2491,7 @@ document.querySelectorAll('[data-employee-view]').forEach(button=>button.addEven
  const view=button.dataset.employeeView;
  if(view==='auditorias'){auditFeatures.openView();return;}
  if(view==='configuracion')showConfiguration();
- else{switchTab(false);document.body.classList.remove('pm-settings');if(view==='panel')window.scrollTo({top:0,behavior:'smooth'});else (view==='holds'?$('holdsPanel'):$('gestionPanel')).scrollIntoView({behavior:'smooth',block:'start'});requestAnimationFrame(centerSingleWeekCharts);}
+ else{switchTab(false);document.body.classList.remove('pm-settings');window.scrollTo({top:0,behavior:'smooth'});requestAnimationFrame(centerSingleWeekCharts);}
  $('employeeNavigation').querySelectorAll('button').forEach(item=>item.setAttribute('aria-pressed',String(item===button)));
 }));
 

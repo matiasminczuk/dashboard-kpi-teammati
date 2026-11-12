@@ -96,10 +96,10 @@ body.employee-mode.employee-header-away #dashboardHeader:not(.header-revealed):n
  body.employee-mode #dashboardHeader { transition:none }
 }
 body.employee-mode header.kpi-header {
- grid-template-columns:auto minmax(0,1fr) minmax(345px,445px) 44px 44px;
+ grid-template-columns:auto minmax(0,1fr) minmax(260px,330px) 44px 44px;
  grid-template-areas:"brand welcome navigation theme bell";
 }
-body.employee-mode header.kpi-header #employeeNavigation { grid-template-columns:repeat(5,minmax(0,1fr)) }
+body.employee-mode header.kpi-header #employeeNavigation { grid-template-columns:repeat(3,minmax(0,1fr)) }
 @media(max-width:1050px) {
  body.pm-design header.kpi-header #notificationControl { order:1 }
 }
@@ -114,7 +114,6 @@ body.employee-mode header.kpi-header #employeeNavigation { grid-template-columns
   grid-template-columns:minmax(0,1fr) 44px 44px;
   grid-template-areas:"brand theme bell" "welcome welcome welcome" "navigation navigation navigation";
  }
- body.employee-mode header.kpi-header #employeeNavigation { grid-template-columns:repeat(3,minmax(0,1fr)) }
  body.employee-mode header.kpi-header .auth-brand-lockup { width:min(200px,100%) }
 }
 
