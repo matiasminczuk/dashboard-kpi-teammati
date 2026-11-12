@@ -169,7 +169,8 @@ export function setupAudits(api) {
     listeners.push(...watchAuditScope(api,session,watch,snap => {
       audits = snap.docs.map(doc => ({...doc.data(), id:doc.id, flujo:normalizeQualityFlow(doc.data().flujo)||doc.data().flujo}));
       auditLoading = false; listError = false; renderAuditList();
-    }, () => {auditLoading = false; listError = true; renderAuditList();},session.global));
+      api.onAuditsChange?.();
+    }, () => {auditLoading = false; listError = true; renderAuditList(); api.onAuditsChange?.();},session.global));
     if (!session.global) return;
     const current = ctx();
     api.getDocs(api.collection(api.db,'usuarios')).then(snap => {
@@ -634,5 +635,11 @@ export function setupAudits(api) {
     }
     finally {if (ctx() === current) importBusy(false);}
   };
-  return {start,stop,closeView,openView,refresh:renderAuditList};
+  return {start,stop,closeView,openView,refresh:renderAuditList,
+    qualityAudits(){
+      if (!session || !auditScope(api,session,session.global).length) return null;
+      listenAudits();
+      return auditLoading || listError ? null : audits;
+    }
+  };
 }

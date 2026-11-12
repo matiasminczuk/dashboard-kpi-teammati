@@ -1237,12 +1237,13 @@ body.employee-mode :is(#qualityOverviewCards,#qualityFlowCards) .quality-goal{gr
   <div><h2 id="qualityTitle" tabindex="-1">Calidad de auditorías</h2><p id="qualityScope"></p></div>
   <div><label for="qualitySource">Origen</label><select id="qualitySource"><option value="interna">Auditorías internas</option><option value="meli">Auditorías de MELI</option></select></div>
   <div><label for="qualityFlow">Flujo</label><select id="qualityFlow"><option value="">Todos</option><option>SDC</option><option>CCC</option><option>FO</option><option>SCP</option></select></div>
+  <div id="qualityCadenceFilter"><label for="qualityCadence">Agrupar por</label><select id="qualityCadence"><option value="months">Mes</option><option value="weeks">Semana</option></select></div>
  </div>
+ <p id="qualityTrendHint" hidden>Elegí un flujo para ver su evolución.</p>
  <p id="qualityStatus" role="status"></p><button id="qualityRecoverLink" class="quality-text-button" type="button" hidden>Usar una base ya cargada</button>
  <section class="quality-flow-grid" id="qualityFlowCards" aria-label="Efectividad por flujo y origen"></section>
- <dl class="quality-totals" id="qualitySelectedTotals" hidden><div><dt>Efectividad del flujo</dt><dd id="qualityTotal">—</dd></div><div><dt>Tareas auditadas</dt><dd id="qualityAudited">—</dd></div><div><dt>Errores registrados</dt><dd id="qualityErrors">—</dd></div></dl>
- <div class="quality-chart-heading"><h3>Evolución</h3><div><label for="qualityCadence">Agrupar por</label><select id="qualityCadence"><option value="months">Mes</option><option value="weeks">Semana</option></select></div></div>
- <div id="qualityTrend" class="quality-trend"></div>
+ <dl class="quality-totals" id="qualitySelectedTotals" hidden><div><dt>Efectividad del flujo</dt><dd id="qualityTotal">—</dd></div><div><dt>Tareas auditadas</dt><dd id="qualityAudited">—</dd></div><div><dt id="qualityErrorsLabel">Errores registrados</dt><dd id="qualityErrors">—</dd></div></dl>
+ <section id="qualityEvolution" hidden><h3>Evolución</h3><div id="qualityTrend" class="quality-trend"></div></section>
  <h3>Desglose por flujo</h3><div class="table-wrap"><table><thead><tr><th scope="col">Flujo</th><th scope="col">Auditadas</th><th scope="col">Calidad</th><th scope="col">Objetivo</th></tr></thead><tbody id="qualityFlows"></tbody></table></div>
  <p id="qualityOpportunity"></p>
  <section id="devHoldsRanking" hidden><div class="quality-chart-heading"><h3>Errores de Holds</h3><label>Mostrar<select id="devHoldsTop"><option value="5">Top 5</option><option value="10">Top 10</option></select></label></div>
@@ -1351,7 +1352,7 @@ import {setupFilters} from './filtros-desarrollo.mjs?v=resumen';
 import {renderOperationalCards,renderComparison,renderCreationChart,renderHoldsRanking} from './visuales-desarrollo.mjs?v=panel-colaborador';
 const firebaseConfig={apiKey:'AIzaSyB7edb0wGmf86KVrca5zkBTju7wg_zVDFk',authDomain:'dashboard-kpi-teammati.firebaseapp.com',projectId:'dashboard-kpi-teammati',storageBucket:'dashboard-kpi-teammati.firebasestorage.app',messagingSenderId:'158470825794',appId:'1:158470825794:web:33eb0d3c862756b9d7cadb',measurementId:'G-7E8M7NSPV0'};
 const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app);
-import {setupAudits} from './auditorias-ui.mjs?v=confirmar-error';
+import {setupAudits} from './auditorias-ui.mjs?v=calidad-errores';
 import {createSparkAudits} from './auditorias-spark.mjs?v=plazo';
 const sparkAuditCall=createSparkAudits({db,doc,getDocs,collection,query,where,documentId,runTransaction,serverTimestamp,
  currentUid:()=>auth.currentUser?.uid,currentMeli:()=>profileData?.idMeli,currentRole:()=>profileData?.rol});
@@ -1359,6 +1360,7 @@ const auditFeatures = setupAudits({
  db, doc, getDocs, collection, query, where, writeBatch, serverTimestamp, onSnapshot, orderBy, limit,
  loadXlsx:()=>loadXlsx(),
  call:sparkAuditCall,
+ onAuditsChange:()=>{if(!$('qualityDetail').hidden)renderQuality();},
  auditFilter:audit=>!isAdmin||(devMatches(audit.equipo,audit.colaboradorIdMeli)&&devAuditPeriod(audit)),
  openAuditView(){
   if(isAdmin)devFilters.mount($('viewAuditorias'));
@@ -2753,6 +2755,21 @@ function qualitySelection(){
   quarter:Number($('weekQuarter').value),from:$('weekStart').value,to:$('weekEnd').value});
 }
 const qualityFlows=['SDC','SCP','CCC','FO'];
+function qualityAuditErrors(flow,period,who){
+ if(!period||$('qualityDetail').hidden)return null;
+ const audits=auditFeatures.qualityAudits();
+ if(!audits)return null;
+ return audits.filter(audit=>{
+  const person=audit.colaboradorIdMeli||audit.idMeli;
+  if(audit.estado==='sin_error'||String(audit.resultado??'').trim().toLowerCase()==='null'||audit.flujo!==flow||
+    (who&&person!==who)||(isAdmin&&!devMatches(audit.equipo,person)))return false;
+  if(audit.fecha)return audit.fecha>=period.start&&audit.fecha<period.end;
+  if(!/^\d{4}-\d{2}$/.test(audit.periodo))return false;
+  const start=audit.periodo+'-01';
+  const end=new Date(Date.UTC(Number(audit.periodo.slice(0,4)),Number(audit.periodo.slice(5,7)),1)).toISOString().slice(0,10);
+  return start>=period.start&&end<=period.end;
+ }).length;
+}
 function renderQualityFlowCards(container,rows){
  container.replaceChildren();
  for(const code of qualityFlows){
@@ -2810,7 +2827,7 @@ function renderQuality(){
  document.querySelector('[data-open-quality]').setAttribute('aria-expanded',String(!$('qualityDetail').hidden));
  $('qualityScope').textContent=isAdmin?dashboardScope():$('employeePeriodNote').textContent;
  $('qualityStatus').textContent=qualityState.error||(qualityState.loading?'Consultando resultados…':!periods?'Elegí un período válido.':
-  !now.length?(weekly?'Sin resultados semanales en este rango. Los totales mensuales se consultan por mes o trimestre.':'Sin datos para el origen, período y filtros elegidos.'):'');
+  !now.length?(weekly?'Sin resultados semanales en el resumen de Calidad para este rango.':'Sin resultados en el resumen de Calidad para el origen, período y filtros elegidos.'):'');
  $('qualityRecoverLink').hidden=!canImportBases();
  const cardRows=inQualityPeriod(scoped,periods?.current);
  const latestMonthly=isAdmin&&periods&&!cardRows.length?scoped.reduce((latest,row)=>
@@ -2832,20 +2849,21 @@ function renderQuality(){
  if(current){
   $('qualityTotal').textContent=qualityPercent(current.quality);
   $('qualityAudited').textContent=now.length?fmt(current.audited):'—';
-  $('qualityErrors').textContent=current.errors===null?'Sin datos':fmt(current.errors);
+  const auditErrors=current.errors===null?qualityAuditErrors(flow,periods?.current,who):null;
+  $('qualityErrorsLabel').textContent=auditErrors===null?'Errores registrados':'Casos con error en Auditorías · todos los orígenes';
+  const errors=current.errors??auditErrors;
+  $('qualityErrors').textContent=errors===null?'Sin datos':fmt(errors);
  }
- let cadence=isAdmin?devFilters.state().cadence:$('qualityCadence').value;
- $('qualityCadence').closest('div').hidden=isAdmin;
+ const cadence=isAdmin?devFilters.state().cadence:$('qualityCadence').value;
+ $('qualityCadenceFilter').hidden=isAdmin;
+ $('qualityCadence').disabled=!flow;
+ $('qualityTrendHint').hidden=Boolean(flow);
+ $('qualityEvolution').hidden=!flow;
  const weeklyTrend=cadence==='weeks'&&periods?withFlow(selectQualityPeriod(eligible,periods.current,true)):null;
- let trendRecords=weeklyTrend??now;
- if(weeklyTrend&&!weeklyTrend.length){
-  const monthly=withFlow(eligible).filter(row=>row.unit==='month'&&row.start<periods.current.end&&
-   new Date(Date.UTC(Number(row.start.slice(0,4)),Number(row.start.slice(5,7)),1)).toISOString().slice(0,10)>periods.current.start);
-  if(monthly.length){cadence='months';trendRecords=monthly;}
- }
+ const trendRecords=weeklyTrend??now;
  const buckets=flow?bucketQuality(trendRecords,cadence):[];
  const graph=$('qualityTrend');graph.replaceChildren();
- if(!buckets.length)graph.textContent=!flow?'Elegí un flujo para ver su evolución.':cadence==='weeks'?'Sin registros fechados para mostrar por semana.':'Sin datos en el período.';
+ if(flow&&!buckets.length)graph.textContent=cadence==='weeks'?'Sin registros semanales o diarios para esta selección.':'Sin datos en el período.';
  for(const bucket of buckets){
   const row=document.createElement('div'),label=document.createElement('span'),bar=document.createElement('meter'),value=document.createElement('strong');
   label.textContent=cadence==='weeks'?'Semana del '+bucket.key:cadence==='months'?'Mes · '+monthLabel(bucket.key):bucket.key;
