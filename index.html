@@ -2762,7 +2762,8 @@ function qualityAuditErrors(flow,period,who){
  if(!audits)return null;
  return audits.filter(audit=>{
   const person=audit.colaboradorIdMeli||audit.idMeli;
-  if(audit.estado==='sin_error'||String(audit.resultado??'').trim().toLowerCase()==='null'||audit.flujo!==flow||
+  if(audit.estado==='sin_error'||String(audit.resultado??'').trim().toLowerCase()==='null'||
+    (flow&&(normalizeQualityFlow(audit.flujo)||audit.flujo)!==flow)||
     (who&&person!==who)||(isAdmin&&!devMatches(audit.equipo,person)))return false;
   if(audit.fecha)return audit.fecha>=period.start&&audit.fecha<period.end;
   if(!/^\d{4}-\d{2}$/.test(audit.periodo))return false;
@@ -2846,15 +2847,18 @@ function renderQuality(){
   :'Efectividad ponderada por tareas auditadas. Internas y MELI se muestran por separado.'+coverage);
  renderQualityFlowCards($('qualityOverviewCards'),overviewRows);
  renderQualityFlowCards($('qualityFlowCards'),cardRows);
- $('qualitySelectedTotals').hidden=!current;
+ const auditErrors=qualityAuditErrors(flow,periods?.current,who);
+ $('qualitySelectedTotals').hidden=!current&&auditErrors===null;
+ $('qualityTotal').parentElement.hidden=!current;
+ $('qualityAudited').parentElement.hidden=!current;
  if(current){
   $('qualityTotal').textContent=qualityPercent(current.quality);
   $('qualityAudited').textContent=now.length?fmt(current.audited):'—';
-  const auditErrors=current.errors===null?qualityAuditErrors(flow,periods?.current,who):null;
-  $('qualityErrorsLabel').textContent=auditErrors===null?'Errores registrados':'Casos con error en Auditorías · todos los orígenes';
-  const errors=current.errors??auditErrors;
-  $('qualityErrors').textContent=errors===null?'Sin datos':fmt(errors);
  }
+ const errors=current?.errors??auditErrors;
+ $('qualityErrorsLabel').textContent=current?.errors==null&&auditErrors!==null?
+  'Casos con error en Auditorías · todos los orígenes':'Errores registrados';
+ $('qualityErrors').textContent=errors===null?'Sin datos':fmt(errors);
  const cadence=isAdmin?devFilters.state().cadence:$('qualityCadence').value;
  $('qualityCadenceFilter').hidden=isAdmin;
  $('qualityCadence').disabled=!flow;
