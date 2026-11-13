@@ -1,5 +1,5 @@
 import {itemUrl,normalizeQualityFlow} from './gestion-desarrollo.mjs';
-import {labels, mapHeaders, mapAuditRows, hasNetkelColumns} from './auditorias-import.mjs?v=sugerencias';
+import {labels, mapHeaders, mapAuditRows, hasNetkelColumns} from './auditorias-import.mjs?v=checks-tl';
 import {auditReviewTotals, auditScope, observeSparkNotices, ownsAudit, watchAuditScope, auditResponseOpen, auditResponseDeadline} from './auditorias-spark.mjs?v=plazo';
 
 const states = {

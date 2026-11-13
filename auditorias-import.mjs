@@ -33,11 +33,15 @@ function uniqueColumn(headers, names) {
   return candidates.length === 1 ? candidates[0] : -1;
 }
 
+function isCorrectionExport(headers) {
+  return ['correction id','suggestion id','accion correcta','fecha auditoria','colaborador']
+    .every(name => uniqueColumn(headers, [name]) >= 0);
+}
+
 export function mapHeaders(headers) {
   const names = headers.map(normalized);
   const mapping = Object.fromEntries(Object.entries(aliases).map(([key, values]) => [key, uniqueColumn(names, values)]));
-  if (mapping.externo < 0 && ['correction id','suggestion id','accion correcta','fecha auditoria','colaborador']
-    .every(name => uniqueColumn(names, [name]) >= 0)) {
+  if (mapping.externo < 0 && isCorrectionExport(names)) {
     for (const [key, name] of Object.entries(correctionColumns)) {
       if (mapping[key] < 0) mapping[key] = uniqueColumn(names, [name]);
     }
@@ -66,6 +70,12 @@ export function auditDate(value, serialDate) {
 
 export function mapAuditRows(sheet, defaultPeriod, serialDate) {
   const {matrix, mapping, name, headerRow, composite} = sheet;
+  const headers = (matrix[headerRow] || []).map(normalized);
+  const correctionExport = isCorrectionExport(headers);
+  const checks = ['Check TL', 'Check motivo rechazo TL'].map(label => [label, uniqueColumn(headers, [normalized(label)])]);
+  if (correctionExport && checks.some(([, index]) => index < 0)) {
+    throw Error(name + ' · El archivo debe incluir una columna Check TL y una columna Check motivo rechazo TL.');
+  }
   const required = ['idMeli', 'resultado'];
   if (!composite) required.push('externo');
   if (composite) required.push('fecha', 'flujo', 'cdm', 'producto', 'item', 'variante');
@@ -78,6 +88,13 @@ export function mapAuditRows(sheet, defaultPeriod, serialDate) {
     for (const key of Object.keys(labels)) {
       const cell = cells[mapping[key]];
       row[key] = key === 'fecha' ? auditDate(cell, serialDate) : valueOf(cell);
+    }
+    if (correctionExport) {
+      const failedChecks = checks.filter(([, index]) => normalized(cells[index]) !== 'ok');
+      if (!failedChecks.length) row.resultado = 'null';
+      else if (!row.resultado || normalized(row.resultado) === 'null') {
+        row.resultado = failedChecks.map(([label, index]) => label + ' (' + (valueOf(cells[index]) || 'sin valor') + ')').join(' · ');
+      }
     }
     if (!row.fecha) row.periodo ||= defaultPeriod;
     if (composite) {
