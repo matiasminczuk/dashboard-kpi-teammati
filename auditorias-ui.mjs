@@ -449,11 +449,16 @@ export function setupAudits(api) {
       ['Estado', states[auditDisplayState(audit)] ? auditTag(states[auditDisplayState(audit)], stateTone) : null],
       ['Fecha', audit.fecha || audit.periodo]
     ]);
-    const footer = element('div', undefined, 'audit-actions audit-detail-actions audit-case-footer');
-    footer.append(auditedCaseLink(audit));
-    auditCase.card.append(footer);
     detailBody.replaceChildren(overview);
-    if (!collaboratorView) detailBody.append(auditCase.card);
+    const caseLink = auditedCaseLink(audit);
+    if (collaboratorView) {
+      detailBody.append(caseLink);
+    } else {
+      const footer = element('div', undefined, 'audit-actions audit-detail-actions audit-case-footer');
+      footer.append(caseLink);
+      auditCase.card.append(footer);
+      detailBody.append(auditCase.card);
+    }
     let deadlineNote;
     if (audit.estado === 'pendiente_colaborador') {
       const deadline = auditResponseDeadline(audit);
@@ -484,9 +489,7 @@ export function setupAudits(api) {
       if (deadlineNote) detailBody.append(deadlineNote);
       const caseDetails = element('details', undefined, 'audit-timeline audit-case-details');
       caseDetails.append(element('summary', 'Datos del caso'), auditCase.fields);
-      const caseTools = element('div', undefined, 'audit-case-tools');
-      caseTools.append(footer, caseDetails);
-      detailBody.append(caseTools);
+      detailBody.append(caseDetails);
     }
     if (session.global && audit.estado === 'sin_asignar') renderAssignment(audit);
     const list = element('ol',undefined,'audit-history');list.id = 'auditHistory';

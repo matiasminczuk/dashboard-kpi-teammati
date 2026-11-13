@@ -237,8 +237,9 @@ body.dark-theme #auditDetail {
 }
 #auditDetail .audit-return-button:hover { background:var(--audit-tint); border-color:currentColor }
 .audit-collaborator-view :is(.audit-deadline,.audit-case-details) { color:var(--kpi-muted); font-size:.8125rem }
-.audit-case-tools { display:grid; gap:10px; padding-top:10px; border-top:1px solid var(--kpi-border) }
-.audit-case-tools .audit-case-footer { justify-content:flex-start; align-items:flex-start; padding:0 }
+#auditDetail.audit-collaborator-view .audit-case-button { width:100%; min-height:44px; text-align:center }
+.audit-collaborator-view .audit-case-unavailable { text-align:center }
+.audit-collaborator-view .audit-case-details { padding-top:10px; border-top:1px solid var(--kpi-border) }
 .audit-case-details .audit-fields { grid-template-columns:repeat(auto-fit,minmax(min(130px,100%),1fr)) }
 @media(max-width:580px) {
  #auditDetail.audit-collaborator-view .audit-detail-overview { grid-template-columns:minmax(0,1fr) }
