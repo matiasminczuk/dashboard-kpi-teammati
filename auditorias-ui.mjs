@@ -55,6 +55,13 @@ function auditTag(label, tone = 'neutral') {
   tag.dataset.tone = tone;
   return tag;
 }
+function auditDecision(title, decision, comment, tone) {
+  const section = element('section', undefined, 'audit-decision');
+  const note = String(comment ?? '').trim();
+  section.append(element('h4', title), auditTag(decision, tone),
+    element('p', note && note.toLowerCase() !== 'null' ? note : 'Sin comentario.', 'audit-message'));
+  return section;
+}
 function auditedCaseLink(audit) {
   const url = itemUrl(audit.item);
   if (!url) return element('span', 'El caso requiere un Item ID válido.', 'audit-case-unavailable');
@@ -399,31 +406,43 @@ export function setupAudits(api) {
 
   function renderDetail(audit) {
     clearTimeout(deadlineTimer);
+    const collaboratorView = session.role === 'catalogador';
+    detail.classList.toggle('audit-collaborator-view', collaboratorView);
     const overview = element('div', undefined, 'audit-detail-overview');
-    const collaborator = auditCard('Datos del colaborador', 'audit-identity');
-    lines(collaborator.fields, [
-      ['Auditoría', audit.cdm || audit.externo],
-      ['ID MELI', audit.colaboradorIdMeli || audit.idMeli],
-      ['Equipo', audit.equipo],
-      ['Auditor', audit.auditor]
-    ]);
-    const decision = auditCard('Decisión del colaborador', 'audit-origin');
     const originDecision = String(audit.decisionOrigen ?? '').trim();
     const decisionKey = originDecision.toLowerCase();
     const hasDecision = decisionKey !== '' && decisionKey !== 'null';
-    lines(decision.fields, [
-      ['Decisión del colaborador', auditTag(hasDecision ? originDecision : 'Pendiente de decisión',
-        decisionKey === 'desestimar' ? 'warning' : hasDecision ? 'info' : 'neutral')],
-      ['Comentario del colaborador', audit.comentarioOrigen]
-    ]);
-    overview.append(collaborator.card, decision.card);
+    const originLabel = hasDecision ? originDecision : 'Pendiente de decisión';
+    const originTone = decisionKey === 'desestimar' ? 'warning' : hasDecision ? 'info' : 'neutral';
+    if (collaboratorView) {
+      const result = String(audit.resultado ?? '').trim();
+      overview.append(
+        auditDecision('Decisión del colaborador', originLabel, audit.comentarioOrigen, originTone),
+        auditDecision('Decisión del auditor', result && result.toLowerCase() !== 'null' ? result : 'Sin resultado registrado',
+          audit.observaciones, 'info')
+      );
+    } else {
+      const collaborator = auditCard('Datos del colaborador', 'audit-identity');
+      lines(collaborator.fields, [
+        ['Auditoría', audit.cdm || audit.externo],
+        ['ID MELI', audit.colaboradorIdMeli || audit.idMeli],
+        ['Equipo', audit.equipo],
+        ['Auditor', audit.auditor]
+      ]);
+      const decision = auditCard('Decisión del colaborador', 'audit-origin');
+      lines(decision.fields, [
+        ['Decisión del colaborador', auditTag(originLabel, originTone)],
+        ['Comentario del colaborador', audit.comentarioOrigen]
+      ]);
+      overview.append(collaborator.card, decision.card);
+    }
 
     const auditCase = auditCard('Detalle del caso', 'audit-case-fields');
     const flow = normalizeQualityFlow(audit.flujo) || audit.flujo;
     const stateTone = {cerrada_aprobada:'positive', cerrada_rechazada:'negative'}[audit.estado] || 'neutral';
     lines(auditCase.fields, [
-      ['Resultado original', audit.resultado],
-      ['Comentario del auditor', audit.observaciones],
+      ...(collaboratorView ? [['Auditoría', audit.cdm || audit.externo]] :
+        [['Resultado original', audit.resultado], ['Comentario del auditor', audit.observaciones]]),
       ['Product ID', audit.producto],
       ['Item ID', audit.item],
       ['Flujo', flow && flow !== 'null' ? auditTag(flow) : null],
@@ -433,13 +452,16 @@ export function setupAudits(api) {
     const footer = element('div', undefined, 'audit-actions audit-detail-actions audit-case-footer');
     footer.append(auditedCaseLink(audit));
     auditCase.card.append(footer);
-    detailBody.replaceChildren(overview, auditCase.card);
+    detailBody.replaceChildren(overview);
+    if (!collaboratorView) detailBody.append(auditCase.card);
+    let deadlineNote;
     if (audit.estado === 'pendiente_colaborador') {
       const deadline = auditResponseDeadline(audit);
       const label = auditResponseOpen(audit) ? 'Plazo de respuesta hasta el ' : 'Plazo de respuesta vencido el ';
       const deadlineFormat = new Intl.DateTimeFormat('es-AR',{dateStyle:'short',timeStyle:'short',timeZone:'America/Argentina/Buenos_Aires'});
-      detailBody.append(element('p',deadline === null?'Sin fecha de publicación para calcular el plazo.':
-        label+deadlineFormat.format(deadline)+' (Argentina).','audit-message'));
+      deadlineNote = element('p',deadline === null?'Sin fecha de publicación para calcular el plazo.':
+        label+deadlineFormat.format(deadline)+' (Argentina).','audit-message audit-deadline');
+      if (!collaboratorView) detailBody.append(deadlineNote);
       if(deadline !== null && deadline > Date.now()){
         deadlineTimer=setTimeout(()=>{
           renderAuditList();
@@ -450,15 +472,22 @@ export function setupAudits(api) {
     for (const [label, entry] of [['Respuesta del colaborador',audit.respuesta],['Decisión del TL',audit.decision],['Decisión final del PM',audit.decisionPm]]) {
       if (!entry) continue;
       const confirmed = entry.accion === 'responder' && entry.texto === confirmedFinding;
-      detailBody.append(element('h4',label), element('p',(confirmed ? 'Confirmó el hallazgo' : recordedActions[entry.accion]) + ' · ' +
+      detailBody.append(element('h4',label), element('p',(entry.accion === 'responder' ? 'Confirmó el hallazgo' : recordedActions[entry.accion]) + ' · ' +
         dateText(entry.fecha)));
       if (!confirmed) detailBody.append(element('p',entry.texto || 'Sin comentario.', 'audit-message'));
     }
     const canRespond = session.role === 'catalogador' && ownsAudit(audit,session.uid,session.idMeli) && audit.estado === 'pendiente_colaborador' && auditResponseOpen(audit);
     const canDecide = session.role === 'tl' && audit.tlUid === session.uid && audit.equipo === session.team && audit.estado === 'pendiente_tl';
     const canClose = ['pm','admin'].includes(session.role) && audit.estado === 'pendiente_pm';
-    detailBody.classList.toggle('audit-responding', canRespond);
     if (canRespond || canDecide || canClose) renderActions(audit, canRespond, canClose);
+    if (collaboratorView) {
+      if (deadlineNote) detailBody.append(deadlineNote);
+      const caseDetails = element('details', undefined, 'audit-timeline audit-case-details');
+      caseDetails.append(element('summary', 'Datos del caso'), auditCase.fields);
+      const caseTools = element('div', undefined, 'audit-case-tools');
+      caseTools.append(footer, caseDetails);
+      detailBody.append(caseTools);
+    }
     if (session.global && audit.estado === 'sin_asignar') renderAssignment(audit);
     const list = element('ol',undefined,'audit-history');list.id = 'auditHistory';
     const timeline = element('details',undefined,'audit-timeline');
@@ -487,9 +516,8 @@ export function setupAudits(api) {
     const textarea = element('textarea');textarea.id = 'auditResponse';textarea.maxLength = 3000;textarea.rows = 2;
     const card = element('section', undefined, 'audit-card audit-response-card');
     card.append(element('h4', responding ? 'Tu respuesta' : 'Revisión de la auditoría', 'audit-card-heading'));
-    if (responding) textarea.placeholder = 'Explicá el motivo si devolvés la auditoría al TL…';
-    const label = element('label', responding ? 'Motivo de devolución al TL' : 'Comentario de la decisión (opcional)',
-      responding ? 'audit-response-label' : undefined);
+    if (responding) textarea.placeholder = 'Obligatorio para devolver al TL. Opcional para confirmar el error.';
+    const label = element('label', responding ? 'Comentario' : 'Comentario de la decisión (opcional)');
     label.htmlFor = textarea.id;
     const feedback = element('p');feedback.setAttribute('role','status');
     const buttons = element('div',undefined,'audit-actions audit-detail-actions');
@@ -497,13 +525,13 @@ export function setupAudits(api) {
       const label = responding || closing ? actions[action] :
         action === 'aprobar' ? 'Aprobar y enviar al PM' : 'Rechazar y enviar al PM';
       buttons.append(button(label, () => {
-        const texto = action === 'responder' ? confirmedFinding : textarea.value.trim();
+        const texto = textarea.value.trim() || (action === 'responder' ? confirmedFinding : '');
         if (action === 'devolver' && !texto) {feedback.textContent = 'Escribí el motivo de la devolución al TL.'; textarea.focus();return;}
         if (action === 'responder' && !window.confirm('¿Confirmás que estás de acuerdo con el hallazgo de la auditoría?')) return;
         if (!responding && !window.confirm(closing ? '¿Confirmás el cierre definitivo de esta auditoría?' :
           '¿Confirmás tu decisión y el envío al PM?')) return;
         void perform(form, () => api.call('auditoriasActuar',{id:audit.id, accion:action, texto}), true);
-      }));
+      }, action === 'devolver' ? 'audit-return-button' : undefined));
     }
     form.append(label,textarea,buttons,feedback);
     card.append(form);

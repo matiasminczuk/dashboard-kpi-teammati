@@ -1151,7 +1151,7 @@ body.employee-mode :is(#qualityOverviewCards,#qualityFlowCards) .quality-goal{gr
  body.employee-mode :is(#weeklyPanel,#employeeCreationsPanel,#holdsPanel,#gestionPanel,#tiemposPanel){padding:12px}
 }
 </style>
-<link rel="stylesheet" href="./auditorias.css?v=revision-compacta">
+<link rel="stylesheet" href="./auditorias.css?v=decisiones-auditoria">
 <link rel="stylesheet" href="./gestion-desarrollo.css?v=productividad">
 </head>
 <body class="auth-screen">
@@ -1353,7 +1353,7 @@ import {setupFilters} from './filtros-desarrollo.mjs?v=resumen';
 import {renderOperationalCards,renderComparison,renderCreationChart,renderHoldsRanking} from './visuales-desarrollo.mjs?v=panel-colaborador';
 const firebaseConfig={apiKey:'AIzaSyB7edb0wGmf86KVrca5zkBTju7wg_zVDFk',authDomain:'dashboard-kpi-teammati.firebaseapp.com',projectId:'dashboard-kpi-teammati',storageBucket:'dashboard-kpi-teammati.firebasestorage.app',messagingSenderId:'158470825794',appId:'1:158470825794:web:33eb0d3c862756b9d7cadb',measurementId:'G-7E8M7NSPV0'};
 const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app);
-import {setupAudits} from './auditorias-ui.mjs?v=revision-compacta';
+import {setupAudits} from './auditorias-ui.mjs?v=decisiones-auditoria';
 import {createSparkAudits} from './auditorias-spark.mjs?v=plazo';
 const sparkAuditCall=createSparkAudits({db,doc,getDocs,collection,query,where,documentId,runTransaction,serverTimestamp,
  currentUid:()=>auth.currentUser?.uid,currentMeli:()=>profileData?.idMeli,currentRole:()=>profileData?.rol});
