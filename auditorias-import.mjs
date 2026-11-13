@@ -20,10 +20,17 @@ const aliases = {
 const normalized = value => String(value ?? '').normalize('NFD').replace(/\p{Diacritic}/gu, '')
   .toLowerCase().trim().replace(/[_\s]+/g, ' ');
 const valueOf = value => String(value ?? '').trim();
+const correctionLink = /^https:\/\/catalog-domains\.adminml\.com\/catalogo\/bc-admin\/sugerencias\/revision\/[a-z]{3,4}s\d+\/?(?:[?#].*)?$/i;
 const months = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
 const pad = value => String(value).padStart(2, '0');
 
 export {labels};
+
+export function auditSourceFlow({flujo, referencia}) {
+  const explicit = valueOf(flujo);
+  if (explicit && normalized(explicit) !== 'null') return explicit;
+  return correctionLink.test(valueOf(referencia)) ? 'SDC' : '';
+}
 
 const correctionColumns = {externo:'correction id', auditor:'auditor tl', observaciones:'comentario tl',
   estadoOrigen:'estado sugerencia', motivoOrigen:'suggestion reason'};
@@ -90,6 +97,7 @@ export function mapAuditRows(sheet, defaultPeriod, serialDate) {
       row[key] = key === 'fecha' ? auditDate(cell, serialDate) : valueOf(cell);
     }
     if (correctionExport) {
+      row.flujo = auditSourceFlow(row) || 'SDC';
       const failedChecks = checks.filter(([, index]) => normalized(cells[index]) !== 'ok');
       if (!failedChecks.length) row.resultado = 'null';
       else if (!row.resultado || normalized(row.resultado) === 'null') {

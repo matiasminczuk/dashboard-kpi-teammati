@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
-import {mapHeaders, mapAuditRows, hasNetkelColumns, auditDate} from './auditorias-import.mjs';
+import {mapHeaders, mapAuditRows, hasNetkelColumns, auditDate, auditSourceFlow} from './auditorias-import.mjs';
 import domain from './functions/audit-domain.cjs';
 
 const {access, assignment, normalizeRow, transition} = domain;
@@ -38,8 +38,16 @@ test('importa sugerencias automáticamente y distingue correcciones de la misma 
   assert.equal(rows[0].observaciones, 'Comentario');
   assert.equal(rows[0].auditor, 'TL');
   assert.equal(rows[0].referencia, 'https://example.com/S42');
+  assert.equal(rows[0].flujo, 'SDC');
   assert.equal(rows[1].resultado, 'null');
   assert.equal(rows[2].resultado, 'Check motivo rechazo TL (NOT OK)');
+});
+
+test('recupera el flujo SDC de sugerencias cargadas sin flujo', () => {
+  const referencia = 'https://catalog-domains.adminml.com/catalogo/bc-admin/sugerencias/revision/MCOS123';
+  assert.equal(auditSourceFlow({flujo:'',referencia}), 'SDC');
+  assert.equal(auditSourceFlow({flujo:'CCC',referencia}), 'CCC');
+  assert.equal(auditSourceFlow({referencia:'https://example.com/MCOS123'}), '');
 });
 
 test('pide mapeo para campos ambiguos y rechaza fechas o períodos inválidos', () => {

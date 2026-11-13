@@ -1,5 +1,5 @@
 import {itemUrl,normalizeQualityFlow} from './gestion-desarrollo.mjs';
-import {labels, mapHeaders, mapAuditRows, hasNetkelColumns} from './auditorias-import.mjs?v=checks-tl';
+import {labels, mapHeaders, mapAuditRows, hasNetkelColumns, auditSourceFlow} from './auditorias-import.mjs?v=flujo-sdc';
 import {auditReviewTotals, auditScope, observeSparkNotices, ownsAudit, watchAuditScope, auditResponseOpen, auditResponseDeadline} from './auditorias-spark.mjs?v=plazo';
 
 const states = {
@@ -54,6 +54,10 @@ function auditTag(label, tone = 'neutral') {
   const tag = element('span', label, 'audit-tag');
   tag.dataset.tone = tone;
   return tag;
+}
+function auditFlow(audit) {
+  const flow = auditSourceFlow(audit);
+  return normalizeQualityFlow(flow) || flow;
 }
 function auditDecision(title, decision, comment, tone) {
   const section = element('section', undefined, 'audit-decision');
@@ -184,7 +188,10 @@ export function setupAudits(api) {
     session.auditListening = true;
     auditLoading = auditScope(api,session,session.global).length > 0;
     listeners.push(...watchAuditScope(api,session,watch,snap => {
-      audits = snap.docs.map(doc => ({...doc.data(), id:doc.id, flujo:normalizeQualityFlow(doc.data().flujo)||doc.data().flujo}));
+      audits = snap.docs.map(doc => {
+        const audit = doc.data();
+        return {...audit, id:doc.id, flujo:auditFlow(audit)};
+      });
       auditLoading = false; listError = false; renderAuditList();
       api.onAuditsChange?.();
     }, () => {auditLoading = false; listError = true; renderAuditList(); api.onAuditsChange?.();},session.global));
@@ -438,7 +445,7 @@ export function setupAudits(api) {
     }
 
     const auditCase = auditCard('Detalle del caso', 'audit-case-fields');
-    const flow = normalizeQualityFlow(audit.flujo) || audit.flujo;
+    const flow = auditFlow(audit);
     const stateTone = {cerrada_aprobada:'positive', cerrada_rechazada:'negative'}[audit.estado] || 'neutral';
     lines(auditCase.fields, [
       ...(collaboratorView ? [['Auditoría', audit.cdm || audit.externo]] :
