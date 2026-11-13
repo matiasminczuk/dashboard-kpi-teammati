@@ -211,26 +211,27 @@ body.dark-theme #auditDetail {
  #auditDetail .audit-action .audit-actions { margin-top:4px }
 }
 .audit-collaborator-view#auditDetail {
- width:min(760px,calc(100% - 24px)); padding:0 clamp(14px,3vw,24px) 18px;
+ width:min(760px,calc(100% - 24px)); padding:0 clamp(14px,3vw,24px) 12px;
 }
-.audit-collaborator-view#auditDetail > .audit-detail-heading { padding-block:10px }
-.audit-collaborator-view #auditDetailBody { gap:12px; margin-top:16px }
+.audit-collaborator-view#auditDetail > .audit-detail-heading { padding-block:6px }
+.audit-collaborator-view #auditDetailBody { gap:8px; margin-top:10px }
 #auditDetail.audit-collaborator-view .audit-detail-overview {
  grid-template-columns:repeat(2,minmax(0,1fr)); gap:0;
  border:1px solid var(--kpi-border); border-radius:12px;
 }
-.audit-decision { min-width:0; padding:16px }
+.audit-decision { min-width:0; padding:12px 14px }
 .audit-decision + .audit-decision { border-inline-start:1px solid var(--kpi-border) }
-.audit-decision h4 { margin:0 0 8px; font-size:.875rem }
+.audit-decision h4 { margin:0 0 6px; font-size:.875rem }
 .audit-decision .audit-tag { overflow-wrap:anywhere; font-size:.875rem }
-.audit-decision p { margin:10px 0 0; font-size:.9375rem; line-height:1.5 }
-#auditDetail.audit-collaborator-view .audit-response-card { border:0; margin-top:6px }
+.audit-decision p { margin:6px 0 0; font-size:.9375rem; line-height:1.4 }
+#auditDetail.audit-collaborator-view .audit-response-card { border:0; margin-top:4px }
 #auditDetail.audit-collaborator-view .audit-response-card .audit-card-heading {
  padding:0; border:0; background:transparent; font-size:1rem;
 }
-#auditDetail.audit-collaborator-view .audit-action { padding:8px 0 0; gap:6px }
+#auditDetail.audit-collaborator-view .audit-action { padding:4px 0 0; gap:4px }
+#auditDetail.audit-collaborator-view .audit-action .audit-actions { margin-top:4px }
 #auditDetail.audit-collaborator-view .audit-action textarea {
- min-height:84px; margin:0; padding:9px 10px; font-size:.9375rem; line-height:1.4;
+ min-height:56px; margin:0; padding:7px 10px; font-size:.9375rem; line-height:1.4;
 }
 #auditDetail .audit-return-button {
  border:1px solid var(--kpi-border); background:var(--kpi-surface); color:var(--kpi-link);
@@ -239,7 +240,7 @@ body.dark-theme #auditDetail {
 .audit-collaborator-view :is(.audit-deadline,.audit-case-details) { color:var(--kpi-muted); font-size:.8125rem }
 #auditDetail.audit-collaborator-view .audit-case-button { width:100%; min-height:44px; text-align:center }
 .audit-collaborator-view .audit-case-unavailable { text-align:center }
-.audit-collaborator-view .audit-case-details { padding-top:10px; border-top:1px solid var(--kpi-border) }
+.audit-collaborator-view .audit-case-details { padding-top:6px; border-top:1px solid var(--kpi-border) }
 .audit-case-details .audit-fields { grid-template-columns:repeat(auto-fit,minmax(min(130px,100%),1fr)) }
 @media(max-width:580px) {
  #auditDetail.audit-collaborator-view .audit-detail-overview { grid-template-columns:minmax(0,1fr) }
