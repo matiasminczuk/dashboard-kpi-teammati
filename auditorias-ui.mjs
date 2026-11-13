@@ -1,5 +1,5 @@
 import {itemUrl,normalizeQualityFlow} from './gestion-desarrollo.mjs';
-import {labels, mapHeaders, mapAuditRows, hasNetkelColumns} from './auditorias-import.mjs';
+import {labels, mapHeaders, mapAuditRows, hasNetkelColumns} from './auditorias-import.mjs?v=sugerencias';
 import {auditReviewTotals, auditScope, observeSparkNotices, ownsAudit, watchAuditScope, auditResponseOpen, auditResponseDeadline} from './auditorias-spark.mjs?v=plazo';
 
 const states = {
@@ -655,7 +655,6 @@ export function setupAudits(api) {
         filas = sheets.filter(sheet => sheet.include).flatMap(sheet => mapAuditRows(sheet,$('auditReferenceMonth').value,window.XLSX.SSF.parse_date_code));
         if (!filas.length) throw Error('Incluí una hoja con filas de auditorías.');
       } catch (error) {
-        fileSetup.open = true;
         status.textContent = error.message;
         return;
       }

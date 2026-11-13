@@ -24,6 +24,21 @@ test('mapea columnas Netkel, conserva identificadores y usa una clave que distin
   assert.equal(rows[0].resultado,'Original');
 });
 
+test('importa sugerencias automáticamente y distingue correcciones de la misma sugerencia', () => {
+  const headers = ['Fecha auditoría','Correction ID','Suggestion ID','Link','Dominio','Estado sugerencia',
+    'Suggestion reason','Colaborador','Auditor TL','Check TL','Check motivo rechazo TL','Acción correcta','Comentario TL','Casuistica '];
+  const matrix = [headers,
+    ['2 oct 2026','C100','S42','https://example.com/S42','Dominio','Estado','Motivo','NET_COLAB','TL','NOT OK','','APROBADO','Comentario'],
+    ['2 oct 2026','C101','S42','https://example.com/S42','Dominio','Estado','Motivo','NET_COLAB','TL','OK','','null','']];
+  const mapping = mapHeaders(headers);
+  const rows = mapAuditRows({matrix,mapping,name:'Sheet1',headerRow:0,composite:false},'',()=>null).map(normalizeRow);
+  assert.deepEqual(rows.map(row => row.externo), ['C100','C101']);
+  assert.equal(rows[0].observaciones, 'Comentario');
+  assert.equal(rows[0].auditor, 'TL');
+  assert.equal(rows[0].referencia, 'https://example.com/S42');
+  assert.equal(rows[1].resultado, 'null');
+});
+
 test('pide mapeo para campos ambiguos y rechaza fechas o períodos inválidos', () => {
   const headers=['ID auditoría','Colaborador','Usuario','Resultado'];
   const mapping=mapHeaders(headers);

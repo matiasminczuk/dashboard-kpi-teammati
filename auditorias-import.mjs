@@ -25,11 +25,24 @@ const pad = value => String(value).padStart(2, '0');
 
 export {labels};
 
+const correctionColumns = {externo:'correction id', auditor:'auditor tl', observaciones:'comentario tl',
+  estadoOrigen:'estado sugerencia', motivoOrigen:'suggestion reason'};
+
+function uniqueColumn(headers, names) {
+  const candidates = headers.flatMap((value, index) => names.includes(value) ? [index] : []);
+  return candidates.length === 1 ? candidates[0] : -1;
+}
+
 export function mapHeaders(headers) {
-  return Object.fromEntries(Object.entries(aliases).map(([key, names]) => {
-    const candidates = headers.map(normalized).flatMap((value, index) => names.includes(value) ? [index] : []);
-    return [key, candidates.length === 1 ? candidates[0] : -1];
-  }));
+  const names = headers.map(normalized);
+  const mapping = Object.fromEntries(Object.entries(aliases).map(([key, values]) => [key, uniqueColumn(names, values)]));
+  if (mapping.externo < 0 && ['correction id','suggestion id','accion correcta','fecha auditoria','colaborador']
+    .every(name => uniqueColumn(names, [name]) >= 0)) {
+    for (const [key, name] of Object.entries(correctionColumns)) {
+      if (mapping[key] < 0) mapping[key] = uniqueColumn(names, [name]);
+    }
+  }
+  return mapping;
 }
 
 export function auditDate(value, serialDate) {
