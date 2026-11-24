@@ -1,4 +1,5 @@
-import {operationalFlows,productivityTotals,achievement,creationSeries,holdsErrorRanking,inPeriod} from './gestion-desarrollo.mjs?v=productividad-personal';
+import {operationalFlows,productivityTotals,achievement,creationSeries,holdsErrorRanking,inPeriod,periodBucket} from './gestion-desarrollo.mjs?v=productividad-personal';
+
 
 const format=new Intl.NumberFormat('es-AR',{maximumFractionDigits:1});
 const fmt=value=>value==null?'—':format.format(value);
@@ -111,6 +112,7 @@ export function renderComparison({chart,body,rows,period,group,sort,goals,drilld
 }
 
 export function renderCreationChart(container,rows,cadence,isoWeek,averageDaily=false,mountLine){
+  if(isoWeek&&typeof isoWeek==='object')return renderPmCreationChart(container,rows,cadence,isoWeek);
   const points=creationSeries(rows,cadence,averageDaily);
   container.replaceChildren();
   if(!points.length){container.textContent='Sin registros de Creaciones o Correcciones en el período.';return;}
@@ -162,10 +164,89 @@ export function renderCreationChart(container,rows,cadence,isoWeek,averageDaily=
   if(points.every(point=>point.correcciones==null))container.append(element('p','La publicación no contiene registros de Correcciones.','muted'));
 }
 
-export function renderHoldsRanking(container,rows,cadence,top,{column='Acción correcta',unit='errores'}={}){
+function renderPmCreationChart(container,rows,cadence,{weeklyProductivity=false,target=null,pm=false}={}){
+  const source=weeklyProductivity?rows.filter(row=>row.tipo==='tareas').map(row=>({...row,tipo:'creaciones'})):rows;
+  const points=creationSeries(source,cadence);
+  if(weeklyProductivity){
+    const counts=new Map();
+    for(const row of source){const key=periodBucket(row.fecha,cadence);counts.set(key,(counts.get(key)||0)+1);}
+    for(const point of points)point.creaciones=point.creaciones/counts.get(point.key);
+  }
   container.replaceChildren();
+  if(!points.length){container.textContent='Sin registros de Creaciones o Correcciones en el período.';return;}
+  const ns='http://www.w3.org/2000/svg', svg=document.createElementNS(ns,'svg');
+  const width=Math.max(pm?1040:520,points.length*68),height=pm?300:230,padding=pm?42:38;
+  svg.setAttribute('viewBox','0 0 '+width+' '+height);
+  svg.style.minWidth=(pm?width:Math.min(width,Math.max(420,points.length*54)))+'px';
+  svg.setAttribute('role','img');svg.setAttribute('aria-label',weeklyProductivity?'Evolución semanal de productividad':'Evolución de Creaciones y Correcciones');
+  const max=Math.max(1,target||0,...points.flatMap(p=>[p.creaciones??0,p.correcciones??0]));
+  const x=index=>points.length===1?width/2:padding+index*(width-2*padding)/(points.length-1);
+  const y=value=>height-padding-value*(height-2*padding)/max;
+  const add=(tag,attrs,text)=>{
+    const node=document.createElementNS(ns,tag);
+    for(const [key,value] of Object.entries(attrs))node.setAttribute(key,value);
+    if(text!==undefined)node.textContent=text;svg.append(node);return node;
+  };
+  for(let tick=0;tick<=4;tick++){
+    const value=max*tick/4;
+    add('line',{x1:padding,y1:y(value),x2:width-padding,y2:y(value),class:'dev-chart-grid'});
+    add('text',{x:padding-6,y:y(value)+4,'text-anchor':'end'},fmt(value));
+  }
+  points.forEach((point,i)=>add('text',{x:x(i),y:height-12,'text-anchor':'middle'},point.key));
+  if(target!==null)add('line',{x1:padding,y1:y(target),x2:width-padding,y2:y(target),stroke:'currentColor','stroke-dasharray':'6 5'});
+  const series=weeklyProductivity?[['creaciones','Productividad','#1765d1']]:
+    [['creaciones','Creaciones','#1765d1'],['correcciones','Correcciones','#d17b12']];
+  for(const [key,name,color] of series){
+    let last=null;
+    points.forEach((point,i)=>{
+      const value=point[key];
+      if(value==null){last=null;return;}
+      const next=[x(i),y(value)];
+      if(last)add('line',{x1:last[0],y1:last[1],x2:next[0],y2:next[1],stroke:color,'stroke-width':3});
+      const circle=add('circle',{cx:next[0],cy:next[1],r:4,fill:color,tabindex:0});
+      const tooltip=point.key+' · '+name+' '+fmt(value);circle.setAttribute('aria-label',tooltip);
+      const title=document.createElementNS(ns,'title');title.textContent=tooltip;circle.append(title);
+      last=next;
+    });
+  }
+  container.append(svg);
+  if(!weeklyProductivity&&points.every(point=>point.correcciones==null))container.append(element('p','La publicación no contiene registros de Correcciones.','muted'));
+}
+
+export function renderHoldsRanking(container,rows,cadence,top,{column='Acción correcta',unit='errores',bars=false,message}={}){
+
+  container.replaceChildren();
+  if(bars){
+    const heading=element('div',undefined,'pm-holds-bar-heading');
+    heading.append(element('span','Motivo'),element('span','Errores · % del total'));
+    container.append(heading);
+    const invalid=rows.some(row=>String(row.accionCorrecta??'').trim()&&
+      String(row.accionCorrecta).trim().toLowerCase()!=='null'&&
+      (!Number.isFinite(Number(row.cantidad))||Number(row.cantidad)<=0||!periodBucket(row.fecha,cadence)));
+    if(invalid){
+      const error=element('p','Error al procesar los motivos de Holds. Revisá las fechas y cantidades de la base.','error');
+      error.setAttribute('role','alert');container.append(error);return;
+    }
+  }
   const ranking=holdsErrorRanking(rows,cadence).slice(0,top);
-  if(!ranking.length){container.textContent='Sin registros con «'+column+'» en las bases de Holds publicadas para esta selección.';return;}
+  if(!ranking.length){
+    container.append(element('p',message||'Sin registros con «'+column+'» en las bases de Holds publicadas para esta selección.','muted'));
+    return;
+  }
+  if(bars){
+    const list=element('ol',undefined,'pm-holds-bars');
+    const max=ranking[0].count;
+    for(const entry of ranking){
+      const row=element('li'),heading=element('div',undefined,'pm-holds-bar-heading');
+      heading.append(element('span',entry.rank+'. '+entry.action),element('strong',fmt(entry.count)+' · '+fmt(entry.percent)+'%'));
+      const track=element('div',undefined,'pm-holds-track'),fill=element('span');
+      fill.style.width=(entry.count/max*100)+'%';
+      track.append(fill);row.append(heading,track);list.append(row);
+    }
+    container.append(list);
+    return;
+  }
+
   const list=element('ol',undefined,'dev-holds-list');
   for(const entry of ranking){
     const row=element('li'),detail=element('details');

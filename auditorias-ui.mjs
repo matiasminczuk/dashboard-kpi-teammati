@@ -93,6 +93,7 @@ export function setupAudits(api) {
   const bell = $('notificationsToggle'), popup = $('notificationsPanel'), unreadCount = $('notificationBadge');
   const auditPanel = $('viewAuditorias'), detail = $('auditDetail'), detailBody = $('auditDetailBody');
   const filter = $('auditFilters'), reports = $('auditReports'), upload = $('auditUploadPanel');
+  const originalFilters = [...filter.children];
   const sheetSelect = $('auditSheet'), headerInput = $('auditHeaderRow'), mappingArea = $('auditMappings');
   const loadButton = $('auditLoad'), fileInput = $('auditFile'), fileSetup = $('auditFileSetup');
   const status = $('auditUploadStatus'), preview = $('auditPreview');
@@ -155,6 +156,24 @@ export function setupAudits(api) {
     filter.querySelectorAll('[data-audit-global]').forEach(node => {node.hidden = !profile.global;});
     $('auditFilterPerson').closest('label').hidden = profile.role === 'catalogador';
     filter.querySelectorAll('[data-audit-staff]').forEach(node => {node.hidden = profile.role === 'catalogador';});
+    for(const label of originalFilters)filter.append(label);
+    $('auditMoreFilters')?.remove();
+    $('auditSearchLabel')?.remove();
+    $('auditSecondaryMetrics')?.remove();
+    if(profile.global){
+      for(const id of ['auditFilterTeam','auditFilterPerson','auditFilterPeriod'])$(id).closest('label').hidden=true;
+      const more=element('details');more.id='auditMoreFilters';
+      const extras=element('div',undefined,'audit-controls');
+      for(const node of [$('auditFilterLead').closest('label'),$('auditFilterFlow').closest('label'),filter.querySelector('[name=resultadoError]').closest('label')])extras.append(node);
+      more.append(element('summary','Más filtros'),extras);
+      const searchLabel=element('label','Buscar por identificador');searchLabel.id='auditSearchLabel';
+      const search=element('input');search.id='auditSearch';search.type='search';search.placeholder='Auditoría, CDM, ítem o colaborador';
+      searchLabel.append(search);filter.append(searchLabel,more);
+      search.addEventListener('input',renderAuditList);
+      const secondary=element('details');secondary.id='auditSecondaryMetrics';
+      secondary.append(element('summary','Indicadores de seguimiento'),element('dl',undefined,'audit-fields'));
+      $('auditMetrics').after(secondary);
+    }else $('auditFilterPeriod').closest('label').hidden=false;
     filter.reset();
     const stateFilter = filter.elements.estado;
     const collaborator = profile.role === 'catalogador';
@@ -317,6 +336,9 @@ export function setupAudits(api) {
     options($('auditFilterPeriod'), distinct('periodo').reverse(), 'Todos');
     options($('auditFilterFlow'), distinct('flujo'), 'Todos');
     const scoped = api.auditFilter ? audits.filter(api.auditFilter) : audits;
+    const search=String($('auditSearch')?.value||'').trim().toLowerCase();
+    const searchMatches=audit=>!search||[audit.externo,audit.cdm,audit.item,audit.idMeli,audit.nombreColaborador]
+      .some(value=>String(value||'').toLowerCase().includes(search));
     const criteria = [...filter.querySelectorAll('select')].filter(node => !node.closest('[hidden]') && node.value);
     const matches = (audit,node) => node.name === 'resultadoError'
       ? (audit.estado === 'sin_error' ? 'sin' : 'con') === node.value
@@ -327,14 +349,24 @@ export function setupAudits(api) {
       const selected = criteria.filter(node => node.name !== 'estado');
       const totals = auditReviewTotals(scoped.filter(audit =>
         (session.role !== 'tl' || audit.equipo === session.team) && selected.every(node => matches(audit,node))));
-      lines(metrics,[
+      const entries=[
         ['Colaboradores al día',format(totals.revisaron)],['Colaboradores con revisiones pendientes',format(totals.sinRevisar)],
         ['Aprobadas por TL',format(totals.aprobadasTl)],['Rechazadas por TL',format(totals.rechazadasTl)],
         ['Pendientes del PM',format(totals.pendientesPm)],['Cierre aprobado por PM',format(totals.aprobadasPm)],
         ['Cierre rechazado por PM',format(totals.rechazadasPm)]
-      ]);
+      ];
+      if(session.global){
+        const selectedAudits=scoped.filter(audit=>selected.every(node=>matches(audit,node))&&searchMatches(audit));
+        lines(metrics,[
+          ['Total de auditorías',format(selectedAudits.length)],
+          ['Pendientes del colaborador',format(selectedAudits.filter(a=>a.estado==='pendiente_colaborador').length)],
+          ['Pendientes del TL',format(selectedAudits.filter(a=>a.estado==='pendiente_tl').length)],
+          ['Auditorías cerradas',format(selectedAudits.filter(a=>['cerrada_aprobada','cerrada_rechazada'].includes(a.estado)).length)]
+        ]);
+        lines($('auditSecondaryMetrics').querySelector('dl'),entries);
+      }else lines(metrics,entries);
     }
-    const visible = scoped.filter(audit => criteria.every(node => matches(audit,node))).sort((a,b) =>
+    const visible = scoped.filter(audit => searchMatches(audit)&&criteria.every(node => matches(audit,node))).sort((a,b) =>
       (b.fecha || b.periodo).localeCompare(a.fecha || a.periodo) || a.externo.localeCompare(b.externo));
     const list = $('auditRows');
     list.replaceChildren();
@@ -532,16 +564,17 @@ export function setupAudits(api) {
     const feedback = element('p');feedback.setAttribute('role','status');
     const buttons = element('div',undefined,'audit-actions audit-detail-actions');
     for (const action of responding ? ['responder','devolver'] : ['aprobar','rechazar']) {
-      const label = responding || closing ? actions[action] :
+      const label = responding || closing || session.role === 'tl' ? actions[action] :
         action === 'aprobar' ? 'Aprobar y enviar al PM' : 'Rechazar y enviar al PM';
       buttons.append(button(label, () => {
         const texto = textarea.value.trim() || (action === 'responder' ? confirmedFinding : '');
         if (action === 'devolver' && !texto) {feedback.textContent = 'Escribí el motivo de la devolución al TL.'; textarea.focus();return;}
         if (action === 'responder' && !window.confirm('¿Confirmás que estás de acuerdo con el hallazgo de la auditoría?')) return;
         if (!responding && !window.confirm(closing ? '¿Confirmás el cierre definitivo de esta auditoría?' :
-          '¿Confirmás tu decisión y el envío al PM?')) return;
+          '¿Confirmás el cierre definitivo de esta auditoría?')) return;
         void perform(form, () => api.call('auditoriasActuar',{id:audit.id, accion:action, texto}), true);
       }, action === 'devolver' ? 'audit-return-button' : undefined));
+
     }
     form.append(label,textarea,buttons,feedback);
     card.append(form);

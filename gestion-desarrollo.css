@@ -38,6 +38,60 @@ body.pm-design #dashboard #pmHeaderFilters,body.pm-design #dashboard #pmFilterBa
 .dev-holds-list details>ul{max-height:180px;overflow:auto}
 .dev-holds-list li{margin:6px 0}
 #devTeamComparison[hidden],#devHoldsRanking[hidden]{display:none}
+body.pm-review #pmProductivity > .pm-productivity-metrics,
+body.pm-review #flowProductivityGoals,
+body.pm-review #gTimeCoverage,
+body.pm-review .gestion-card:has(#gDemanda),
+body.pm-review .gestion-card:has(#gOtros){display:none}
+body.pm-review.pm-productivity #peopleControl:not([hidden]){display:none!important}
+body.pm-review .pm-operation-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}
+body.pm-review .pm-operation-metrics article:has(#gTimeCoverage){display:none}
+body.pm-review #gestionPanel .gestion-cards,
+body.pm-review #devOperationalCards{grid-template-columns:repeat(3,minmax(0,1fr))}
+body.pm-review #pmProductivity > section:has(#devOperationalCards){padding:0;border:0;box-shadow:none}
+body.pm-review :is(#weeklyPanel,#pmCreationPanel){
+ box-sizing:border-box;margin:0 0 24px;padding:24px;border:1px solid var(--kpi-border);
+ border-radius:14px;box-shadow:none;background:var(--kpi-surface);min-width:0;height:550px;
+}
+body.pm-review :is(#weeklyPanel,#pmCreationPanel)>h2{font-size:20px;line-height:1.4;margin:0 0 8px;color:inherit}
+body.pm-review :is(#weeklyChart,#devCreationChart){height:320px;margin:12px 0;overflow:auto;min-width:0}
+body.pm-review :is(#weeklyChart,#devCreationChart) svg{width:100%;height:300px;max-height:none}
+body.pm-review #weeklyPanel > :is(.week-table,.week-chart-note){display:none}
+.pm-only-chart-copy{display:none}
+body.pm-review .pm-only-chart-copy{display:block}
+body.pm-review :is(#weeklyPanel,#pmCreationPanel)>.muted{margin:0 0 8px;font-size:13px;line-height:1.6}
+body.pm-review :is(#weeklyStatus,#pmCreationStatus){
+ margin:0 0 8px;min-height:36px;padding:8px 14px;box-sizing:border-box;border-radius:8px;
+ font-size:13px;line-height:20px;color:var(--kpi-muted);background:#f5f7fc;
+}
+body.dark-theme.pm-review :is(#weeklyStatus,#pmCreationStatus){background:var(--dark-raised)}
+body.pm-review :is(#weeklyChart,#devCreationChart) svg text{font:12px Arial,sans-serif;fill:var(--kpi-muted)}
+body.pm-review :is(#pmWeeklyLegend,#pmCreationPanel .dev-legend){padding:0;margin:0;font-size:13px}
+body.pm-review #pmWeeklyLegend .pm-target-legend::before{background:var(--kpi-muted)}
+.pm-holds-bars{list-style:none;margin:16px 0;padding:0}
+.pm-holds-bars li{margin:14px 0}
+.pm-holds-bar-heading{display:flex;justify-content:space-between;gap:16px;line-height:1.45;font-size:14px}
+.pm-holds-bar-heading strong{white-space:nowrap}
+.pm-holds-track{height:12px;margin-top:6px;background:var(--kpi-border);border-radius:4px;overflow:hidden}
+.pm-holds-track span{display:block;height:100%;background:var(--kpi-link)}
+body.pm-review #devHoldsRanking{margin-top:24px;padding-top:20px;border-top:1px solid var(--kpi-border)}
+body.pm-review #pmHoldsDemo{margin-top:20px}
+body.pm-review #pmHoldsDemo p{font-size:13px;color:var(--kpi-muted)}
+body.pm-review #auditMetrics{grid-template-columns:repeat(4,minmax(0,1fr))}
+body.pm-review #auditMoreFilters .audit-controls{margin:0}
+body.pm-review #auditSearch{box-sizing:border-box;width:100%;min-height:42px;font-size:14px}
+body.pm-review #auditSearchLabel{grid-column:span 2}
+body.pm-review #auditFilters{align-items:end}
+body.pm-review #auditMoreFilters{grid-column:1/-1}
+body.pm-review #auditMoreFilters summary{cursor:pointer;font-size:13px;color:var(--kpi-link)}
+body.pm-review #auditSecondaryMetrics{margin:12px 0}
+body.pm-review .flows-premium-row{grid-template-columns:100px minmax(40px,1fr) 35px 64px}
+body.pm-review .flows-row-icon{display:none}
+@media(max-width:700px){
+ body.pm-review #devOperationalCards,body.pm-review #gestionPanel .gestion-cards{grid-template-columns:1fr}
+ body.pm-review #auditMetrics{grid-template-columns:repeat(2,minmax(0,1fr))}
+ body.pm-review :is(#weeklyPanel,#pmCreationPanel){padding:16px}
+}
 body.pm-design #peopleControl{display:none!important}
 #devGlobalFilters .pm-period-control{position:relative;min-width:160px}
 #devGlobalFilters .pm-filter-caption{display:block;margin-bottom:4px;font-size:12px;font-weight:700}

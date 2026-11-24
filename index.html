@@ -1152,7 +1152,8 @@ body.employee-mode :is(#qualityOverviewCards,#qualityFlowCards) .quality-goal{gr
 }
 </style>
 <link rel="stylesheet" href="./auditorias.css?v=detalle-compacto">
-<link rel="stylesheet" href="./gestion-desarrollo.css?v=productividad">
+<link rel="stylesheet" href="./gestion-desarrollo.css?v=pm-ronda-3">
+
 </head>
 <body class="auth-screen">
 <button id="employeeHeaderReveal" type="button" aria-label="Mostrar barra de navegación" aria-controls="dashboardHeader" aria-expanded="false"><span aria-hidden="true"></span></button>
@@ -1270,8 +1271,9 @@ body.employee-mode :is(#qualityOverviewCards,#qualityFlowCards) .quality-goal{gr
  <article class="panel summary-visual"><h2>Distribución de flujos</h2><p class="summary-sub">Flujo Mixto, Demanda y Otros</p><div id="sumFlows" class="summary-chart"></div></article>
  <article class="panel summary-visual"><h2>Cierres por franja horaria</h2><p class="summary-sub">Tareas finalizadas · Gestión</p><div id="sumHours" class="summary-chart"></div></article>
 </section>
-<section id="pmProductivity" class="panel" data-admin-hide="true" aria-labelledby="pmProductivityTitle"><div class="pm-overview-heading"><p class="pm-eyebrow">RENDIMIENTO Y SEGUIMIENTO</p><h1 id="pmProductivityTitle">Productividad / Holds</h1><p id="pmProductivityScope" aria-live="polite">Indicadores del período seleccionado</p></div><div id="pmProductivityFilters"></div><div class="pm-productivity-metrics" aria-live="polite"><article class="pm-productivity-primary"><span>Flujo Mixto · productividad diaria</span><strong id="pmProductivityAverage">—</strong><small id="pmProductivityGoal">Tareas por jornada computable</small></article><article><span>Creaciones por jornada</span><strong id="pmCreationAverage">—</strong><small id="pmCreationDays">Jornadas con creaciones</small></article><article class="pm-hold-metric"><span>Registros de holds</span><strong id="pmHoldCount">—</strong><small id="pmHoldContext">Eventos del período</small></article><article><span>Catalogadores con registros</span><strong id="pmActivePeople">—</strong><small id="pmActivityDays">Jornadas computables</small></article></div><section class="panel"><h2>Productividad por flujo</h2><div id="devOperationalCards" class="dev-metrics"></div></section>
- <section class="panel"><h2>Creaciones y Correcciones</h2><p class="muted">Correcciones incluye las iniciativas de Finalizadas que contienen «corrección» o «correcciones».</p><div class="dev-legend"><span>Creaciones</span><span>Correcciones</span></div>
+<section id="pmProductivity" class="panel" data-admin-hide="true" aria-labelledby="pmProductivityTitle"><div class="pm-overview-heading"><p class="pm-eyebrow">RENDIMIENTO Y SEGUIMIENTO</p><h1 id="pmProductivityTitle">Productividad / Holds</h1><p id="pmProductivityScope" aria-live="polite">Indicadores del período seleccionado</p></div><div id="pmProductivityFilters"></div><div class="pm-productivity-metrics" aria-live="polite"><article class="pm-productivity-primary"><span>Flujo Mixto · productividad diaria</span><strong id="pmProductivityAverage">—</strong><small id="pmProductivityGoal">Tareas por jornada computable</small></article><article><span>Creaciones por jornada</span><strong id="pmCreationAverage">—</strong><small id="pmCreationDays">Jornadas con creaciones</small></article><article class="pm-hold-metric"><span>Registros de holds</span><strong id="pmHoldCount">—</strong><small id="pmHoldContext">Eventos del período</small></article><article><span>Catalogadores con registros</span><strong id="pmActivePeople">—</strong><small id="pmActivityDays">Jornadas computables</small></article></div><details class="pm-methodology"><summary>Criterios del cálculo y exclusiones</summary><p>La productividad se calcula por jornada registrada. Los objetivos se evalúan dentro de cada flujo operativo. Los holds cuentan eventos según «Último Hold», incluidos los registros repetidos de un mismo CDM.</p> <div id="pmProductivityCriteria" hidden></div></details><section class="panel"><h2>Productividad por flujo</h2><div id="devOperationalCards" class="dev-metrics"></div></section>
+ <section class="panel" id="pmCreationPanel"><h2>Creaciones y Correcciones</h2><p class="muted pm-only-chart-copy">Cantidad por período · filtros globales</p><p id="pmCreationStatus" class="pm-only-chart-copy">Correcciones: iniciativas de Finalizadas con «corrección» o «correcciones».</p><div class="dev-legend"><span>Creaciones</span><span>Correcciones</span></div>
+
  <div id="devCreationChart" class="dev-chart" tabindex="0" aria-label="Gráfico de Creaciones y Correcciones"></div></section>
 </section>
 <section class="panel" id="weeklyPanel"><h2>Evolución semanal</h2><p class="muted">Productividad y creaciones en escalas independientes · promedio por jornada registrada · semanas de lunes a domingo.</p>
@@ -1350,11 +1352,13 @@ import {getFirestore,doc,getDoc,getDocs,collection,query,where,writeBatch,server
 import {indexPeople,analyzeQuality,restoreArchivedQuality,qualityPeriods,selectQualityPeriod,summary,bucketQuality} from './calidad.mjs?v=archivo-1';
 import {analysisPeriod,inPeriod,operationalFlow,operationalFlows,defaultProductivityGoals,productivityTotals,normalizeQualityFlow,publishedProductivity} from './gestion-desarrollo.mjs?v=productividad-personal';
 import {setupFilters} from './filtros-desarrollo.mjs?v=resumen';
-import {renderOperationalCards,renderComparison,renderCreationChart,renderHoldsRanking} from './visuales-desarrollo.mjs?v=panel-colaborador';
+import {renderOperationalCards,renderComparison,renderCreationChart,renderHoldsRanking} from './visuales-desarrollo.mjs?v=pm-ronda-3';
 const firebaseConfig={apiKey:'AIzaSyB7edb0wGmf86KVrca5zkBTju7wg_zVDFk',authDomain:'dashboard-kpi-teammati.firebaseapp.com',projectId:'dashboard-kpi-teammati',storageBucket:'dashboard-kpi-teammati.firebasestorage.app',messagingSenderId:'158470825794',appId:'1:158470825794:web:33eb0d3c862756b9d7cadb',measurementId:'G-7E8M7NSPV0'};
 const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app);
-import {setupAudits} from './auditorias-ui.mjs?v=flujo-sdc';
+import {setupAudits} from './auditorias-ui.mjs?v=pm-ronda-3';
 import {createSparkAudits} from './auditorias-spark.mjs?v=plazo';
+import {pmFlowLabels,pmOperationalFlow,initiativeFlow,pmTaskDistribution,pmPeopleDistribution} from './pm-analytics.mjs?v=pm-ronda-3';
+
 const sparkAuditCall=createSparkAudits({db,doc,getDocs,collection,query,where,documentId,runTransaction,serverTimestamp,
  currentUid:()=>auth.currentUser?.uid,currentMeli:()=>profileData?.idMeli,currentRole:()=>profileData?.rol});
 const auditFeatures = setupAudits({
@@ -1420,8 +1424,9 @@ async function loadAccessPermission(user){
   if(auth.currentUser?.uid===user.uid&&issuer.exists()&&issuer.data().activo===true&&issuer.data().nivel==='superadmin'&&issuer.data().otorgadoPor===ACCESS_OWNER_UID)accessPermission=permission;
  }catch(error){console.warn('Acceso adicional no disponible',error.code||error.message);}
 }
+const isPmPanel=()=>isPM;
 const $=id=>document.getElementById(id);let isPM=false,selectedTeam='',publishedItems=[];let isAdmin=false,workbook=null,importPlan=null,importBusy=false,profileData=null,kpiCache=[],kpiLoaded=false,holdsCache=[],holdsImportPlan=null,holdsBusy=false,gestionCache=[],gestionPlan=null,gestionBusy=false,excludedPeople=new Set();const TEAM='Matías Minczuk';const TEAMS=['Matías Minczuk','José Puentes','Matías López','Celeste Cignoli'];const validTeam=v=>TEAMS.find(t=>normalize(t)===normalize(v))||'';
-function showLogin(){auditFeatures.stop();document.body.classList.add('auth-screen');clearQuality();gestionPlan=null;workbook=null;accessPermission=null;permissionAccounts=[];permissionGrants.clear();isPM=false;selectedTeam='';publishedItems=[];document.body.classList.remove('employee-mode','admin-mode','pm-design','tl-design','pm-productivity','pm-flows','pm-settings');importPlan=null;isAdmin=false;profileData=null;kpiCache=[];holdsCache=[];holdsImportPlan=null;gestionCache=[];gestionPlan=null;kpiLoaded=false;excludedPeople=new Set(); $('login').classList.remove('hidden');$('dashboard').classList.add('hidden');$('logout').classList.add('hidden');$('headerKpi').classList.add('hidden'); }
+function showLogin(){resetPmReview();auditFeatures.stop();document.body.classList.add('auth-screen');clearQuality();gestionPlan=null;workbook=null;accessPermission=null;permissionAccounts=[];permissionGrants.clear();isPM=false;selectedTeam='';publishedItems=[];document.body.classList.remove('pm-review','employee-mode','admin-mode','pm-design','tl-design','pm-productivity','pm-flows','pm-settings');importPlan=null;isAdmin=false;profileData=null;kpiCache=[];holdsCache=[];holdsImportPlan=null;gestionCache=[];gestionPlan=null;kpiLoaded=false;excludedPeople=new Set(); $('login').classList.remove('hidden');$('dashboard').classList.add('hidden');$('logout').classList.add('hidden');$('headerKpi').classList.add('hidden'); }
 function arrangeEmployeePanels(){
  const weekly=$('weeklyPanel'),summary=$('summaryVisual'),holds=$('holdsPanel'),creations=$('employeeCreationsPanel'),gestion=$('gestionPanel'),times=$('tiemposPanel'),table=$('employeeWeeklyTablePanel');
  const wrap=weekly.parentNode;
@@ -1717,6 +1722,14 @@ function renderWeeklyChart(){
   $('weeklyStatus').textContent=ordered.length?`${ordered.length} semanas con datos · ${(!isAdmin||who)?'Vista individual':'Promedio general del equipo'} · ${rows.length} registros`:'No hay registros para este período.';
   if(!ordered.length){chart.textContent=isAdmin?'Sin jornadas de '+operationalFlows[selectedFlow]+' en este período.':'No hay datos para graficar.';return;}
 
+  if(isPmPanel()){
+    renderCreationChart(chart,rows,'weeks',{weeklyProductivity:true,target:productivityGoals.mixto??null,pm:true});
+    for(const [key,week] of ordered){
+      const row=tbody.insertRow();
+      for(const value of [key,week.start,week.tareas.count?fmt(week.tareas.sum/week.tareas.count):'—','—',week.tareas.count,0])row.insertCell().textContent=value;
+    }
+    return;
+  }
   // Dos líneas independientes para que la escala de tareas no aplaste la de creaciones.
   function drawLineChart(tipo,title,color){
     const values=ordered.map(([,w])=>w[tipo].count?w[tipo].sum/w[tipo].count:null);
@@ -1881,19 +1894,21 @@ function renderSummaryVisual(){
   $(pctId).textContent=flowTotal?(groups[key]/flowTotal*100).toLocaleString('es-AR',{minimumFractionDigits:1,maximumFractionDigits:1})+'%':'—';
   $(countId).textContent=flowTotal?fmt(groups[key])+' tareas':'Sin registros de Gestión';
  }
- const flowEl=make('sumFlows'),total=flowTotal;
+ const pmGroups=isPmPanel()?pmPeopleDistribution(kpiCache.filter(r=>weeklyMatches(r.fecha))):null;
+ const flowEl=make('sumFlows'),total=pmGroups?Object.values(pmGroups).reduce((a,b)=>a+b,0):flowTotal;
  if(!total)empty(flowEl);else {
   flowEl.classList.add('flows-premium');
   const summary=document.createElement('div');summary.className='flows-premium-head';
   const summaryIcon=document.createElement('span');summaryIcon.className='flows-summary-icon';summaryIcon.textContent='▤';
   const summaryText=document.createElement('div');summaryText.className='flows-summary-text';
-  const summaryLabel=document.createElement('small');summaryLabel.textContent='Total de tareas';
+  const summaryLabel=document.createElement('small');summaryLabel.textContent=isPmPanel()?'Total de colaboradores':'Total de tareas';
   const summaryValue=document.createElement('strong');summaryValue.textContent=fmt(total);
   summaryText.append(summaryLabel,summaryValue);summary.append(summaryIcon,summaryText);flowEl.appendChild(summary);
   const list=document.createElement('div');list.className='flows-premium-list';
   const flowInfo=[['Flujo Mixto','Flujo Mixto','#3483fa','▤'],['DEMANDA','Demanda','#ffbf00','▣'],['SOPORTE','Soporte','#22a06b','▥'],['KNOWN_VALUE','KNOWN_VALUE','#e28a23','▧'],['OTROS','Otros','#9b86df','•••']];
-  for(const [key,label,color,symbol] of flowInfo){
-   const count=groups[key],pct=count/total*100;
+  for(const [key,label,color,symbol] of (isPmPanel()?[['mixto','Flujo Mixto','#3483fa',''],['soporte','Soporte','#22a06b',''],['kv','Known Values','#e28a23','']]:flowInfo)){
+   const count=(pmGroups||groups)[key],pct=count/total*100;
+
    const row=document.createElement('div');row.className='flows-premium-row';
    const icon=document.createElement('span');icon.className='flows-row-icon';icon.textContent=symbol;icon.style.color=color;
    const name=document.createElement('span');name.className='flows-row-name';name.textContent=label;
@@ -2052,6 +2067,51 @@ function devAuditPeriod(audit){
 function applyPublishedData(items){
  const personalId=String(profileData?.idMeli||'').trim();
  publishedItems=!isAdmin?items.filter(item=>personalId&&String(item.idMeli)===personalId):!isPM?items.filter(item=>selectedTeam&&validTeam(item.equipo)===selectedTeam):items;applyTeamView();}
+let pmReviewOriginal=null;
+function resetPmReview(){
+ if(!pmReviewOriginal)return;
+ for(const [node,anchor] of pmReviewOriginal.placements){anchor.before(node);anchor.remove();}
+ for(const [node,text] of pmReviewOriginal.texts)node.textContent=text;
+ for(const [node,title] of pmReviewOriginal.titles){if(title===null)node.removeAttribute('title');else node.title=title;}
+ $('pmWeeklyLegend')?.remove();
+ pmReviewOriginal=null;
+}
+function arrangePmReview(){
+ if(!isPmPanel())return;
+ if(!pmReviewOriginal){
+   const nodes=[$('pmProductivity'),$('weeklyPanel'),$('pmCreationPanel'),$('devHoldsRanking'),$('pmProductivity').querySelector('.pm-methodology')];
+   const textNodes=[
+    document.querySelector('.pm-flow-panel h2'),$('pmFlowTotal').parentElement.firstChild,
+    $('pmDone').closest('article').querySelector('small'),$('pmAll').closest('article').querySelector('span'),
+    $('gCcc').closest('.gestion-card').querySelector('span'),$('gSoporte').closest('.gestion-card').querySelector('span'),
+    $('gKnown').closest('.gestion-card').querySelector('span'),$('gestionPanel').querySelector('.pm-methodology p'),
+    document.querySelector('#weeklyPanel > .muted'),document.querySelector('#devHoldsRanking h3')
+   ];
+   pmReviewOriginal={placements:nodes.map(node=>{const anchor=document.createComment('Posición original del componente');node.before(anchor);return [node,anchor];}),
+    texts:textNodes.map(node=>[node,node.textContent]),titles:[$('pmDone').closest('article'),$('gTotalTasks').closest('article')].map(node=>[node,node.getAttribute('title')])};
+ }
+ document.querySelector('#devHoldsRanking h3').textContent='Ranking de motivos de Holds';
+ document.querySelector('#weeklyPanel > .muted').textContent='Productividad por jornada registrada · Flujo Mixto · semanas de lunes a domingo.';
+ if(!$('pmWeeklyLegend')){
+   const legend=document.createElement('div');legend.id='pmWeeklyLegend';legend.className='dev-legend';
+   legend.innerHTML='<span>Productividad</span><span class="pm-target-legend">Mínimo configurable</span>';
+   $('weeklyChart').before(legend);
+ }
+ $('holdsPanel').before($('pmProductivity'),$('weeklyPanel'),$('pmCreationPanel'));
+ $('devOperationalCards').closest('section').after($('pmProductivity').querySelector('.pm-methodology'));
+ document.querySelector('.pm-flow-panel h2').textContent='Colaboradores por flujo';
+ document.querySelector('#pmFlowTotal').parentElement.firstChild.textContent='Total de colaboradores ';
+ $('pmDone').closest('article').querySelector('small').textContent='Tareas de Productividad';
+ $('pmAll').closest('article').querySelector('span').textContent='Productividad + holds';
+ $('pmDone').closest('article').title='Base de Productividad: tareas de las jornadas computables.';
+ $('gTotalTasks').closest('article').title='Base de Finalizadas: cierres por fecha de finalización.';
+ $('gCcc').closest('.gestion-card').querySelector('span').textContent='Flujo Mixto';
+ $('gSoporte').closest('.gestion-card').querySelector('span').textContent='Soporte';
+ $('devOperationalCards').querySelector('article:last-child h3')?.replaceChildren('Known Values');
+ $('gKnown').closest('.gestion-card').querySelector('span').textContent='Known Values';
+ $('gestionPanel').querySelector('.pm-methodology p').textContent='Las iniciativas se agrupan en Flujo Mixto, Soporte y Known Values. Las iniciativas sin categoría específica pertenecen a Flujo Mixto.';
+}
+
 function renderPMComparison(){
  if(!isPM)return;
  renderComparison({chart:$('devComparisonBars'),body:$('pmComparisonRows'),rows:kpiCache,
@@ -2062,16 +2122,22 @@ function renderDevAnalytics(){
  if(!isAdmin)return;
  const rows=kpiCache,period=devFilters.period(),cadence=devFilters.state().cadence;
  renderOperationalCards($('devOperationalCards'),rows,period,productivityGoals,!isPM);
- renderCreationChart($('devCreationChart'),rows.filter(row=>inPeriod(row.fecha,period?.current)),cadence,isoWeek);
+ if(isPmPanel())$('devOperationalCards').querySelector('article:last-child h3').textContent='Known Values';
+ renderCreationChart($('devCreationChart'),rows.filter(row=>inPeriod(row.fecha,period?.current)),cadence,isPmPanel()?{pm:true}:isoWeek);
+
  renderPMComparison();
 }
 function renderDevHolds(){
  $('devHoldsRanking').hidden=!isAdmin;
  if(!isAdmin)return;
  const period=devFilters.period();
- const rows=publishedItems.filter(p=>devMatches(p.equipo,p.idMeli)).flatMap(p=>p.holdsErrores||[])
+ const rows=publishedItems.filter(p=>devMatches(p.equipo,p.idMeli)).flatMap(p=>Array.isArray(p.holdsErrores)?p.holdsErrores:[])
   .filter(row=>inPeriod(row.fecha,period?.current));
- renderHoldsRanking($('devHoldsRows'),rows,devFilters.state().cadence,Number($('devHoldsTop').value));
+ const hasBase=publishedItems.some(p=>p.holds?.length||p.holdsErrores?.length);
+ const error=$('kpiStatus').classList.contains('bad')||publishedItems.some(p=>p.holdsErrores!=null&&!Array.isArray(p.holdsErrores));
+ const message=error?'Error al consultar la base de Holds. Recargá los datos.':hasBase?
+  'No hay datos disponibles para el período seleccionado':'Pendiente de carga de base de Holds';
+ renderHoldsRanking($('devHoldsRows'),rows,devFilters.state().cadence,Number($('devHoldsTop').value),isPmPanel()?{bars:true,message}:{});
 }
 for(const id of ['devCompareFlow','devCompareSort'])$(id).addEventListener('change',renderPMComparison);
 $('devHoldsTop').addEventListener('change',renderDevHolds);
@@ -2083,8 +2149,10 @@ function applyTeamView(){
  const personalId=String(profileData?.idMeli||'').trim();
  const personalRows=rows=>isAdmin?rows:rows.filter(row=>row.id===undefined||String(row.id)===personalId).map(row=>({...row,id:personalId}));
  kpiCache=items.flatMap(item=>publishedProductivity(isAdmin?item:{...item,tareas:personalRows(item.tareas||[]),gestion:personalRows(item.gestion||[])},gCategory));
+ if(isPmPanel())kpiCache=kpiCache.map(row=>({...row,flujoOperativo:pmOperationalFlow(row.flujoOperativo||row.rolOrigen)}));
+
  holdsCache=personalRows(items.flatMap(x=>x.holds||[]));
- gestionCache=personalRows(items.flatMap(x=>x.gestion||[]));
+ gestionCache=isPmPanel()?personalRows(items.flatMap(x=>(x.gestion||[]).map(row=>({...row,id:String(x.idMeli),equipo:x.equipo})))):personalRows(items.flatMap(x=>x.gestion||[]));
  kpiLoaded=true;if(isAdmin)loadExcludedPeople();
  const sel=$('personFilter');sel.replaceChildren();const all=document.createElement('option');all.value='';all.textContent=isAdmin?'Todos los catalogadores':'Mi productividad';sel.appendChild(all);
  if(isAdmin){const names=new Map();for(const r of kpiCache)names.set(r.id,r.colaborador);for(const [id,name] of [...names].sort((a,b)=>a[1].localeCompare(b[1],'es'))){const opt=document.createElement('option');opt.value=id;opt.textContent=name;sel.appendChild(opt);}appendQualityPeople();sel.value=[...sel.options].some(option=>option.value===old)?old:'';}
@@ -2106,7 +2174,7 @@ async function loadDashboardKpis(){
   applyPublishedData(items);
   $('kpiStatus').className='status '+(items.length?'good':'');
   $('kpiStatus').textContent=items.length?(isAdmin?`✓ ${items.length} ficha(s) publicadas. Los filtros no generan nuevas lecturas.`:'Tus indicadores corresponden a la última publicación disponible.'):(isAdmin?'Todavía no hay KPI publicados. El administrador debe pulsar «Publicar actualización del equipo».':'Todavía no hay datos publicados para tu cuenta. Consultá la disponibilidad con tu TL.');
- }catch(e){if(auth.currentUser?.uid!==accountUid||isPM!==requestGlobal||(!requestGlobal&&selectedTeam!==requestTeam))return;console.error(e);$('kpiStatus').className='status bad';$('kpiStatus').textContent=e.code==='permission-denied'?'Acceso denegado. Revisá que tu usuario tenga el ID MELI correcto y las reglas de Firestore estén configuradas.':'No se pudieron leer los KPI publicados: '+(e.code||e.message);}
+ }catch(e){if(auth.currentUser?.uid!==accountUid||isPM!==requestGlobal||(!requestGlobal&&selectedTeam!==requestTeam))return;console.error(e);$('kpiStatus').className='status bad';$('kpiStatus').textContent=e.code==='permission-denied'?'Acceso denegado. Revisá que tu usuario tenga el ID MELI correcto y las reglas de Firestore estén configuradas.':'No se pudieron leer los KPI publicados: '+(e.code||e.message);renderDevHolds();}
 }
 // Publicar consume lecturas del historial una sola vez por pulsación del administrador.
 // Los holds se compactan por fecha: el dashboard solo necesita sus cantidades diarias.
@@ -2363,7 +2431,9 @@ function renderGestion(){
  const who=$('personFilter').value;
  const rows=gestionCache.filter(r=>isVisiblePeriod(r.fecha)&&(!who||r.id===who)&&includedRecord(r)&&weeklyMatches(r.fecha));
  renderFlowProductivityGoals(rows);
+ const pmGroups=isPmPanel()?pmTaskDistribution(rows):null;
  const groups={'Flujo Mixto':0,DEMANDA:0,SOPORTE:0,KNOWN_VALUE:0,OTROS:0},flows=new Map(),bins=[0,0,0,0,0,0];let total=0,closed=0,firstSum=0,firstDays=0,lastSum=0,lastDays=0,last3=0;
+
  for(const r of rows){const count=Number(r.total)||0;total+=count;for(const [name,raw] of Object.entries(r.flujos||{})){const v=Number(raw)||0;flows.set(name,(flows.get(name)||0)+v);groups[gCategory(name)]+=v;}
   if(r.versionGestion===G_SCHEMA){(r.franjas||[]).forEach((v,i)=>{if(i<6)bins[i]+=Number(v)||0;});closed+=Number(r.cierresValidos)||0;last3+=Number(r.ultimas3)||0;}
   if(r.versionGestion===G_SCHEMA&&Number.isFinite(Number(r.primerInicio))&&r.primerInicio!==null){firstSum+=Number(r.primerInicio);firstDays++;}if(r.versionGestion===G_SCHEMA&&Number.isFinite(Number(r.ultimoCierre))&&r.ultimoCierre!==null){lastSum+=Number(r.ultimoCierre);lastDays++;}
@@ -2374,14 +2444,23 @@ function renderGestion(){
    metric.textContent=gPct(count,total);
    $(prefix+'Count').textContent=`${fmt(count)} tareas`;
   }
-  $('gTotalTasks').textContent=fmt(total);$('gPeopleTotal').textContent=fmt(new Set(rows.map(r=>r.id)).size);$('gDayCoverage').textContent=fmt(rows.length)+' jornadas de gestión';
+  if(pmGroups){
+   for(const [group,prefix] of [['mixto','gCcc'],['soporte','gSoporte'],['kv','gKnown']]){
+    $(prefix).closest('.gestion-card').hidden=false;
+    $(prefix).textContent=gPct(pmGroups[group],total);
+    $(prefix+'Count').textContent=fmt(pmGroups[group])+' tareas';
+   }
+  }
+  $('gTotalTasks').textContent=isPmPanel()&&!rows.length?'Sin datos':fmt(total);$('gPeopleTotal').textContent=fmt(new Set(rows.map(r=>r.id)).size);$('gDayCoverage').textContent=fmt(rows.length)+' jornadas de gestión';
+
   $('gTimeCoverage').textContent=gPct(closed,total);$('gTimeCoverageNote').textContent=fmt(closed)+' de '+fmt(total)+' finalizadas con horario válido y cálculo actualizado';
   $('pmFlowsScope').textContent=dashboardScope();
   if(isAdmin&&$('pmFlowsIntro').nextElementSibling?.id!=='gestionPanel')$('viewDashboard').insertBefore($('pmFlowsIntro'),$('gestionPanel'));
   const composition=$('gFlowComposition');composition.replaceChildren();
   const flowColors={'Flujo Mixto':'#1765d1',DEMANDA:'#996000',SOPORTE:'#137f72',KNOWN_VALUE:'#7552ae',OTROS:'#64748b'};
-  if(total){const track=document.createElement('div');track.className='flow-composition-track';for(const [group,count] of Object.entries(groups)){if(!count)continue;const segment=document.createElement('span');segment.style.width=(100*count/total)+'%';segment.style.background=flowColors[group];segment.title=group+' · '+gPct(count,total);segment.setAttribute('aria-label',segment.title);track.appendChild(segment);}composition.appendChild(track);}else composition.textContent='Sin tareas finalizadas para los filtros seleccionados.';
- const body=$('gFlowRows');body.replaceChildren();for(const [name,count] of [...flows].sort((a,b)=>b[1]-a[1])){const tr=document.createElement('tr');for(const val of [name,gCategory(name),fmt(count),gPct(count,total)]){const td=document.createElement('td');td.textContent=val;tr.appendChild(td);}body.appendChild(tr);}if(!flows.size)body.innerHTML='<tr><td colspan="4">Sin registros de Gestión para este período.</td></tr>';
+  if(total){const track=document.createElement('div');track.className='flow-composition-track';for(const [group,count] of Object.entries(pmGroups||groups)){if(!count)continue;const segment=document.createElement('span');segment.style.width=(100*count/total)+'%';segment.style.background=flowColors[group]||{mixto:'#1765d1',soporte:'#137f72',kv:'#7552ae'}[group];segment.title=(pmFlowLabels[group]||group)+' · '+gPct(count,total);segment.setAttribute('aria-label',segment.title);track.appendChild(segment);}composition.appendChild(track);}else composition.textContent='Sin tareas finalizadas para los filtros seleccionados.';
+ const body=$('gFlowRows');body.replaceChildren();for(const [name,count] of [...flows].sort((a,b)=>b[1]-a[1])){const tr=document.createElement('tr');for(const val of [name,isPmPanel()?pmFlowLabels[initiativeFlow(name)]:gCategory(name),fmt(count),gPct(count,total)]){const td=document.createElement('td');td.textContent=val;tr.appendChild(td);}body.appendChild(tr);}if(!flows.size)body.innerHTML='<tr><td colspan="4">Sin registros de Gestión para este período.</td></tr>';
+
  if(!isAdmin)$('employeeTimeCoverage').textContent=fmt(closed)+' de '+fmt(total)+' tareas finalizadas con horario válido · '+gPct(closed,total)+' de cobertura';
   $('gStart').textContent=firstDays?gTime(firstSum/firstDays):'—';$('gEnd').textContent=lastDays?gTime(lastSum/lastDays):'—';$('gLast3').textContent=gPct(last3,closed);
   const best=bins.reduce((a,v,i)=>v>bins[a]?i:a,0);$('gPeak').textContent=closed?G_BINS[best]:'—';$('gPeakPct').textContent=closed?gPct(bins[best],closed)+' de cierres con horario':'Sin datos';
@@ -2569,7 +2648,9 @@ async function loadProductivityGoals(){
  }
 }
 function renderFlowProductivityGoals(){
+ if(isPmPanel())return;
  if(isAdmin)renderOperationalCards($('flowProductivityCards'),kpiCache,devFilters.period(),productivityGoals,!isPM);
+
 }
 $('productivityGoalForm').addEventListener('submit',async event=>{
  event.preventDefault();
@@ -3179,7 +3260,7 @@ $('permissionForm').addEventListener('submit',async event=>{
 // Navegación local de las vistas de administración.
  const adminSections={
   resumen:['summaryVisual','mainCards','pmOverview','pmComparison'],
-   'productividad-holds':['pmProductivity','weeklyPanel','holdsPanel','teamPeoplePanel','peopleControl','pendingPanel'],
+   'productividad-holds':['pmProductivity','pmCreationPanel','weeklyPanel','holdsPanel','teamPeoplePanel','peopleControl','pendingPanel'],
   'flujos-tiempos':['pmFlowsIntro','gestionPanel','tiemposPanel']
  };function selectAdminSection(section){
  if(!isAdmin)return;
@@ -3190,9 +3271,10 @@ $('permissionForm').addEventListener('submit',async event=>{
  dashboard.dataset.qualityView=String(quality);
  detail.hidden=!quality;
  if(quality)dashboard.prepend(detail);
+ if(quality&&isPmPanel())detail.append($('devHoldsRanking'));
  document.querySelectorAll('#adminSidebar .side-link').forEach(b=>{const on=b.dataset.section===section||(section==='cargar'&&b.dataset.section==='configuracion');b.classList.toggle('active',on);b.setAttribute('aria-current',on?'page':'false');});
   document.body.classList.toggle('pm-productivity',section==='productividad-holds');document.body.classList.toggle('pm-flows',section==='flujos-tiempos');document.body.classList.remove('pm-settings');
-  for(const id of ['pmComparison','pmOverview','pmProductivity','pmFlowsIntro','summaryVisual','mainCards','weeklyPanel','holdsPanel','gestionPanel','tiemposPanel','teamPeoplePanel','peopleControl','pendingPanel']){
+  for(const id of ['pmComparison','pmOverview','pmProductivity','pmCreationPanel','pmFlowsIntro','summaryVisual','mainCards','weeklyPanel','holdsPanel','gestionPanel','tiemposPanel','teamPeoplePanel','peopleControl','pendingPanel']){
   const el=$(id);if(!el)continue;
   el.dataset.adminHide=(!upload && !(adminSections[section]||[]).includes(id))?'true':'false';
  }
@@ -3280,14 +3362,15 @@ function renderPmOverview(){
  const postponed=posts.reduce((n,r)=>n+(Number(r.cantidad)||0),0);
  const mixed=rows.filter(row=>row.flujoOperativo==='mixto');
  const average=productivityTotals(mixed).average,minimum=productivityGoals.mixto;
- $('pmAvg').textContent=average===null?'—':fmt(average);$('pmDone').textContent=fmt(done);$('pmPost').textContent=fmt(postponed);$('pmAll').textContent=fmt(done+postponed);$('pmDaysNote').textContent=fmt(mixed.length)+(mixed.length===1?' jornada computable':' jornadas computables');
+ $('pmAvg').textContent=average===null?'—':fmt(average);$('pmDone').textContent=isPmPanel()&&!rows.length?'Sin datos':fmt(done);$('pmPost').textContent=isPmPanel()&&!posts.length?'Sin datos':fmt(postponed);$('pmAll').textContent=isPmPanel()&&!rows.length&&!posts.length?'Sin datos':fmt(done+postponed);$('pmDaysNote').textContent=fmt(mixed.length)+(mixed.length===1?' jornada computable':' jornadas computables');
+
  const flowTotal=gestionCache.filter(r=>weeklyMatches(r.fecha)&&(!who||r.id===who)&&includedRecord(r)).reduce((sum,r)=>sum+(Number(r.total)||0),0);
- $('pmFlowTotal').textContent=fmt(flowTotal);
+ $('pmFlowTotal').textContent=isPmPanel()?fmt(Object.values(pmPeopleDistribution(kpiCache.filter(r=>weeklyMatches(r.fecha)))).reduce((a,b)=>a+b,0)):fmt(flowTotal);
  const goal=$('pmGoalStatus');
  goal.dataset.state=average===null||minimum==null?'empty':average>=minimum?'met':'below';
  goal.textContent=minimumText(average,minimum);
  $('pmPostNote').textContent=done+postponed?fmt(postponed/(done+postponed)*100)+'% del volumen gestionado':'Sin volumen en el período';
- $('pmDoneNote').textContent=done+postponed?fmt(done/(done+postponed)*100)+'% del volumen gestionado':'Sin volumen en el período';
+ $('pmDoneNote').textContent=isPmPanel()?'Base de Productividad · jornadas computables':done+postponed?fmt(done/(done+postponed)*100)+'% del volumen gestionado':'Sin volumen en el período';
  $('pmTrendNote').textContent=$('headerDelta').textContent+' · '+$('headerCompare').textContent;
  $('pmScope').textContent=dashboardScope();
  $('employeePeriodNote').textContent='Indicadores · '+$('pmPeriodToggle').textContent.replace('⌄','').trim();
@@ -3306,6 +3389,8 @@ function setupPmExactDesign(){
  if(!isAdmin)return;
  document.body.classList.add('pm-design');
  document.body.classList.toggle('tl-design',!isPM);
+ document.body.classList.toggle('pm-review',isPmPanel());
+ arrangePmReview();
  $('tlTeamName').textContent=selectedTeam||'Equipo sin asignar';
  $('tlTeamScope').hidden=isPM;
  const team=$('pmTeamFilter'),person=$('personFilter');
