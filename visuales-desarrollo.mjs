@@ -175,9 +175,9 @@ function renderPmCreationChart(container,rows,cadence,{weeklyProductivity=false,
   container.replaceChildren();
   if(!points.length){container.textContent='Sin registros de Creaciones o Correcciones en el período.';return;}
   const ns='http://www.w3.org/2000/svg', svg=document.createElementNS(ns,'svg');
-  const width=Math.max(pm?1040:520,points.length*68),height=pm?300:230,padding=pm?42:38;
+  const width=Math.max(pm?1040:520,points.length*68),height=pm?200:230,padding=38;
   svg.setAttribute('viewBox','0 0 '+width+' '+height);
-  svg.style.minWidth=(pm?width:Math.min(width,Math.max(420,points.length*54)))+'px';
+  svg.style.minWidth=(pm?Math.min(width,760):Math.min(width,Math.max(420,points.length*54)))+'px';
   svg.setAttribute('role','img');svg.setAttribute('aria-label',weeklyProductivity?'Evolución semanal de productividad':'Evolución de Creaciones y Correcciones');
   const max=Math.max(1,target||0,...points.flatMap(p=>[p.creaciones??0,p.correcciones??0]));
   const x=index=>points.length===1?width/2:padding+index*(width-2*padding)/(points.length-1);

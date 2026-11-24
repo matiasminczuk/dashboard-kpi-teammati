@@ -1152,7 +1152,7 @@ body.employee-mode :is(#qualityOverviewCards,#qualityFlowCards) .quality-goal{gr
 }
 </style>
 <link rel="stylesheet" href="./auditorias.css?v=detalle-compacto">
-<link rel="stylesheet" href="./gestion-desarrollo.css?v=pm-ronda-3">
+<link rel="stylesheet" href="./gestion-desarrollo.css?v=graficos-compactos">
 
 </head>
 <body class="auth-screen">
@@ -1352,7 +1352,7 @@ import {getFirestore,doc,getDoc,getDocs,collection,query,where,writeBatch,server
 import {indexPeople,analyzeQuality,restoreArchivedQuality,qualityPeriods,selectQualityPeriod,summary,bucketQuality} from './calidad.mjs?v=archivo-1';
 import {analysisPeriod,inPeriod,operationalFlow,operationalFlows,defaultProductivityGoals,productivityTotals,normalizeQualityFlow,publishedProductivity} from './gestion-desarrollo.mjs?v=productividad-personal';
 import {setupFilters} from './filtros-desarrollo.mjs?v=resumen';
-import {renderOperationalCards,renderComparison,renderCreationChart,renderHoldsRanking} from './visuales-desarrollo.mjs?v=pm-ronda-3';
+import {renderOperationalCards,renderComparison,renderCreationChart,renderHoldsRanking} from './visuales-desarrollo.mjs?v=graficos-compactos';
 const firebaseConfig={apiKey:'AIzaSyB7edb0wGmf86KVrca5zkBTju7wg_zVDFk',authDomain:'dashboard-kpi-teammati.firebaseapp.com',projectId:'dashboard-kpi-teammati',storageBucket:'dashboard-kpi-teammati.firebasestorage.app',messagingSenderId:'158470825794',appId:'1:158470825794:web:33eb0d3c862756b9d7cadb',measurementId:'G-7E8M7NSPV0'};
 const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app);
 import {setupAudits} from './auditorias-ui.mjs?v=pm-ronda-3';
@@ -1668,6 +1668,10 @@ function excludedFlowLabel(){
 }
 function mountWeeklyLine(scroll, svg, weekCount, draw){
   scroll.appendChild(svg);
+  if(isPmPanel()&&scroll.closest('#holdsPanel')){
+    draw(Math.max(700,weekCount*76+100),200,20,34);
+    return;
+  }
   if(isAdmin){
     draw(Math.max(700,weekCount*76+100),285,34,55);
     return;
@@ -2079,7 +2083,8 @@ function resetPmReview(){
 function arrangePmReview(){
  if(!isPmPanel())return;
  if(!pmReviewOriginal){
-   const nodes=[$('pmProductivity'),$('weeklyPanel'),$('pmCreationPanel'),$('devHoldsRanking'),$('pmProductivity').querySelector('.pm-methodology')];
+   const nodes=[$('pmProductivity'),$('weeklyPanel'),$('pmCreationPanel'),$('devHoldsRanking'),$('pmProductivity').querySelector('.pm-methodology'),document.querySelector('#holdsPanel > p.muted:not(#holdsStatus)')];
+   if($('holdReasonsPanel'))nodes.push($('holdReasonsPanel'));
    const textNodes=[
     document.querySelector('.pm-flow-panel h2'),document.querySelector('.pm-flow-heading p'),$('pmFlowTotal').parentElement.firstChild,
     $('pmDone').closest('article').querySelector('small'),$('pmAll').closest('article').querySelector('span'),
@@ -2099,6 +2104,10 @@ function arrangePmReview(){
  }
  $('holdsPanel').before($('pmProductivity'),$('weeklyPanel'),$('pmCreationPanel'));
  $('devOperationalCards').closest('section').after($('pmProductivity').querySelector('.pm-methodology'));
+ const holdsExplanation=document.querySelector('#holdsPanel > p.muted:not(#holdsStatus)');
+ const holdsDetails=$('holdsPanel').querySelector('details.pm-methodology');
+ if(holdsExplanation&&holdsDetails)holdsDetails.append(holdsExplanation);
+ if(holdsDetails&&$('holdReasonsPanel'))holdsDetails.append($('holdReasonsPanel'));
  document.querySelector('.pm-flow-panel h2').textContent='Tareas trabajadas por flujo';
  document.querySelector('.pm-flow-heading p').textContent='Tareas finalizadas · período seleccionado';
  document.querySelector('#pmFlowTotal').parentElement.firstChild.textContent='Total de tareas ';

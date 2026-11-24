@@ -50,21 +50,21 @@ body.pm-review #gestionPanel .gestion-cards,
 body.pm-review #devOperationalCards{grid-template-columns:repeat(3,minmax(0,1fr))}
 body.pm-review #pmProductivity > section:has(#devOperationalCards){padding:0;border:0;box-shadow:none}
 body.pm-review :is(#weeklyPanel,#pmCreationPanel){
- box-sizing:border-box;margin:0 0 24px;padding:24px;border:1px solid var(--kpi-border);
- border-radius:14px;box-shadow:none;background:var(--kpi-surface);min-width:0;height:550px;
+ box-sizing:border-box;margin:0 0 16px;padding:16px;border:1px solid var(--kpi-border);
+ border-radius:14px;box-shadow:none;background:var(--kpi-surface);min-width:0;height:360px;
 }
-body.pm-review :is(#weeklyPanel,#pmCreationPanel)>h2{font-size:20px;line-height:1.4;margin:0 0 8px;color:inherit}
-body.pm-review :is(#weeklyChart,#devCreationChart){height:320px;margin:12px 0;overflow:auto;min-width:0}
-body.pm-review :is(#weeklyChart,#devCreationChart) svg{width:100%;height:300px;max-height:none}
+body.pm-review :is(#weeklyPanel,#pmCreationPanel)>h2{font-size:16px;line-height:1.4;margin:0 0 4px;color:inherit}
+body.pm-review :is(#weeklyChart,#devCreationChart){height:218px;margin:6px 0;padding:0;overflow-x:auto;overflow-y:hidden;min-width:0}
+body.pm-review :is(#weeklyChart,#devCreationChart) svg{width:100%;height:200px;max-height:none}
 body.pm-review #weeklyPanel > :is(.week-table,.week-chart-note){display:none}
 .pm-only-chart-copy{display:none}
 body.pm-review .pm-only-chart-copy{display:block}
-body.pm-review :is(#weeklyPanel,#pmCreationPanel)>.muted{margin:0 0 8px;font-size:13px;line-height:1.6}
+body.pm-review :is(#weeklyPanel,#pmCreationPanel)>.muted{margin:0 0 4px;font-size:12px;line-height:1.5}
 body.pm-review :is(#weeklyStatus,#pmCreationStatus){
- margin:0 0 8px;min-height:36px;padding:8px 14px;box-sizing:border-box;border-radius:8px;
- font-size:13px;line-height:20px;color:var(--kpi-muted);background:#f5f7fc;
+ margin:0 0 4px;min-height:18px;padding:0;box-sizing:border-box;border-radius:0;
+ font-size:12px;line-height:18px;color:var(--kpi-muted);background:transparent;
 }
-body.dark-theme.pm-review :is(#weeklyStatus,#pmCreationStatus){background:var(--dark-raised)}
+body.dark-theme.pm-review :is(#weeklyStatus,#pmCreationStatus){background:transparent}
 body.pm-review :is(#weeklyChart,#devCreationChart) svg text{font:12px Arial,sans-serif;fill:var(--kpi-muted)}
 body.pm-review :is(#pmWeeklyLegend,#pmCreationPanel .dev-legend){padding:0;margin:0;font-size:13px}
 body.pm-review #pmWeeklyLegend .pm-target-legend::before{background:var(--kpi-muted)}
@@ -105,4 +105,36 @@ body.pm-design #peopleControl{display:none!important}
 @media(max-width:700px){
  #devGlobalFilters .pm-period-control{flex-basis:100%}
  #devGlobalFilters #pmPeriodPopover{position:static;width:100%;max-width:none;margin-top:6px}
+}
+
+body.pm-review.pm-productivity #holdsPanel{padding:16px;margin:0 0 16px}
+body.pm-review.pm-productivity #holdsPanel>h2{font-size:16px;line-height:1.4;margin:0 0 8px}
+body.pm-review.pm-productivity #holdsPanel .holds-stats{display:flex;gap:24px;flex-wrap:wrap;margin:8px 0}
+body.pm-review.pm-productivity #holdsPanel .holds-stat{
+ display:flex;align-items:baseline;gap:8px;padding:0;border:0;border-radius:0;background:transparent!important;min-height:0;
+}
+body.pm-review.pm-productivity #holdsPanel .holds-stat span{font-size:12px}
+body.pm-review.pm-productivity #holdsPanel .holds-stat strong{font-size:18px;margin:0}
+body.pm-review.pm-productivity #holdsStatus{font-size:12px;margin:6px 0}
+body.pm-review.pm-productivity #holdsChart{margin:6px 0}
+body.pm-review.pm-productivity #holdsChart .line-chart-section{padding:0;margin:0;border:0;background:transparent!important}
+body.pm-review.pm-productivity #holdsChart .line-chart-heading{display:none}
+body.pm-review.pm-productivity #holdsChart .line-chart-section:after{content:none}
+body.pm-review.pm-productivity #holdsChart svg{height:200px;max-height:200px}
+body.pm-review.pm-productivity #holdsPanel>.pm-methodology{padding:8px 10px;margin:8px 0 0;font-size:12px}
+@media(max-width:580px){
+ body.pm-review :is(#weeklyPanel,#pmCreationPanel){height:auto;min-height:360px}
+ body.pm-review.pm-productivity #holdsPanel .holds-stats{gap:6px 18px}
+}
+
+body.pm-review #weeklyPanel{position:relative}
+body.pm-review #weeklyPanel>h2{padding-right:220px;margin-bottom:10px}
+body.pm-review #weeklyFlowFilter{
+ position:absolute;top:12px;right:16px;display:flex;align-items:center;gap:8px;margin:0;
+}
+body.pm-review #weeklyFlowFilter label{margin:0;font-size:12px}
+body.pm-review #weeklyFlowFilter select{width:140px;min-height:32px;padding:5px 8px;margin:0;font-size:12px}
+@media(max-width:580px){
+ body.pm-review #weeklyFlowFilter{position:static;margin:4px 0 8px}
+ body.pm-review #weeklyPanel>h2{padding-right:0;margin-bottom:4px}
 }
