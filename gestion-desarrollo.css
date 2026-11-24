@@ -138,3 +138,12 @@ body.pm-review #weeklyFlowFilter select{width:140px;min-height:32px;padding:5px 
  body.pm-review #weeklyFlowFilter{position:static;margin:4px 0 8px}
  body.pm-review #weeklyPanel>h2{padding-right:0;margin-bottom:4px}
 }
+
+body.pm-review.pm-productivity #holdsChart{
+ height:218px;margin:6px 0;padding:0;overflow-x:auto;overflow-y:hidden;min-width:0;color:var(--kpi-muted);
+}
+body.pm-review.pm-productivity #holdsChart svg{display:block;width:100%;height:200px;max-height:none}
+body.pm-review.pm-productivity #holdsChart svg text{font:12px Arial,sans-serif;fill:var(--kpi-muted)}
+
+body.pm-review #dashboard #holdsPanel .holds-stat{background:transparent!important}
+body.pm-review #dashboard #holdsPanel .holds-stat strong{color:inherit!important}

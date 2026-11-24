@@ -164,8 +164,9 @@ export function renderCreationChart(container,rows,cadence,isoWeek,averageDaily=
   if(points.every(point=>point.correcciones==null))container.append(element('p','La publicación no contiene registros de Correcciones.','muted'));
 }
 
-function renderPmCreationChart(container,rows,cadence,{weeklyProductivity=false,target=null,pm=false}={}){
-  const source=weeklyProductivity?rows.filter(row=>row.tipo==='tareas').map(row=>({...row,tipo:'creaciones'})):rows;
+function renderPmCreationChart(container,rows,cadence,{weeklyProductivity=false,target=null,pm=false,holds=false}={}){
+  const source=weeklyProductivity?rows.filter(row=>row.tipo==='tareas').map(row=>({...row,tipo:'creaciones'})):
+    holds?rows.map(row=>({...row,tipo:'creaciones'})):rows;
   const points=creationSeries(source,cadence);
   if(weeklyProductivity){
     const counts=new Map();
@@ -178,7 +179,7 @@ function renderPmCreationChart(container,rows,cadence,{weeklyProductivity=false,
   const width=Math.max(pm?1040:520,points.length*68),height=pm?200:230,padding=38;
   svg.setAttribute('viewBox','0 0 '+width+' '+height);
   svg.style.minWidth=(pm?Math.min(width,760):Math.min(width,Math.max(420,points.length*54)))+'px';
-  svg.setAttribute('role','img');svg.setAttribute('aria-label',weeklyProductivity?'Evolución semanal de productividad':'Evolución de Creaciones y Correcciones');
+  svg.setAttribute('role','img');svg.setAttribute('aria-label',weeklyProductivity?'Evolución semanal de productividad':holds?'Evolución de tareas holdeadas':'Evolución de Creaciones y Correcciones');
   const max=Math.max(1,target||0,...points.flatMap(p=>[p.creaciones??0,p.correcciones??0]));
   const x=index=>points.length===1?width/2:padding+index*(width-2*padding)/(points.length-1);
   const y=value=>height-padding-value*(height-2*padding)/max;
@@ -195,6 +196,7 @@ function renderPmCreationChart(container,rows,cadence,{weeklyProductivity=false,
   points.forEach((point,i)=>add('text',{x:x(i),y:height-12,'text-anchor':'middle'},point.key));
   if(target!==null)add('line',{x1:padding,y1:y(target),x2:width-padding,y2:y(target),stroke:'currentColor','stroke-dasharray':'6 5'});
   const series=weeklyProductivity?[['creaciones','Productividad','#1765d1']]:
+    holds?[['creaciones','Holds','#d17b12']]:
     [['creaciones','Creaciones','#1765d1'],['correcciones','Correcciones','#d17b12']];
   for(const [key,name,color] of series){
     let last=null;
@@ -210,7 +212,7 @@ function renderPmCreationChart(container,rows,cadence,{weeklyProductivity=false,
     });
   }
   container.append(svg);
-  if(!weeklyProductivity&&points.every(point=>point.correcciones==null))container.append(element('p','La publicación no contiene registros de Correcciones.','muted'));
+  if(!weeklyProductivity&&!holds&&points.every(point=>point.correcciones==null))container.append(element('p','La publicación no contiene registros de Correcciones.','muted'));
 }
 
 export function renderHoldsRanking(container,rows,cadence,top,{column='Acción correcta',unit='errores',bars=false,message}={}){

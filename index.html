@@ -1152,7 +1152,7 @@ body.employee-mode :is(#qualityOverviewCards,#qualityFlowCards) .quality-goal{gr
 }
 </style>
 <link rel="stylesheet" href="./auditorias.css?v=detalle-compacto">
-<link rel="stylesheet" href="./gestion-desarrollo.css?v=graficos-compactos">
+<link rel="stylesheet" href="./gestion-desarrollo.css?v=graficos-unificados">
 
 </head>
 <body class="auth-screen">
@@ -1352,7 +1352,7 @@ import {getFirestore,doc,getDoc,getDocs,collection,query,where,writeBatch,server
 import {indexPeople,analyzeQuality,restoreArchivedQuality,qualityPeriods,selectQualityPeriod,summary,bucketQuality} from './calidad.mjs?v=archivo-1';
 import {analysisPeriod,inPeriod,operationalFlow,operationalFlows,defaultProductivityGoals,productivityTotals,normalizeQualityFlow,publishedProductivity} from './gestion-desarrollo.mjs?v=productividad-personal';
 import {setupFilters} from './filtros-desarrollo.mjs?v=resumen';
-import {renderOperationalCards,renderComparison,renderCreationChart,renderHoldsRanking} from './visuales-desarrollo.mjs?v=graficos-compactos';
+import {renderOperationalCards,renderComparison,renderCreationChart,renderHoldsRanking} from './visuales-desarrollo.mjs?v=graficos-unificados';
 const firebaseConfig={apiKey:'AIzaSyB7edb0wGmf86KVrca5zkBTju7wg_zVDFk',authDomain:'dashboard-kpi-teammati.firebaseapp.com',projectId:'dashboard-kpi-teammati',storageBucket:'dashboard-kpi-teammati.firebasestorage.app',messagingSenderId:'158470825794',appId:'1:158470825794:web:33eb0d3c862756b9d7cadb',measurementId:'G-7E8M7NSPV0'};
 const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app);
 import {setupAudits} from './auditorias-ui.mjs?v=pm-ronda-3';
@@ -1668,10 +1668,6 @@ function excludedFlowLabel(){
 }
 function mountWeeklyLine(scroll, svg, weekCount, draw){
   scroll.appendChild(svg);
-  if(isPmPanel()&&scroll.closest('#holdsPanel')){
-    draw(Math.max(700,weekCount*76+100),200,20,34);
-    return;
-  }
   if(isAdmin){
     draw(Math.max(700,weekCount*76+100),285,34,55);
     return;
@@ -2090,12 +2086,13 @@ function arrangePmReview(){
     $('pmDone').closest('article').querySelector('small'),$('pmAll').closest('article').querySelector('span'),
     $('gCcc').closest('.gestion-card').querySelector('span'),$('gSoporte').closest('.gestion-card').querySelector('span'),
     $('gKnown').closest('.gestion-card').querySelector('span'),$('gestionPanel').querySelector('.pm-methodology p'),
-    document.querySelector('#weeklyPanel > .muted'),document.querySelector('#devHoldsRanking h3')
+    document.querySelector('#weeklyPanel > .muted'),document.querySelector('#holdsPanel > h2'),document.querySelector('#devHoldsRanking h3')
    ];
    pmReviewOriginal={placements:nodes.map(node=>{const anchor=document.createComment('Posición original del componente');node.before(anchor);return [node,anchor];}),
     texts:textNodes.map(node=>[node,node.textContent]),titles:[$('pmDone').closest('article'),$('gTotalTasks').closest('article')].map(node=>[node,node.getAttribute('title')])};
  }
  document.querySelector('#devHoldsRanking h3').textContent='Ranking de motivos de Holds';
+ document.querySelector('#holdsPanel > h2').textContent='Evolución de tareas holdeadas';
  document.querySelector('#weeklyPanel > .muted').textContent='Productividad por jornada registrada · Flujo Mixto · semanas de lunes a domingo.';
  if(!$('pmWeeklyLegend')){
    const legend=document.createElement('div');legend.id='pmWeeklyLegend';legend.className='dev-legend';
@@ -2289,7 +2286,9 @@ function renderHolds(){
  const ordered=[...counts].sort((a,b)=>a[0].localeCompare(b[0]));
  const total=rows.reduce((n,r)=>n+r.cantidad,0);$('holdsTotal').textContent=fmt(total);$('holdsWeeks').textContent=fmt(ordered.length);$('holdsAverage').textContent=ordered.length?fmt(total/ordered.length):'—';
  if(!ordered.length){chart.innerHTML='<p class="muted">No hay registros de holds para el período y los catalogadores seleccionados.</p>';}
- else{
+ else if(isPmPanel()){
+  renderCreationChart(chart,rows,'weeks',{pm:true,holds:true});
+ }else{
   const section=document.createElement('section');section.className='line-chart-section';
   const heading=document.createElement('div');heading.className='line-chart-heading';heading.innerHTML='<strong class="hold-heading">Holds por semana · registros del CSV</strong>';
   section.appendChild(heading);
