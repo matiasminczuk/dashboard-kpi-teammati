@@ -246,3 +246,15 @@ body.dark-theme #auditDetail {
  #auditDetail.audit-collaborator-view .audit-detail-overview { grid-template-columns:minmax(0,1fr) }
  .audit-decision + .audit-decision { border-inline-start:0; border-top:1px solid var(--kpi-border) }
 }
+
+.audit-error-ranking{margin:20px 0 24px;padding:16px 0;border-block:1px solid var(--kpi-border,#d5dfef)}
+.audit-ranking-heading,.audit-ranking-label{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.audit-ranking-heading h3{margin:0;font-size:16px}
+.audit-ranking-heading label{display:flex;align-items:center;gap:8px;font-size:13px}
+.audit-ranking-heading select{width:auto;min-height:36px;margin:0}
+.audit-ranking-list{list-style:none;padding:0;margin:16px 0 0;display:grid;gap:16px}
+.audit-ranking-label{font-size:13px;line-height:1.5;margin-bottom:6px;align-items:baseline}
+.audit-ranking-label span{overflow-wrap:anywhere}
+.audit-ranking-label strong{font-variant-numeric:tabular-nums;flex-shrink:0}
+.audit-ranking-track{height:6px;background:var(--kpi-border,#d5dfef);border-radius:4px;overflow:hidden}
+.audit-ranking-bar{height:100%;background:#3483fa;border-radius:4px}

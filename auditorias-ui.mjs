@@ -1,3 +1,4 @@
+import {auditErrorRanking} from './auditorias-ranking.mjs';
 import {itemUrl,normalizeQualityFlow} from './gestion-desarrollo.mjs';
 import {labels, mapHeaders, mapAuditRows, hasNetkelColumns, auditSourceFlow} from './auditorias-import.mjs?v=flujo-sdc';
 import {auditReviewTotals, auditScope, observeSparkNotices, ownsAudit, watchAuditScope, auditResponseOpen, auditResponseDeadline} from './auditorias-spark.mjs?v=plazo';
@@ -131,6 +132,7 @@ export function setupAudits(api) {
     $('auditRows').replaceChildren();
     $('auditMetrics').replaceChildren();
     $('auditMetrics').hidden = true;
+    $('auditErrorRanking')?.remove();
     reports.replaceChildren();
     roster = new Map(); audits = []; all = []; unread = []; sheets = [];
     notificationError = false; onlyUnread = false; listError = false; auditLoading = false;
@@ -173,6 +175,13 @@ export function setupAudits(api) {
       const secondary=element('details');secondary.id='auditSecondaryMetrics';
       secondary.append(element('summary','Indicadores de seguimiento'),element('dl',undefined,'audit-fields'));
       $('auditMetrics').after(secondary);
+      const ranking=element('section',undefined,'audit-error-ranking');ranking.id='auditErrorRanking';
+      const heading=element('div',undefined,'audit-ranking-heading');heading.append(element('h3','Ranking de errores'));
+      const label=element('label','Mostrar '),top=element('select');top.id='auditRankingTop';
+      top.append(new Option('Top 5','5'),new Option('Top 10','10'));label.append(top);heading.append(label);
+      ranking.append(heading,element('p','Decisión del colaborador → Acción correcta · cantidad de auditorías con error','muted'));
+      const content=element('div');content.id='auditRankingContent';content.setAttribute('aria-live','polite');ranking.append(content);
+      secondary.after(ranking);top.addEventListener('change',renderAuditList);
     }else $('auditFilterPeriod').closest('label').hidden=false;
     filter.reset();
     const stateFilter = filter.elements.estado;
@@ -368,6 +377,27 @@ export function setupAudits(api) {
     }
     const visible = scoped.filter(audit => searchMatches(audit)&&criteria.every(node => matches(audit,node))).sort((a,b) =>
       (b.fecha || b.periodo).localeCompare(a.fecha || a.periodo) || a.externo.localeCompare(b.externo));
+    if(session.global){
+      const content=$('auditRankingContent');content.replaceChildren();
+      if(auditLoading||listError){
+        content.append(element('p',listError?'No se pudo consultar el ranking. Recargá los datos.':'Cargando ranking…','muted'));
+      }else{
+        const groups=auditErrorRanking(visible),total=groups.reduce((sum,row)=>sum+row.count,0);
+        if(!groups.length)content.append(element('p','No hay auditorías con error para estos filtros.','muted'));
+        else{
+          content.append(element('p',format(total)+' auditorías con error · '+format(groups.length)+' combinaciones','muted'));
+          const list=element('ol',undefined,'audit-ranking-list');
+          for(const group of groups.slice(0,Number($('auditRankingTop').value))){
+            const row=element('li'),label=element('div',undefined,'audit-ranking-label');
+            label.append(element('span',group.decision+' → '+group.correct),element('strong',format(group.count)));
+            const track=element('div',undefined,'audit-ranking-track'),bar=element('div',undefined,'audit-ranking-bar');
+            bar.style.width=(group.count/groups[0].count*100)+'%';track.setAttribute('aria-hidden','true');track.append(bar);
+            row.append(label,track);list.append(row);
+          }
+          content.append(list);
+        }
+      }
+    }
     const list = $('auditRows');
     list.replaceChildren();
     $('auditListStatus').textContent = listError ? 'No se pudo consultar esta sección. Verificá que Auditorías esté habilitada.' :
