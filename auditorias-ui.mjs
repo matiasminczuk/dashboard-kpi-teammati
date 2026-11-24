@@ -235,8 +235,15 @@ export function setupAudits(api) {
       snap => renderReports(snap.docs), () => {reports.textContent = 'No se pudieron leer las importaciones.';}));
   }
 
+  function showRanking(container) {
+    if (!session?.global) return;
+    const ranking=$('auditErrorRanking');
+    if(ranking)container.append(ranking);
+    listenAudits();renderAuditList();
+  }
   function openView(id) {
     if (!session) return;
+    if(session.global&&$('auditErrorRanking'))$('auditSecondaryMetrics').after($('auditErrorRanking'));
     api.openAuditView();
     auditPanel.hidden = false;
     listenAudits();

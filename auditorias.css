@@ -258,3 +258,5 @@ body.dark-theme #auditDetail {
 .audit-ranking-label strong{font-variant-numeric:tabular-nums;flex-shrink:0}
 .audit-ranking-track{height:6px;background:var(--kpi-border,#d5dfef);border-radius:4px;overflow:hidden}
 .audit-ranking-bar{height:100%;background:#3483fa;border-radius:4px}
+
+body.pm-review #devHoldsRanking{display:none!important}
