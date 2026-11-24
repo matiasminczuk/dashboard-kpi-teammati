@@ -25,3 +25,16 @@ test('PM clasifica iniciativas en origen y conserva el volumen de finalizadas',(
   assert.deepEqual(pmTaskDistribution([{flujos:{CCC:5,'Sugerencia de corrección':3,Denuncias_BPP:2,Known_Value:4}}]),
     {mixto:8,soporte:2,kv:4});
 });
+
+test('la distribución usa tareas y calcula 40 % de Mixto sobre mil tareas',()=>{
+  const rows=[
+    {id:'a',total:400,flujos:{CCC:250,'Sugerencia de corrección':150}},
+    {id:'a',total:350,flujos:{Denuncias_BPP:350}},
+    {id:'b',total:250,flujos:{KNOWN_VALUE:250}}
+  ];
+  const groups=pmTaskDistribution(rows);
+  const total=Object.values(groups).reduce((sum,count)=>sum+count,0);
+  assert.equal(total,1000);
+  assert.deepEqual(groups,{mixto:400,soporte:350,kv:250});
+  assert.equal(groups.mixto/total*100,40);
+});
