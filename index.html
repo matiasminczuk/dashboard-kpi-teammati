@@ -1084,6 +1084,7 @@ body.sidebar-collapsed #adminSidebar .sidebar-top .sidebar-heading{display:none}
 .quality-archive select{max-width:100%;min-height:40px}
 .quality-archive button{margin-block:6px}
 #viewDashboard[data-quality-view="true"]>.quality-detail{margin-top:12px}
+body.admin-mode #viewDashboard[data-quality-view="true"] :is(#pmOverview,#pmComparison,#summaryVisual,#mainCards,#pmProductivity,#pmCreationPanel,#weeklyPanel,#holdsPanel,#pmFlowsIntro,#gestionPanel,#tiemposPanel,#teamPeoplePanel,#peopleControl,#pendingPanel){display:none!important}
 #calidadIssues{margin:12px 0;max-height:220px;overflow:auto}
 #qualityGoalForm input{max-width:150px}
 #qualityGoalForm button{margin:6px}
@@ -3282,7 +3283,7 @@ $('permissionForm').addEventListener('submit',async event=>{
  dashboard.dataset.qualityView=String(quality);
  detail.hidden=!quality;
  if(quality)dashboard.prepend(detail);
- if(quality&&isPmPanel())auditFeatures.showRanking(detail);
+
  document.querySelectorAll('#adminSidebar .side-link').forEach(b=>{const on=b.dataset.section===section||(section==='cargar'&&b.dataset.section==='configuracion');b.classList.toggle('active',on);b.setAttribute('aria-current',on?'page':'false');});
   document.body.classList.toggle('pm-productivity',section==='productividad-holds');document.body.classList.toggle('pm-flows',section==='flujos-tiempos');document.body.classList.remove('pm-settings');
   for(const id of ['pmComparison','pmOverview','pmProductivity','pmCreationPanel','pmFlowsIntro','summaryVisual','mainCards','weeklyPanel','holdsPanel','gestionPanel','tiemposPanel','teamPeoplePanel','peopleControl','pendingPanel']){
@@ -3293,7 +3294,7 @@ $('permissionForm').addEventListener('submit',async event=>{
  if(isAdmin){if(section==='resumen')$('pmOverview').insertBefore($('pmFilterBar'),$('pmOverview').querySelector('.pm-metrics'));else if(section==='productividad-holds')$('pmProductivityFilters').appendChild($('pmFilterBar'));else if(section==='flujos-tiempos')$('pmFlowsFilters').appendChild($('pmFilterBar'));else $('viewDashboard').insertBefore($('pmFilterBar'),$('viewDashboard').firstChild);renderPmProductivity();}
  if(!upload)devFilters.mount($('viewDashboard'));
  else{const publication=$('publicationActions');publication.append($('publishKpis'),$('publishStatus'));$('publishKpis').classList.remove('hidden');$('publishStatus').classList.remove('hidden');}
- if(quality){renderQuality();window.scrollTo(0,0);}
+ if(quality){renderQuality();if(isPmPanel())auditFeatures.showRanking(detail);window.scrollTo(0,0);}
  requestAnimationFrame(centerSingleWeekCharts);
  $('welcome').textContent=section==='cargar'?'Cargar bases':({resumen:'Resumen',calidad:'Calidad','productividad-holds':'Productividad / Holds','flujos-tiempos':'Flujos / Tiempos'}[section]||'Dashboard KPI');
 }
