@@ -181,7 +181,7 @@ export function setupAudits(api) {
       top.append(new Option('Top 5','5'),new Option('Top 10','10'));label.append(top);heading.append(label);
       ranking.append(heading,element('p','Decisión del colaborador → Acción correcta · cantidad de auditorías con error','muted'));
       const content=element('div');content.id='auditRankingContent';content.setAttribute('aria-live','polite');ranking.append(content);
-      secondary.after(ranking);top.addEventListener('change',renderAuditList);
+      $('qualityDetail').append(ranking);top.addEventListener('change',renderAuditList);
     }else $('auditFilterPeriod').closest('label').hidden=false;
     filter.reset();
     const stateFilter = filter.elements.estado;
@@ -243,7 +243,6 @@ export function setupAudits(api) {
   }
   function openView(id) {
     if (!session) return;
-    if(session.global&&$('auditErrorRanking'))$('auditSecondaryMetrics').after($('auditErrorRanking'));
     api.openAuditView();
     auditPanel.hidden = false;
     listenAudits();
