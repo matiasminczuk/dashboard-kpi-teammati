@@ -388,7 +388,7 @@ export function setupAudits(api) {
       if(auditLoading||listError){
         content.append(element('p',listError?'No se pudo consultar el ranking. Recargá los datos.':'Cargando ranking…','muted'));
       }else{
-        const groups=auditErrorRanking(visible),total=groups.reduce((sum,row)=>sum+row.count,0);
+        const groups=auditErrorRanking(scoped,api.auditRankingFlow?.()||''),total=groups.reduce((sum,row)=>sum+row.count,0);
         if(!groups.length)content.append(element('p','No hay auditorías con error para estos filtros.','muted'));
         else{
           content.append(element('p',format(total)+' auditorías con error · '+format(groups.length)+' combinaciones','muted'));
