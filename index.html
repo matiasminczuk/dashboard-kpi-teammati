@@ -2987,8 +2987,8 @@ function renderQuality(){
  const lowest=flowStats.filter(s=>s.quality!==null).sort((a,b)=>a.quality-b.quality)[0];
  $('qualityOpportunity').textContent=lowest&&(qualityState.targets?.[lowest.flow]==null||lowest.quality*100<qualityState.targets[lowest.flow])
   ?'Prioridad de revisión · '+lowest.flow+' registra '+qualityPercent(lowest.quality)+' en '+fmt(lowest.audited)+' tareas auditadas.':'';
- $('qualityComparison').hidden=!isAdmin||!flow;
- if(isAdmin&&flow){
+ $('qualityComparison').hidden=!isAdmin;
+ if(isAdmin){
   const compareTeams=isPM&&!team;
   $('qualityComparisonTitle').textContent=compareTeams?'Comparativa entre equipos':'Comparativa entre catalogadores';
   const key=row=>compareTeams?row.team:row.id;
