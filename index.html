@@ -245,6 +245,8 @@ body.pm-design .header-trend{font-size:11px}
 body.pm-design #pmHeaderQuality .pm-quality-four>div{display:flex;flex-direction:column;align-items:stretch;gap:3px}
 body.pm-design #pmHeaderQuality .pm-quality-four strong{order:0;margin:0;text-align:center;font-size:11px;line-height:13px;font-weight:800}
 body.pm-design #pmHeaderQuality .pm-quality-four b{order:1;margin:0}
+
+.bulk-upload input[type="file"]{display:block;max-width:100%;margin:8px 0 12px}.bulk-upload input[type="month"]{max-width:240px;margin-bottom:18px}.bulk-upload table td:first-child{overflow-wrap:anywhere;max-width:320px}.bulk-upload table select{min-width:135px}.bulk-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}.bulk-upload tr[data-state="error"] td:nth-child(3){font-weight:600}
 </style>
 <style>
 .settings-wrap{position:relative;display:inline-flex;align-items:center}
@@ -1311,7 +1313,7 @@ body.employee-mode :is(#qualityOverviewCards,#qualityFlowCards) .quality-goal{gr
  </dialog>
  <section id="auditReports" hidden></section>
 </section>
-<div id="viewUpload" class="hidden"><div class="pm-overview-heading"><p class="pm-eyebrow">ACTUALIZACIÓN DE INFORMACIÓN</p><h1>Cargar bases</h1><p>Elegí el archivo, revisá los cambios y guardalos. Después publicá Productividad, Holds y Finalizadas para que se vean en el dashboard.</p></div><nav class="upload-tabs" aria-label="Tipo de base"><button type="button" data-upload="productividad" aria-pressed="true">Productividad</button><button type="button" data-upload="holds" aria-pressed="false">Holds</button><button type="button" data-upload="finalizadas" aria-pressed="false">Finalizadas</button><button type="button" data-upload="calidad" aria-pressed="false">Calidad</button><button type="button" data-upload="auditorias" aria-pressed="false">Auditorías</button></nav><div id="publicationActions"><h2>Publicar datos guardados</h2><p>Este paso actualiza las fichas de Productividad, Holds y Finalizadas.</p></div>
+<div id="viewUpload" class="hidden"><div class="pm-overview-heading"><p class="pm-eyebrow">ACTUALIZACIÓN DE INFORMACIÓN</p><h1>Cargar bases</h1><p>Seleccioná todos los archivos, revisalos y cargalos juntos.</p></div><nav class="upload-tabs" aria-label="Tipo de base"><button type="button" data-upload="lote" aria-pressed="true">Carga conjunta</button><button type="button" data-upload="productividad" aria-pressed="true">Productividad</button><button type="button" data-upload="holds" aria-pressed="false">Holds</button><button type="button" data-upload="finalizadas" aria-pressed="false">Finalizadas</button><button type="button" data-upload="calidad" aria-pressed="false">Calidad</button><button type="button" data-upload="auditorias" aria-pressed="false">Auditorías</button></nav><section class="panel bulk-upload" data-upload-panel="lote" aria-labelledby="bulkTitle"><h2 id="bulkTitle">Cargar archivos juntos</h2><p>Agregá las bases de Productividad, Holds, Finalizadas, Calidad y Auditorías. Detectamos el formato de cada archivo.</p><label for="bulkFiles">Seleccionar archivos</label><input id="bulkFiles" type="file" multiple accept=".xlsx,.xlsm,.xls,.csv"><p id="bulkCount" class="muted"></p><label for="bulkMonth">Mes de referencia, si el archivo no incluye fechas</label><input id="bulkMonth" type="month"><div class="table-wrap"><table><thead><tr><th>Archivo</th><th>Base</th><th>Revisión</th><th>Acciones</th></tr></thead><tbody id="bulkRows"></tbody></table></div><div class="bulk-actions"><button id="bulkAnalyze" type="button">Revisar archivos</button><button id="bulkSave" type="button" disabled>Cargar y publicar todo</button><button id="bulkClear" type="button" class="tab">Limpiar selección</button></div><p id="bulkStatus" class="status" role="status" aria-live="polite"></p></section><div id="publicationActions"><h2>Publicar datos guardados</h2><p>Este paso actualiza las fichas de Productividad, Holds y Finalizadas.</p></div>
 <section class="panel" id="auditUploadPanel" data-upload-panel="auditorias" hidden>
  <h2>Importar auditorías</h2>
  <label for="auditFile">Archivo Excel o CSV</label>
@@ -1356,12 +1358,15 @@ import {setupFilters} from './filtros-desarrollo.mjs?v=resumen';
 import {renderOperationalCards,renderComparison,renderCreationChart,renderHoldsRanking} from './visuales-desarrollo.mjs?v=graficos-unificados';
 const firebaseConfig={apiKey:'AIzaSyB7edb0wGmf86KVrca5zkBTju7wg_zVDFk',authDomain:'dashboard-kpi-teammati.firebaseapp.com',projectId:'dashboard-kpi-teammati',storageBucket:'dashboard-kpi-teammati.firebasestorage.app',messagingSenderId:'158470825794',appId:'1:158470825794:web:33eb0d3c862756b9d7cadb',measurementId:'G-7E8M7NSPV0'};
 const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app);
-import {setupAudits} from './auditorias-ui.mjs?v=detalle-scp';
+import {setupAudits} from './auditorias-ui.mjs?v=carga-conjunta';
 import {createSparkAudits} from './auditorias-spark.mjs?v=plazo';
 import {pmFlowLabels,pmOperationalFlow,initiativeFlow,pmTaskDistribution} from './pm-analytics.mjs?v=pm-ronda-3';
 
 const sparkAuditCall=createSparkAudits({db,doc,getDocs,collection,query,where,documentId,runTransaction,serverTimestamp,
  currentUid:()=>auth.currentUser?.uid,currentMeli:()=>profileData?.idMeli,currentRole:()=>profileData?.rol});
+import {setupBulkUpload} from './carga-conjunta.mjs?v=1';
+const bulkHandlers=new Map();let bulkSaving=false,bulkUpload;
+function bindBulkHandler(id,event,handler){bulkHandlers.set(id,handler);$(id).addEventListener(event,handler);}
 const auditFeatures = setupAudits({
  db, doc, getDocs, collection, query, where, writeBatch, serverTimestamp, onSnapshot, orderBy, limit,
  loadXlsx:()=>loadXlsx(),
@@ -1430,7 +1435,7 @@ async function loadAccessPermission(user){
 }
 const isPmPanel=()=>isPM;
 const $=id=>document.getElementById(id);let isPM=false,selectedTeam='',publishedItems=[];let isAdmin=false,workbook=null,importPlan=null,importBusy=false,profileData=null,kpiCache=[],kpiLoaded=false,holdsCache=[],holdsImportPlan=null,holdsBusy=false,gestionCache=[],gestionPlan=null,gestionBusy=false,excludedPeople=new Set();const TEAM='Matías Minczuk';const TEAMS=['Matías Minczuk','Matías López','Celeste Cignoli'];const validTeam=v=>TEAMS.find(t=>normalize(t)===normalize(v))||'';
-function showLogin(){resetPmReview();auditFeatures.stop();document.body.classList.add('auth-screen');clearQuality();gestionPlan=null;workbook=null;accessPermission=null;permissionAccounts=[];permissionGrants.clear();isPM=false;selectedTeam='';publishedItems=[];document.body.classList.remove('pm-review','employee-mode','admin-mode','pm-design','tl-design','pm-productivity','pm-flows','pm-settings');importPlan=null;isAdmin=false;profileData=null;kpiCache=[];holdsCache=[];holdsImportPlan=null;gestionCache=[];gestionPlan=null;kpiLoaded=false;excludedPeople=new Set(); $('login').classList.remove('hidden');$('dashboard').classList.add('hidden');$('logout').classList.add('hidden');$('headerKpi').classList.add('hidden'); }
+function showLogin(){bulkUpload?.reset();resetPmReview();auditFeatures.stop();document.body.classList.add('auth-screen');clearQuality();gestionPlan=null;workbook=null;accessPermission=null;permissionAccounts=[];permissionGrants.clear();isPM=false;selectedTeam='';publishedItems=[];document.body.classList.remove('pm-review','employee-mode','admin-mode','pm-design','tl-design','pm-productivity','pm-flows','pm-settings');importPlan=null;isAdmin=false;profileData=null;kpiCache=[];holdsCache=[];holdsImportPlan=null;gestionCache=[];gestionPlan=null;kpiLoaded=false;excludedPeople=new Set(); $('login').classList.remove('hidden');$('dashboard').classList.add('hidden');$('logout').classList.add('hidden');$('headerKpi').classList.add('hidden'); }
 function arrangeEmployeePanels(){
  const weekly=$('weeklyPanel'),summary=$('summaryVisual'),holds=$('holdsPanel'),creations=$('employeeCreationsPanel'),gestion=$('gestionPanel'),times=$('tiemposPanel'),table=$('employeeWeeklyTablePanel');
  const wrap=weekly.parentNode;
@@ -1511,7 +1516,7 @@ function correctionBase(){
  if(candidates.length>1)throw Error('Hay varias fuentes de Correcciones. Conservá una sola columna de origen.');
  return candidates.length?analyzeBase(candidates[0],'Correcciones'):null;
 }
-function validateWorkbook(){const box=$('validation');box.classList.remove('hidden');try{const daily=analyzeBase('Base diaria','Tareas totales'),creations=analyzeBase('Base creaciones','Creaciones');const corrections=correctionBase(),all=[...daily.records,...creations.records,...(corrections?.records||[])],people=new Map();for(const r of all)people.set(r.id,r.name);const dates=all.map(r=>r.date).sort(),issues=[...daily.issues,...creations.issues,...(corrections?.issues||[])];const esc=v=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));const valid=issues.length===0&&daily.duplicates===0&&creations.duplicates===0&&!(corrections?.duplicates)&&daily.records.length>0&&creations.records.length>0; if(valid){prepareImport(daily,creations,corrections).catch(e=>{console.error(e);$('importStatus').textContent='No se pudo comparar con Firebase: '+e.message;$('importStatus').className='status bad';});}else{$('importPanel').classList.add('hidden');importPlan=null;}box.innerHTML=`<h3>✓ Vista previa de Productividad</h3><p class="muted">${fmt(new Set(all.map(row=>row.equipo)).size)} equipos incluidos en la carga.</p><div class="summary"><div>Tareas (registros)<strong>${daily.records.length.toLocaleString('es-AR')}</strong></div><div>Creaciones (registros)<strong>${creations.records.length.toLocaleString('es-AR')}</strong></div><div>IDs MELI distintos<strong>${people.size}</strong></div><div>Fechas disponibles<strong>${dates.length?esc(dates[0]+' a '+dates.at(-1)):'—'}</strong></div></div><p><strong>Filas del equipo:</strong> ${daily.teamRows} en Base diaria y ${creations.teamRows} en Base creaciones.</p><p><strong>Registros repetidos por fecha + ID:</strong> ${daily.duplicates+creations.duplicates}. Se consideran una sola vez en esta vista previa; antes de importar se deberán revisar.</p><p><strong>Registros inválidos:</strong> ${issues.length}.</p>${issues.length?`<ul class="bad">${issues.slice(0,8).map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:'<p class="good">✓ Todos los registros seleccionados tienen fecha, ID MELI, colaborador y cantidad válidos.</p>'}<h3>Catalogadores detectados</h3><div class="table-wrap"><table><thead><tr><th>ID MELI</th><th>Colaborador</th></tr></thead><tbody>${[...people].sort((a,b)=>a[1].localeCompare(b[1])).map(([id,name])=>`<tr><td>${esc(id)}</td><td>${esc(name)}</td></tr>`).join('')}</tbody></table></div><p class="muted">Los datos aún no se guardaron. La importación definitiva incluirá controles de duplicados, cambios y autorización del administrador.</p>`;}catch(e){console.error(e);box.innerHTML='';const p=document.createElement('p');p.className='bad';p.textContent='No se pudo validar el equipo: '+e.message;box.appendChild(p);}}
+async function validateWorkbook(){const box=$('validation');box.classList.remove('hidden');try{const daily=analyzeBase('Base diaria','Tareas totales'),creations=analyzeBase('Base creaciones','Creaciones');const corrections=correctionBase(),all=[...daily.records,...creations.records,...(corrections?.records||[])],people=new Map();for(const r of all)people.set(r.id,r.name);const dates=all.map(r=>r.date).sort(),issues=[...daily.issues,...creations.issues,...(corrections?.issues||[])];const esc=v=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));const valid=issues.length===0&&daily.duplicates===0&&creations.duplicates===0&&!(corrections?.duplicates)&&daily.records.length>0&&creations.records.length>0; if(valid){await prepareImport(daily,creations,corrections).catch(e=>{console.error(e);$('importStatus').textContent='No se pudo comparar con Firebase: '+e.message;$('importStatus').className='status bad';});}else{$('importPanel').classList.add('hidden');importPlan=null;}box.innerHTML=`<h3>✓ Vista previa de Productividad</h3><p class="muted">${fmt(new Set(all.map(row=>row.equipo)).size)} equipos incluidos en la carga.</p><div class="summary"><div>Tareas (registros)<strong>${daily.records.length.toLocaleString('es-AR')}</strong></div><div>Creaciones (registros)<strong>${creations.records.length.toLocaleString('es-AR')}</strong></div><div>IDs MELI distintos<strong>${people.size}</strong></div><div>Fechas disponibles<strong>${dates.length?esc(dates[0]+' a '+dates.at(-1)):'—'}</strong></div></div><p><strong>Filas del equipo:</strong> ${daily.teamRows} en Base diaria y ${creations.teamRows} en Base creaciones.</p><p><strong>Registros repetidos por fecha + ID:</strong> ${daily.duplicates+creations.duplicates}. Se consideran una sola vez en esta vista previa; antes de importar se deberán revisar.</p><p><strong>Registros inválidos:</strong> ${issues.length}.</p>${issues.length?`<ul class="bad">${issues.slice(0,8).map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:'<p class="good">✓ Todos los registros seleccionados tienen fecha, ID MELI, colaborador y cantidad válidos.</p>'}<h3>Catalogadores detectados</h3><div class="table-wrap"><table><thead><tr><th>ID MELI</th><th>Colaborador</th></tr></thead><tbody>${[...people].sort((a,b)=>a[1].localeCompare(b[1])).map(([id,name])=>`<tr><td>${esc(id)}</td><td>${esc(name)}</td></tr>`).join('')}</tbody></table></div><p class="muted">Los datos aún no se guardaron. La importación definitiva incluirá controles de duplicados, cambios y autorización del administrador.</p>`;}catch(e){console.error(e);box.innerHTML='';const p=document.createElement('p');p.className='bad';p.textContent='No se pudo validar el equipo: '+e.message;box.appendChild(p);}}
 
 
 // Guardado en Firestore: cada ID MELI tiene un documento kpis/{idMeli} y
@@ -1552,10 +1557,10 @@ async function prepareImport(daily,creations,corrections){
   $('confirmImport').disabled=changes.length===0;
   if(changes.length===0)$('importStatus').textContent='✓ Firebase ya contiene todos los registros de este archivo. No hay cambios para guardar.';
 }
-$('confirmImport').addEventListener('click',async()=>{
+bindBulkHandler('confirmImport','click',async()=>{
   if(importBusy||!importPlan||!canImportBases()||!auth.currentUser)return;
   const plan=importPlan;
-  if(!window.confirm(`¿Guardar ${plan.stats.newCount} registros nuevos y actualizar ${plan.stats.updatedCount} corregidos en Firebase?`))return;
+  if(!bulkSaving&&!window.confirm(`¿Guardar ${plan.stats.newCount} registros nuevos y actualizar ${plan.stats.updatedCount} corregidos en Firebase?`))return;
   importBusy=true;$('confirmImport').disabled=true;$('excelFile').disabled=true;
   const status=$('importStatus');status.className='status';
   try{
@@ -1590,7 +1595,7 @@ $('confirmImport').addEventListener('click',async()=>{
 });
 
 $('sheetSelect').addEventListener('change',previewSheet);
-$('excelFile').addEventListener('change',async event=>{if(!canImportBases())return;const file=event.target.files?.[0];if(!file)return;$('preview').classList.add('hidden');$('validation').classList.add('hidden');$('importPanel').classList.add('hidden');importPlan=null;$('fileStatus').className='status';$('fileStatus').textContent='Leyendo archivo...';try{if(!/\.(xlsm|xlsx)$/i.test(file.name))throw Error('Elegí un archivo .xlsm o .xlsx');await loadXlsx();const bytes=await file.arrayBuffer();workbook=window.XLSX.read(bytes,{type:'array',bookVBA:false});if(!workbook.SheetNames.includes('Base diaria')||!workbook.SheetNames.includes('Base creaciones'))throw Error('El archivo no contiene las hojas Base diaria y Base creaciones.');$('sheetCount').textContent=workbook.SheetNames.length;$('dailyCount').textContent=countData('Base diaria').toLocaleString('es-AR');$('creationCount').textContent=countData('Base creaciones').toLocaleString('es-AR');const select=$('sheetSelect');select.replaceChildren();['Base diaria','Base creaciones',...workbook.SheetNames.filter(n=>n!=='Base diaria'&&n!=='Base creaciones')].forEach(name=>{const opt=document.createElement('option');opt.value=name;opt.textContent=name;select.appendChild(opt);});previewSheet();await loadImportPeople();validateWorkbook();$('preview').classList.remove('hidden');$('fileStatus').className='status good';$('fileStatus').textContent='✓ Archivo leído correctamente. No se guardó ningún dato.';}catch(e){console.error(e);$('fileStatus').className='status bad';$('fileStatus').textContent=e.message||'No se pudo leer el archivo.';}});
+bindBulkHandler('excelFile','change',async event=>{if(!canImportBases())return;const file=event.target.files?.[0];if(!file)return;$('preview').classList.add('hidden');$('validation').classList.add('hidden');$('importPanel').classList.add('hidden');importPlan=null;$('fileStatus').className='status';$('fileStatus').textContent='Leyendo archivo...';try{if(!/\.(xlsm|xlsx)$/i.test(file.name))throw Error('Elegí un archivo .xlsm o .xlsx');await loadXlsx();const bytes=await file.arrayBuffer();workbook=window.XLSX.read(bytes,{type:'array',bookVBA:false});if(!workbook.SheetNames.includes('Base diaria')||!workbook.SheetNames.includes('Base creaciones'))throw Error('El archivo no contiene las hojas Base diaria y Base creaciones.');$('sheetCount').textContent=workbook.SheetNames.length;$('dailyCount').textContent=countData('Base diaria').toLocaleString('es-AR');$('creationCount').textContent=countData('Base creaciones').toLocaleString('es-AR');const select=$('sheetSelect');select.replaceChildren();['Base diaria','Base creaciones',...workbook.SheetNames.filter(n=>n!=='Base diaria'&&n!=='Base creaciones')].forEach(name=>{const opt=document.createElement('option');opt.value=name;opt.textContent=name;select.appendChild(opt);});previewSheet();await loadImportPeople();await validateWorkbook();$('preview').classList.remove('hidden');$('fileStatus').className='status good';$('fileStatus').textContent='✓ Archivo leído correctamente. No se guardó ningún dato.';}catch(e){console.error(e);$('fileStatus').className='status bad';$('fileStatus').textContent=e.message||'No se pudo leer el archivo.';}});
 
 // V5: lectura de KPI reales de Firestore. El administrador consulta todas las fichas;
 // cada catalogador solo puede consultar su ficha vinculada mediante idMeli.
@@ -2205,10 +2210,10 @@ async function notificationDigest(value){
  const hash=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(JSON.stringify(value)));
  return Array.from(new Uint8Array(hash),byte=>byte.toString(16).padStart(2,'0')).join('');
 }
-$('publishKpis').addEventListener('click',async()=>{
+bindBulkHandler('publishKpis','click',async()=>{
  if(!canImportBases()||publishing||!auth.currentUser)return;
  if(importBusy||holdsBusy||gestionBusy||calidadBusy){$('publishStatus').textContent='Esperá a que termine la carga antes de publicar.';return;}
- if(!confirm('¿Leer el historial de Firebase y publicar los KPI actualizados para todos los colaboradores? Esta operación puede consumir muchas lecturas.'))return;
+ if(!bulkSaving&&!confirm('¿Leer el historial de Firebase y publicar los KPI actualizados para todos los colaboradores? Esta operación puede consumir muchas lecturas.'))return;
  publishing=true;$('publishKpis').disabled=true;const status=$('publishStatus');status.className='status';status.textContent='Leyendo historial original (una sola pasada)…';
  try{
   const uid=auth.currentUser.uid,versions=[];
@@ -2318,7 +2323,7 @@ function renderHolds(){
  if(!ordered.length){const cell=weekly.insertRow().insertCell();cell.colSpan=2;cell.textContent='Sin registros para los filtros seleccionados';}
 }
 function holdRecordId(cdm,fecha){return 'hold2_'+String(cdm).replace(/[^a-zA-Z0-9_-]/g,'_')+'_'+fecha;}
-$('holdsFile').addEventListener('change',async event=>{
+bindBulkHandler('holdsFile','change',async event=>{
  if(!canImportBases())return;const file=event.target.files?.[0];if(!file)return;
  holdsImportPlan=null;$('confirmHoldsImport').disabled=true;$('holdsImportPanel').classList.add('hidden');$('holdsFileStatus').className='status';$('holdsFileStatus').textContent='Analizando CSV…';
  try{
@@ -2370,9 +2375,9 @@ $('holdsFile').addEventListener('change',async event=>{
   $('holdsFileStatus').className='status good';$('holdsFileStatus').textContent='✓ CSV analizado. Aún no se guardó nada.';
  }catch(e){console.error(e);$('holdsFileStatus').className='status bad';$('holdsFileStatus').textContent='No se pudo analizar el CSV: '+e.message;}
 });
-$('confirmHoldsImport').addEventListener('click',async()=>{
+bindBulkHandler('confirmHoldsImport','click',async()=>{
  if(!canImportBases()||holdsBusy||!holdsImportPlan||!auth.currentUser)return;
- const plan=holdsImportPlan;if(!confirm(`¿Guardar ${plan.stats.newCount} holds nuevos y actualizar ${plan.stats.updatedCount}?`))return;
+ const plan=holdsImportPlan;if(!bulkSaving&&!confirm(`¿Guardar ${plan.stats.newCount} holds nuevos y actualizar ${plan.stats.updatedCount}?`))return;
  holdsBusy=true;$('confirmHoldsImport').disabled=true;$('holdsFile').disabled=true;
  const status=$('holdsImportStatus');status.className='status';
  try{const noticeScope=await notificationScope(plan.changes);
@@ -2485,7 +2490,7 @@ function renderGestion(){
   $('gPattern').textContent=rows.some(r=>r.versionGestion!==G_SCHEMA)?'Hay jornadas con una versión anterior del cálculo. Reimportá Finalizadas para actualizar horarios y franjas. Los porcentajes horarios consideran solo los cierres válidos actualizados.':closed?`La franja con más cierres es ${G_BINS[best]} (${gPct(bins[best],closed)}). Entre las 15 y las 18 h se registraron ${fmt(last3)} cierres. Inicio y fin representan actividad observada por jornada.`:'No hay cierres con horario válido para los filtros elegidos.';
 }
 let gestionAnalysisVersion=0;
-$('gestionFile').addEventListener('change',async event=>{
+bindBulkHandler('gestionFile','change',async event=>{
  if(!canImportBases()||gestionBusy)return;
  const analysisVersion=++gestionAnalysisVersion;const file=event.target.files?.[0];if(!file)return;gestionPlan=null;$('gestionImportPanel').classList.add('hidden');$('confirmGestionImport').disabled=true;$('gestionFileStatus').className='status';$('gestionFileStatus').textContent='Analizando CSV de Gestión…';
  try{if(!/\.csv$/i.test(file.name))throw Error('Seleccioná un CSV.');const matrix=parseGestionCSV(await file.text());const head=matrix[0]||[],col=name=>head.findIndex(h=>normalize(h)===normalize(name));const idx={id:col('Colaborador'),date:col('Fecha fin'),startDate:col('Fecha inicio'),flow:col('Iniciativa'),start:col('Asignación'),end:col('Finalización')};if(Object.values(idx).some(v=>v<0))throw Error('Faltan columnas: Colaborador, Fecha inicio, Fecha fin, Iniciativa, Asignación o Finalización.');
@@ -2511,8 +2516,8 @@ $('gestionFile').addEventListener('change',async event=>{
  }catch(e){if(analysisVersion!==gestionAnalysisVersion)return;console.error(e);$('gestionFileStatus').className='status bad';$('gestionFileStatus').textContent='Error al analizar Gestión: '+e.message;}
 });
 $('gestionClock').addEventListener('change',()=>{if(!gestionBusy&&$('gestionFile').files.length)$('gestionFile').dispatchEvent(new Event('change'));});
-$('confirmGestionImport').addEventListener('click',async()=>{
- if(!canImportBases()||gestionBusy||!gestionPlan||!auth.currentUser)return;const plan=gestionPlan;if(!confirm(`¿Guardar ${plan.stats.newCount} jornadas nuevas y actualizar ${plan.stats.updatedCount} jornadas de Gestión?`))return;
+bindBulkHandler('confirmGestionImport','click',async()=>{
+ if(!canImportBases()||gestionBusy||!gestionPlan||!auth.currentUser)return;const plan=gestionPlan;if(!bulkSaving&&!confirm(`¿Guardar ${plan.stats.newCount} jornadas nuevas y actualizar ${plan.stats.updatedCount} jornadas de Gestión?`))return;
  gestionBusy=true;$('confirmGestionImport').disabled=true;$('gestionFile').disabled=true;const status=$('gestionImportStatus');status.className='status';
  try{const noticeScope=await notificationScope(plan.changes);for(let i=0;i<plan.changes.length;i+=250){const batch=writeBatch(db);for(const {recordId,record} of plan.changes.slice(i,i+250))batch.set(doc(db,'kpis',record.id,'registros',recordId),{...record,operacionAviso:noticeScope.operacionAviso,actualizadoEn:serverTimestamp()});await batch.commit();status.textContent=`Guardando Gestión… ${Math.min(i+250,plan.changes.length)} de ${plan.changes.length}`;}
  const log=writeBatch(db);log.set(doc(collection(db,'importaciones')),{archivo:plan.fileName,tipo:'gestion',...noticeScope,equipo:isPM?'Todos los equipos':selectedTeam,usuario:auth.currentUser.uid,nuevos:plan.stats.newCount,corregidos:plan.stats.updatedCount,fecha:serverTimestamp(),estado:'completado'});await log.commit();status.className='status good';status.textContent='✓ Gestión guardada correctamente en Firebase.';gestionPlan=null;showPublicationShortcut(status);
@@ -2633,6 +2638,7 @@ function showPublicationShortcut(status){
 function selectUploadBase(name){
  document.querySelectorAll('[data-upload]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.upload===name)));
  document.querySelectorAll('[data-upload-panel]').forEach(panel=>{panel.hidden=panel.dataset.uploadPanel!==name;});
+ $('publicationActions').hidden=name==='lote';
 }
 document.querySelectorAll('[data-upload]').forEach(button=>button.addEventListener('click',()=>selectUploadBase(button.dataset.upload)));
 let qualityState={people:[],target:null,error:'',loading:false};
@@ -3200,7 +3206,7 @@ async function recoverOctoberQuality(uid){
  finally{if(octoberQualityRecovery?.promise===promise)octoberQualityRecovery=null;}
 }
 
-$('confirmCalidadImport').addEventListener('click',async()=>{
+bindBulkHandler('confirmCalidadImport','click',async()=>{
  if(calidadBusy||!calidadPlan?.analysis.entries.length||!canImportBases()||!auth.currentUser)return;
  const uid=auth.currentUser.uid,plan=calidadPlan,status=$('calidadImportStatus');
  const button=$('confirmCalidadImport');
@@ -3441,4 +3447,41 @@ showDashboard=function(...args){
 };
 const originalPmRender=renderPmOverview;
 renderPmOverview=function(){if(isAdmin)setupPmExactDesign();return originalPmRender();};
+
+bulkUpload=setupBulkUpload({$,allowed:canImportBases,
+ lock(value){for(const panel of document.querySelectorAll('[data-upload-panel]:not([data-upload-panel="lote"])'))panel.inert=value;},
+ async readSheets(file){await loadXlsx();const wb=window.XLSX.read(await file.arrayBuffer(),{type:'array',raw:true,cellDates:true,codepage:65001});return wb.SheetNames.map(name=>({name,rows:window.XLSX.utils.sheet_to_json(wb.Sheets[name],{header:1,defval:'',raw:true}).slice(0,15)}));},
+ async analyze(file,type,month){
+  const uid=auth.currentUser?.uid;if(!uid||!canImportBases())throw Error('Iniciá sesión con permiso para cargar bases.');
+  const spec={productividad:['excelFile','importStatus'],holds:['holdsFile','holdsFileStatus'],finalizadas:['gestionFile','gestionFileStatus'],calidad:['calidadFile','calidadFileStatus']};
+  if(type==='auditorias'){
+   const prepared=await auditFeatures.prepareBatch(file,month);
+   if(auth.currentUser?.uid!==uid)throw Error('La sesión cambió. Volvé a revisar los archivos.');
+   return {...prepared,uid,summary:prepared.summary,fingerprints:prepared.request.filas.map(({fila,hoja,...row})=>['auditorias:'+row.externo,JSON.stringify(row)])};
+  }
+  const [inputId,statusId]=spec[type],transfer=new DataTransfer();transfer.items.add(file);$(inputId).files=transfer.files;$(statusId).className='status';$(statusId).textContent='';
+  if(type==='calidad'){$('qualityArchive').value='';$('qualityImportMonth').value=month;await analyzeQualityFile();}
+  else await bulkHandlers.get(inputId)({target:$(inputId)});
+  if(auth.currentUser?.uid!==uid)throw Error('La sesión cambió. Volvé a revisar los archivos.');
+  const plan=type==='productividad'?importPlan:type==='holds'?holdsImportPlan:type==='finalizadas'?gestionPlan:calidadPlan;
+  if(!plan||$(statusId).classList.contains('bad'))throw Error($(statusId).textContent||$('fileStatus').textContent||'No se pudo validar el archivo. Revisá sus columnas y fechas.');
+  if(type==='calidad'){
+   if(!plan.analysis.entries.length)throw Error(plan.analysis.rejected[0]?.reason||'No hay resultados válidos de Calidad.');
+   return {uid,plan,summary:plan.analysis.entries.length+' resultados de Calidad'+(plan.analysis.rejected.length?' · '+plan.analysis.rejected.length+' filas rechazadas (no se cargan): '+plan.analysis.rejected[0].reason:''),fingerprints:plan.analysis.entries.map(row=>['calidad:'+row.key,JSON.stringify(row.record)])};
+  }
+  return {uid,plan,summary:plan.stats.newCount+' nuevos · '+plan.stats.updatedCount+' actualizados · '+(plan.stats.unchangedCount||0)+' sin cambios',fingerprints:plan.changes.map(({recordId,record})=>[record.id+':'+recordId,JSON.stringify(record)])};
+ },
+ async save(file,type,prepared){
+  if(auth.currentUser?.uid!==prepared.uid)throw Error('La sesión cambió. Volvé a iniciar sesión y revisar.');
+  if(type==='auditorias'){await auditFeatures.saveBatch(prepared.request);return;}
+  const spec={productividad:['confirmImport','importStatus'],holds:['confirmHoldsImport','holdsImportStatus'],finalizadas:['confirmGestionImport','gestionImportStatus'],calidad:['confirmCalidadImport','calidadImportStatus']};
+  if(type!=='calidad'&&!prepared.plan.changes.length)return;
+  if(type==='productividad')importPlan=prepared.plan;else if(type==='holds')holdsImportPlan=prepared.plan;else if(type==='finalizadas')gestionPlan=prepared.plan;else calidadPlan=prepared.plan;
+  const [button,status]=spec[type];$(status).className='status';$(status).textContent='';bulkSaving=true;
+  try{await bulkHandlers.get(button)();if(!$(status).classList.contains('good'))throw Error($(status).textContent||'No se completó la carga.');}finally{bulkSaving=false;}
+ },
+ async publish(){bulkSaving=true;try{await bulkHandlers.get('publishKpis')();if(!$('publishStatus').classList.contains('good'))throw Error($('publishStatus').textContent||'No se confirmó la publicación.');}finally{bulkSaving=false;}}
+});
+selectUploadBase('lote');
+
 </script></body></html>

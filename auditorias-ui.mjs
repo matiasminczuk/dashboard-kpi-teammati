@@ -765,7 +765,24 @@ export function setupAudits(api) {
     }
     finally {if (ctx() === current) importBusy(false);}
   };
-  return {start,stop,closeView,openView,refresh:renderAuditList,
+  async function prepareBatch(file,month){
+    if(!session?.global||busy)throw Error('Tu cuenta no puede cargar auditorías en este momento.');
+    const transfer=new DataTransfer();transfer.items.add(file);fileInput.files=transfer.files;
+    await fileInput.onchange();$('auditReferenceMonth').value=month;
+    if(!sheets.length)throw Error(status.textContent||'No se pudo leer el archivo de auditorías.');
+    const filas=sheets.filter(sheet=>sheet.include).flatMap(sheet=>mapAuditRows(sheet,month,window.XLSX.SSF.parse_date_code));
+    if(!filas.length)throw Error('El archivo no tiene auditorías válidas.');
+    const request={archivo:file.name,filas},validation=await api.call('auditoriasImportar',{...request,confirmar:false});
+    if(validation.rechazadas.length)throw Error(validation.rechazadas.length+' filas rechazadas: '+validation.rechazadas[0].motivo);
+    return {request,summary:validation.validas.length+' con error · '+(validation.sinError?.length||0)+' sin error · '+validation.incidencias.length+' sin asignar · '+validation.duplicadas.length+' duplicadas'};
+  }
+  async function saveBatch(request){
+    if(!session?.global||busy)throw Error('Tu cuenta no puede cargar auditorías en este momento.');
+    const validation=await api.call('auditoriasImportar',{...request,confirmar:false});
+    if(validation.rechazadas.length)throw Error('El archivo tiene filas rechazadas. Revisalo antes de guardar.');
+    return api.call('auditoriasImportar',{...request,confirmar:true});
+  }
+  return {start,stop,closeView,openView,prepareBatch,saveBatch,refresh:renderAuditList,
     qualityAudits(){
       if (!session || !auditScope(api,session,session.global).length) return null;
       listenAudits();
