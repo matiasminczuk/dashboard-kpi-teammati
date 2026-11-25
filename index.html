@@ -1313,7 +1313,7 @@ body.employee-mode :is(#qualityOverviewCards,#qualityFlowCards) .quality-goal{gr
  </dialog>
  <section id="auditReports" hidden></section>
 </section>
-<div id="viewUpload" class="hidden"><div class="pm-overview-heading"><p class="pm-eyebrow">ACTUALIZACIÓN DE INFORMACIÓN</p><h1>Cargar bases</h1><p>Seleccioná todos los archivos, revisalos y cargalos juntos.</p></div><nav class="upload-tabs" aria-label="Tipo de base"><button type="button" data-upload="lote" aria-pressed="true">Carga conjunta</button><button type="button" data-upload="productividad" aria-pressed="true">Productividad</button><button type="button" data-upload="holds" aria-pressed="false">Holds</button><button type="button" data-upload="finalizadas" aria-pressed="false">Finalizadas</button><button type="button" data-upload="calidad" aria-pressed="false">Calidad</button><button type="button" data-upload="auditorias" aria-pressed="false">Auditorías</button></nav><section class="panel bulk-upload" data-upload-panel="lote" aria-labelledby="bulkTitle"><h2 id="bulkTitle">Cargar archivos juntos</h2><p>Agregá las bases de Productividad, Holds, Finalizadas, Calidad y Auditorías. Detectamos el formato de cada archivo.</p><label for="bulkFiles">Seleccionar archivos</label><input id="bulkFiles" type="file" multiple accept=".xlsx,.xlsm,.xls,.csv"><p id="bulkCount" class="muted"></p><label for="bulkMonth">Mes de referencia, si el archivo no incluye fechas</label><input id="bulkMonth" type="month"><div class="table-wrap"><table><thead><tr><th>Archivo</th><th>Base</th><th>Revisión</th><th>Acciones</th></tr></thead><tbody id="bulkRows"></tbody></table></div><div class="bulk-actions"><button id="bulkAnalyze" type="button">Revisar archivos</button><button id="bulkSave" type="button" disabled>Cargar y publicar todo</button><button id="bulkClear" type="button" class="tab">Limpiar selección</button></div><p id="bulkStatus" class="status" role="status" aria-live="polite"></p></section><div id="publicationActions"><h2>Publicar datos guardados</h2><p>Este paso actualiza las fichas de Productividad, Holds y Finalizadas.</p></div>
+<div id="viewUpload" class="hidden"><div class="pm-overview-heading"><p class="pm-eyebrow">ACTUALIZACIÓN DE INFORMACIÓN</p><h1>Cargar bases</h1><p>Seleccioná todos los archivos, revisalos y cargalos juntos.</p></div><nav class="upload-tabs" aria-label="Carga de bases"><button type="button" data-upload="lote" aria-pressed="true">Carga conjunta</button></nav><section class="panel bulk-upload" data-upload-panel="lote" aria-labelledby="bulkTitle"><h2 id="bulkTitle">Cargar archivos juntos</h2><p>Agregá las bases de Productividad, Holds, Finalizadas, Calidad y Auditorías. Detectamos el formato de cada archivo.</p><label for="bulkFiles">Seleccionar archivos</label><input id="bulkFiles" type="file" multiple accept=".xlsx,.xlsm,.xls,.csv"><p id="bulkCount" class="muted"></p><label for="bulkMonth">Mes de referencia, si el archivo no incluye fechas</label><input id="bulkMonth" type="month"><div class="table-wrap"><table><thead><tr><th>Archivo</th><th>Base</th><th>Revisión</th><th>Acciones</th></tr></thead><tbody id="bulkRows"></tbody></table></div><div class="bulk-actions"><button id="bulkAnalyze" type="button">Revisar archivos</button><button id="bulkSave" type="button" disabled>Cargar y publicar todo</button><button id="bulkClear" type="button" class="tab">Limpiar selección</button></div><p id="bulkStatus" class="status" role="status" aria-live="polite"></p></section><div id="publicationActions"><h2>Publicar datos guardados</h2><p>Este paso actualiza las fichas de Productividad, Holds y Finalizadas.</p></div>
 <section class="panel" id="auditUploadPanel" data-upload-panel="auditorias" hidden>
  <h2>Importar auditorías</h2>
  <label for="auditFile">Archivo Excel o CSV</label>
@@ -2636,6 +2636,7 @@ function showPublicationShortcut(status){
  status.append(' Pendiente de publicar. ',link);
 }
 function selectUploadBase(name){
+ name='lote';
  document.querySelectorAll('[data-upload]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.upload===name)));
  document.querySelectorAll('[data-upload-panel]').forEach(panel=>{panel.hidden=panel.dataset.uploadPanel!==name;});
  $('publicationActions').hidden=name==='lote';
@@ -3144,7 +3145,7 @@ async function findQualityArchives(){
 }
 $('qualityFindArchives').addEventListener('click',findQualityArchives);
 $('qualityRecoverLink').addEventListener('click',()=>{
- $('openUpload').click();selectUploadBase('calidad');findQualityArchives();
+ $('openUpload').click();selectUploadBase('lote');
 });
 $('qualityImportMonth').addEventListener('change',analyzeQualityFile);
 function qualityPublicationId(plan){
