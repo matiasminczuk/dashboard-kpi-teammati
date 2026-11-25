@@ -2071,6 +2071,7 @@ function devAuditPeriod(audit){
 function applyPublishedData(items){
  inactiveRosterIds=new Set(items.filter(item=>item.activo===false).map(item=>String(item.idMeli)));
  items=items.filter(item=>item.activo!==false);
+ const filters=devFilters.state();filters.teams=filters.teams.filter(team=>Boolean(validTeam(team)));filters.people=filters.people.filter(id=>!inactiveRosterIds.has(String(id)));
  const personalId=String(profileData?.idMeli||'').trim();
  publishedItems=!isAdmin?items.filter(item=>personalId&&String(item.idMeli)===personalId):!isPM?items.filter(item=>selectedTeam&&validTeam(item.equipo)===selectedTeam):items;applyTeamView();}
 let pmReviewOriginal=null;
