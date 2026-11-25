@@ -1,6 +1,6 @@
 import {auditErrorRanking} from './auditorias-ranking.mjs';
 import {itemUrl,normalizeQualityFlow} from './gestion-desarrollo.mjs';
-import {labels, mapHeaders, mapAuditRows, hasNetkelColumns, auditSourceFlow} from './auditorias-import.mjs?v=flujo-sdc';
+import {labels, mapHeaders, mapAuditRows, hasNetkelColumns, auditSourceFlow} from './auditorias-import.mjs?v=detalle-scp';
 import {auditReviewTotals, auditScope, observeSparkNotices, ownsAudit, watchAuditScope, auditResponseOpen, auditResponseDeadline} from './auditorias-spark.mjs?v=plazo';
 
 const states = {

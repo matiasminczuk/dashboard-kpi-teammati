@@ -45,7 +45,24 @@ function isCorrectionExport(headers) {
     .every(name => uniqueColumn(headers, [name]) >= 0);
 }
 
+function creationColumns(headers) {
+  const names=headers.map(normalized);
+  const find=(...aliases)=>{const matches=names.flatMap((name,index)=>aliases.includes(name)?[index]:[]);return matches.length===1?matches[0]:-1;};
+  const columns={suggestion:find('suggestion id'),attribute:find('atributo/seccion'),decision:find('decision colab'),
+    check:find('check tl'),reasonCheck:find('check motivo tl'),action:find('accion correcta'),
+    collaborator:find('colaborador'),date:find('fecha auditoria'),auditor:find('auditor tl'),
+    reason:find('codigo rechazo'),comment:find('comentario'),state:find('estado sugerencia v2')};
+  return ['suggestion','attribute','decision','check','reasonCheck','action','collaborator','date'].every(key=>columns[key]>=0)?columns:null;
+}
+
 export function mapHeaders(headers) {
+  const creation=creationColumns(headers);
+  if(creation){
+    const result=Object.fromEntries(Object.keys(labels).map(key=>[key,-1]));
+    for(const [key,column] of Object.entries({externo:'suggestion',idMeli:'collaborator',fecha:'date',resultado:'action',decisionOrigen:'decision',auditor:'auditor',motivoOrigen:'reason',observaciones:'comment',estadoOrigen:'state'}))result[key]=creation[column];
+    const links=headers.map(normalized).flatMap((name,index)=>name==='link'?[index]:[]);if(links.length===1)result.referencia=links[0];
+    return result;
+  }
   const names = headers.map(normalized);
   const mapping = Object.fromEntries(Object.entries(aliases).map(([key, values]) => [key, uniqueColumn(names, values)]));
   if (mapping.externo < 0 && isCorrectionExport(names)) {
@@ -83,6 +100,7 @@ export function mapAuditRows(sheet, defaultPeriod, serialDate) {
   if (correctionExport && checks.some(([, index]) => index < 0)) {
     throw Error(name + ' · El archivo debe incluir una columna Check TL y una columna Check motivo rechazo TL.');
   }
+  const creation=creationColumns(matrix[headerRow] || []);
   const required = ['idMeli', 'resultado'];
   if (!composite) required.push('externo');
   if (composite) required.push('fecha', 'flujo', 'cdm', 'producto', 'item', 'variante');
@@ -103,6 +121,14 @@ export function mapAuditRows(sheet, defaultPeriod, serialDate) {
       else if (!row.resultado || normalized(row.resultado) === 'null') {
         row.resultado = failedChecks.map(([label, index]) => label + ' (' + (valueOf(cells[index]) || 'sin valor') + ')').join(' · ');
       }
+    }
+    if(creation){
+      const suggestion=valueOf(cells[creation.suggestion]),attribute=valueOf(cells[creation.attribute]);
+      row.flujo='SCP';row.tipo='SCP · '+attribute;row.cdm=suggestion;
+      row.externo=suggestion&&attribute&&row.fecha&&row.idMeli?'scp:'+JSON.stringify([suggestion,attribute,row.fecha,row.idMeli]):'';
+      const failed=[['Check TL',creation.check],['Check motivo TL',creation.reasonCheck]].filter(([,index])=>normalized(cells[index])!=='ok');
+      if(!failed.length)row.resultado='null';
+      else if(!row.resultado||normalized(row.resultado)==='null')row.resultado='Acción correcta no informada · '+failed.map(([label,index])=>label+' ('+(valueOf(cells[index])||'sin valor')+')').join(' · ');
     }
     if (!row.fecha) row.periodo ||= defaultPeriod;
     if (composite) {
