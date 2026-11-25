@@ -1215,7 +1215,7 @@ body.employee-mode :is(#qualityOverviewCards,#qualityFlowCards) .quality-goal{gr
 </div>
 <nav id="employeeNavigation" class="employee-only" aria-label="Mi panel"><button type="button" data-employee-view="panel" aria-pressed="true">Mi panel</button><button type="button" data-employee-view="auditorias" aria-pressed="false">Auditorías</button><button type="button" data-employee-view="configuracion" aria-pressed="false">Configuración</button></nav><div id="viewDashboard">
 <div id="employeePeriodFilters"></div><details id="employeeCriteria" class="employee-only employee-criteria"><summary>Criterios de productividad</summary><p>La productividad se calcula por jornada con registro. Podés consultar y ajustar las exclusiones de flujos para interpretar tus promedios.</p><div id="employeeCriteriaSlot"></div></details>
-<div class="panel filters"><div id="pmTeamWrap" class="hidden"><label for="pmTeamFilter">Equipo / TL</label><select id="pmTeamFilter"><option value="">Todos los equipos</option><option>Matías Minczuk</option><option>José Puentes</option><option>Matías López</option><option>Celeste Cignoli</option></select></div><div id="personFilterWrap"><label for="personFilter">Catalogador</label><select id="personFilter"><option value="">Todos los catalogadores</option></select></div><div><label for="fromWeek">Desde semana</label><select id="fromWeek"></select></div><div><label for="toWeek">Hasta semana</label><select id="toWeek"></select></div><div class="filter-actions"><button id="resetFilters" type="button" class="tab">Limpiar filtros</button><button id="reloadKpis" type="button">↻ Actualizar</button></div></div>
+<div class="panel filters"><div id="pmTeamWrap" class="hidden"><label for="pmTeamFilter">Equipo / TL</label><select id="pmTeamFilter"><option value="">Todos los equipos</option><option>Matías Minczuk</option><option>Matías López</option><option>Celeste Cignoli</option></select></div><div id="personFilterWrap"><label for="personFilter">Catalogador</label><select id="personFilter"><option value="">Todos los catalogadores</option></select></div><div><label for="fromWeek">Desde semana</label><select id="fromWeek"></select></div><div><label for="toWeek">Hasta semana</label><select id="toWeek"></select></div><div class="filter-actions"><button id="resetFilters" type="button" class="tab">Limpiar filtros</button><button id="reloadKpis" type="button">↻ Actualizar</button></div></div>
 <details id="peopleControl" class="panel people-control" hidden><summary>☑ Catalogadores incluidos en el promedio del equipo</summary><p class="muted">Destildá a quienes estén en otros proyectos. No se borra su historial: podés consultarlos individualmente desde el selector de arriba.</p><div class="people-tools"><button id="selectAllPeople" type="button" class="tab">Seleccionar todos</button><button id="clearAllPeople" type="button" class="tab">Desmarcar todos</button></div><div id="peopleChecklist" class="people-list"></div><p id="peopleCount" class="people-count"></p><p class="muted">La selección se recuerda en este navegador. Afecta al promedio del equipo, el gráfico semanal y la tabla general.</p></details>
 <p id="publishStatus" class="status hidden" role="status">Sin consultar historial.</p>
 <p id="kpiStatus" class="status" role="status">Cargando datos desde Firebase…</p>
@@ -1368,7 +1368,7 @@ const auditFeatures = setupAudits({
  call:sparkAuditCall,
  onAuditsChange:()=>{if(!$('qualityDetail').hidden)renderQuality();},
  auditRankingFlow:()=>$('qualityFlow').value,
- auditFilter:audit=>!isAdmin||(devMatches(audit.equipo,audit.colaboradorIdMeli)&&devAuditPeriod(audit)),
+ auditFilter:audit=>audit.activo!==false&&!inactiveRosterIds.has(audit.colaboradorIdMeli||audit.idMeli)&&(!isAdmin||(devMatches(audit.equipo,audit.colaboradorIdMeli)&&devAuditPeriod(audit))),
  openAuditView(){
   if(isAdmin)devFilters.mount($('viewAuditorias'));
   for(const id of ['viewDashboard','viewUpload','viewSettings'])$(id).classList.add('hidden');
@@ -1405,10 +1405,12 @@ function dashboardScope(){
  const team=isPM?(devFilters.state().teams.join(', ')||'Todos los equipos'):(selectedTeam||'Equipo sin asignar');
  return [period,team,devFilters.state().people.length?devFilters.state().people.length+' catalogadores':null].filter(Boolean).join(' · ');
 }
+let currentRosterTeams=new Map(),inactiveRosterIds=new Set();
 async function loadImportPeople(){
  if(!canImportBases())throw Error('Tu cuenta no tiene permiso para cargar bases.');
  const snapshot=await getDocs(collection(db,'kpis')),people=new Map(),teams=new Map();
- for(const document of snapshot.docs){const data=document.data(),team=validTeam(data.equipo);if(!team)continue;people.set(document.id,data.nombre||document.id);teams.set(document.id,team);}
+ currentRosterTeams=new Map();inactiveRosterIds=new Set();
+ for(const document of snapshot.docs){const data=document.data();if(data.activo===false){inactiveRosterIds.add(document.id);continue;}const team=validTeam(data.equipo);if(!team)continue;currentRosterTeams.set(document.id,team);people.set(document.id,data.nombre||document.id);teams.set(document.id,team);}
  return {people,teams};
 }
 async function loadAccessPermission(user){
@@ -1427,7 +1429,7 @@ async function loadAccessPermission(user){
  }catch(error){console.warn('Acceso adicional no disponible',error.code||error.message);}
 }
 const isPmPanel=()=>isPM;
-const $=id=>document.getElementById(id);let isPM=false,selectedTeam='',publishedItems=[];let isAdmin=false,workbook=null,importPlan=null,importBusy=false,profileData=null,kpiCache=[],kpiLoaded=false,holdsCache=[],holdsImportPlan=null,holdsBusy=false,gestionCache=[],gestionPlan=null,gestionBusy=false,excludedPeople=new Set();const TEAM='Matías Minczuk';const TEAMS=['Matías Minczuk','José Puentes','Matías López','Celeste Cignoli'];const validTeam=v=>TEAMS.find(t=>normalize(t)===normalize(v))||'';
+const $=id=>document.getElementById(id);let isPM=false,selectedTeam='',publishedItems=[];let isAdmin=false,workbook=null,importPlan=null,importBusy=false,profileData=null,kpiCache=[],kpiLoaded=false,holdsCache=[],holdsImportPlan=null,holdsBusy=false,gestionCache=[],gestionPlan=null,gestionBusy=false,excludedPeople=new Set();const TEAM='Matías Minczuk';const TEAMS=['Matías Minczuk','Matías López','Celeste Cignoli'];const validTeam=v=>TEAMS.find(t=>normalize(t)===normalize(v))||'';
 function showLogin(){resetPmReview();auditFeatures.stop();document.body.classList.add('auth-screen');clearQuality();gestionPlan=null;workbook=null;accessPermission=null;permissionAccounts=[];permissionGrants.clear();isPM=false;selectedTeam='';publishedItems=[];document.body.classList.remove('pm-review','employee-mode','admin-mode','pm-design','tl-design','pm-productivity','pm-flows','pm-settings');importPlan=null;isAdmin=false;profileData=null;kpiCache=[];holdsCache=[];holdsImportPlan=null;gestionCache=[];gestionPlan=null;kpiLoaded=false;excludedPeople=new Set(); $('login').classList.remove('hidden');$('dashboard').classList.add('hidden');$('logout').classList.add('hidden');$('headerKpi').classList.add('hidden'); }
 function arrangeEmployeePanels(){
  const weekly=$('weeklyPanel'),summary=$('summaryVisual'),holds=$('holdsPanel'),creations=$('employeeCreationsPanel'),gestion=$('gestionPanel'),times=$('tiemposPanel'),table=$('employeeWeeklyTablePanel');
@@ -1499,7 +1501,7 @@ const table=$('previewTable');table.replaceChildren();if(!data.length){table.tex
 function normalize(v){return String(v??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLowerCase().replace(/\s+/g,' ');}
 function numeric(v){if(typeof v==='number')return Number.isFinite(v)?v:NaN;const t=String(v??'').trim();if(!t)return NaN;return Number(t.replace(',','.'));}
 function dateKey(v){if(v instanceof Date&&!isNaN(v))return v.toISOString().slice(0,10);if(typeof v==='number'&&v>30000&&v<80000){const d=XLSX.SSF.parse_date_code(v);if(d)return `${d.y}-${String(d.m).padStart(2,'0')}-${String(d.d).padStart(2,'0')}`;}const t=String(v??'').trim();if(/^\d{4}-\d{2}-\d{2}/.test(t))return t.slice(0,10);const m=t.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);if(m)return `${m[3]}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`;return '';}
-function analyzeBase(sheet,metric){const matrix=XLSX.utils.sheet_to_json(workbook.Sheets[sheet],{header:1,defval:'',raw:true,blankrows:false});const header=matrix[0]||[];const col=name=>header.findIndex(h=>normalize(h)===normalize(name));const indices={date:col('Fecha'),id:col('ID MELI'),name:col('Colaborador'),team:col('Equipo'),value:col(metric)};if(Object.values(indices).some(i=>i<0))throw Error(`La hoja «${sheet}» no tiene todas las columnas requeridas: Fecha, ID MELI, Colaborador, Equipo, ${metric}.`);const roleColumn=col('Rol'),selected=new Map(),issues=[];let teamRows=0,duplicates=0;for(let i=1;i<matrix.length;i++){const r=matrix[i];const rowTeam=validTeam(r[indices.team]);if(isPM?!rowTeam:rowTeam!==selectedTeam)continue;teamRows++;const date=dateKey(r[indices.date]),id=String(r[indices.id]??'').trim(),name=String(r[indices.name]??'').trim(),value=numeric(r[indices.value]);if(!date||!id||!name||!Number.isFinite(value)||value<0){issues.push(`Fila ${i+1} de «${sheet}»: fecha, ID, nombre o cantidad inválidos.`);continue;}const key=`${date}|${id}`;if(selected.has(key))duplicates++;selected.set(key,{date,id,name,value,equipo:rowTeam,rolOrigen:String(r[roleColumn]??'').trim()});}return {sheet,metric,teamRows,duplicates,issues,records:[...selected.values()]};}
+function analyzeBase(sheet,metric){const matrix=XLSX.utils.sheet_to_json(workbook.Sheets[sheet],{header:1,defval:'',raw:true,blankrows:false});const header=matrix[0]||[];const col=name=>header.findIndex(h=>normalize(h)===normalize(name));const indices={date:col('Fecha'),id:col('ID MELI'),name:col('Colaborador'),team:col('Equipo'),value:col(metric)};if(Object.values(indices).some(i=>i<0))throw Error(`La hoja «${sheet}» no tiene todas las columnas requeridas: Fecha, ID MELI, Colaborador, Equipo, ${metric}.`);const roleColumn=col('Rol'),selected=new Map(),issues=[];let teamRows=0,duplicates=0;for(let i=1;i<matrix.length;i++){const r=matrix[i];const sourceId=String(r[indices.id]??'').trim();if(inactiveRosterIds.has(sourceId))continue;const rowTeam=currentRosterTeams.get(sourceId)||validTeam(r[indices.team]);if(isPM?!rowTeam:rowTeam!==selectedTeam)continue;teamRows++;const date=dateKey(r[indices.date]),id=String(r[indices.id]??'').trim(),name=String(r[indices.name]??'').trim(),value=numeric(r[indices.value]);if(!date||!id||!name||!Number.isFinite(value)||value<0){issues.push(`Fila ${i+1} de «${sheet}»: fecha, ID, nombre o cantidad inválidos.`);continue;}const key=`${date}|${id}`;if(selected.has(key))duplicates++;selected.set(key,{date,id,name,value,equipo:rowTeam,rolOrigen:String(r[roleColumn]??'').trim()});}return {sheet,metric,teamRows,duplicates,issues,records:[...selected.values()]};}
 function correctionBase(){
  const candidates=['Base correcciones','Base diaria','Base creaciones'].filter(sheet=>{
   if(!workbook.Sheets[sheet])return false;
@@ -1588,7 +1590,7 @@ $('confirmImport').addEventListener('click',async()=>{
 });
 
 $('sheetSelect').addEventListener('change',previewSheet);
-$('excelFile').addEventListener('change',async event=>{if(!canImportBases())return;const file=event.target.files?.[0];if(!file)return;$('preview').classList.add('hidden');$('validation').classList.add('hidden');$('importPanel').classList.add('hidden');importPlan=null;$('fileStatus').className='status';$('fileStatus').textContent='Leyendo archivo...';try{if(!/\.(xlsm|xlsx)$/i.test(file.name))throw Error('Elegí un archivo .xlsm o .xlsx');await loadXlsx();const bytes=await file.arrayBuffer();workbook=window.XLSX.read(bytes,{type:'array',bookVBA:false});if(!workbook.SheetNames.includes('Base diaria')||!workbook.SheetNames.includes('Base creaciones'))throw Error('El archivo no contiene las hojas Base diaria y Base creaciones.');$('sheetCount').textContent=workbook.SheetNames.length;$('dailyCount').textContent=countData('Base diaria').toLocaleString('es-AR');$('creationCount').textContent=countData('Base creaciones').toLocaleString('es-AR');const select=$('sheetSelect');select.replaceChildren();['Base diaria','Base creaciones',...workbook.SheetNames.filter(n=>n!=='Base diaria'&&n!=='Base creaciones')].forEach(name=>{const opt=document.createElement('option');opt.value=name;opt.textContent=name;select.appendChild(opt);});previewSheet();validateWorkbook();$('preview').classList.remove('hidden');$('fileStatus').className='status good';$('fileStatus').textContent='✓ Archivo leído correctamente. No se guardó ningún dato.';}catch(e){console.error(e);$('fileStatus').className='status bad';$('fileStatus').textContent=e.message||'No se pudo leer el archivo.';}});
+$('excelFile').addEventListener('change',async event=>{if(!canImportBases())return;const file=event.target.files?.[0];if(!file)return;$('preview').classList.add('hidden');$('validation').classList.add('hidden');$('importPanel').classList.add('hidden');importPlan=null;$('fileStatus').className='status';$('fileStatus').textContent='Leyendo archivo...';try{if(!/\.(xlsm|xlsx)$/i.test(file.name))throw Error('Elegí un archivo .xlsm o .xlsx');await loadXlsx();const bytes=await file.arrayBuffer();workbook=window.XLSX.read(bytes,{type:'array',bookVBA:false});if(!workbook.SheetNames.includes('Base diaria')||!workbook.SheetNames.includes('Base creaciones'))throw Error('El archivo no contiene las hojas Base diaria y Base creaciones.');$('sheetCount').textContent=workbook.SheetNames.length;$('dailyCount').textContent=countData('Base diaria').toLocaleString('es-AR');$('creationCount').textContent=countData('Base creaciones').toLocaleString('es-AR');const select=$('sheetSelect');select.replaceChildren();['Base diaria','Base creaciones',...workbook.SheetNames.filter(n=>n!=='Base diaria'&&n!=='Base creaciones')].forEach(name=>{const opt=document.createElement('option');opt.value=name;opt.textContent=name;select.appendChild(opt);});previewSheet();await loadImportPeople();validateWorkbook();$('preview').classList.remove('hidden');$('fileStatus').className='status good';$('fileStatus').textContent='✓ Archivo leído correctamente. No se guardó ningún dato.';}catch(e){console.error(e);$('fileStatus').className='status bad';$('fileStatus').textContent=e.message||'No se pudo leer el archivo.';}});
 
 // V5: lectura de KPI reales de Firestore. El administrador consulta todas las fichas;
 // cada catalogador solo puede consultar su ficha vinculada mediante idMeli.
@@ -2067,6 +2069,8 @@ function devAuditPeriod(audit){
  return audit.fecha?inPeriod(audit.fecha,period):Boolean(period&&audit.periodo>=period.start.slice(0,7)&&audit.periodo<=period.end.slice(0,7));
 }
 function applyPublishedData(items){
+ inactiveRosterIds=new Set(items.filter(item=>item.activo===false).map(item=>String(item.idMeli)));
+ items=items.filter(item=>item.activo!==false);
  const personalId=String(profileData?.idMeli||'').trim();
  publishedItems=!isAdmin?items.filter(item=>personalId&&String(item.idMeli)===personalId):!isPM?items.filter(item=>selectedTeam&&validTeam(item.equipo)===selectedTeam):items;applyTeamView();}
 let pmReviewOriginal=null;
@@ -2208,9 +2212,10 @@ $('publishKpis').addEventListener('click',async()=>{
  try{
   const uid=auth.currentUser.uid,versions=[];
   const persons=await getDocs(collection(db,'kpis'));let totalRead=persons.size,updated=0;
-  const sinEquipo=persons.docs.filter(p=>!validTeam(p.data().equipo));
+  const sinEquipo=persons.docs.filter(p=>p.data().activo!==false&&!validTeam(p.data().equipo));
   if(sinEquipo.length)throw Error(`${sinEquipo.length} catalogador(es) sin equipo válido en kpis (ej.: ${sinEquipo.slice(0,5).map(p=>p.data().nombre||p.id).join(', ')}). Corregí la asignación desde el Excel antes de publicar. No se modificó ninguna ficha publicada.`);
   for(const person of persons.docs){
+   if(person.data().activo===false)continue;
    const id=person.id,name=String(person.data().nombre||id);
    const snap=await getDocs(collection(db,'kpis',id,'registros'));totalRead+=snap.size;
    const tareas=[],gestion=[],holdsByDay=new Map(),holdsErrores=[],holdReasons=[];
@@ -2803,7 +2808,7 @@ async function loadQuality(){
   const [people,goal,byFlow]=await Promise.all([data,getDoc(doc(db,'calidad_config','objetivo')),getDoc(doc(db,'calidad_config','objetivos_flujo'))]);
   if(auth.currentUser?.uid!==uid)return;
   const targets=Object.fromEntries(qualityFlows.map(flow=>[flow,byFlow.exists()?byFlow.data()[flow]??null:goal.data()?.valor??null]));
-  qualityState={people,targets,error:'',loading:false};
+  qualityState={people:people.filter(person=>person.activo!==false),targets,error:'',loading:false};
   for(const flow of qualityFlows)$('qualityTarget'+flow).value=targets[flow]??'';
   appendQualityPeople();
   if(isAdmin)devFilters.render();
@@ -3031,7 +3036,7 @@ async function qualityRoster(){
   people.set(id,{id,name:String(name||id),team,aliases});
  };
  for(const item of kpis.docs){
-  const row=item.data();add(item.id,row.nombre,validTeam(row.equipo),[row.usuario,row.username,row.email?.split('@')[0],row.idMeli]);
+  const row=item.data();if(row.activo===false)continue;add(item.id,row.nombre,validTeam(row.equipo),[row.usuario,row.username,row.email?.split('@')[0],row.idMeli]);
  }
  for(const item of accounts.docs){
   const row=item.data();if(row.rol!=='catalogador')continue;
