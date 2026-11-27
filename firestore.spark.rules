@@ -139,14 +139,17 @@ service cloud.firestore {
 
     match /bases_calidad/{baseId} {
       allow read, create, update: if puedeVerTodosEquipos();
+      allow delete: if esPM();
 
       // La carga guarda los bloques antes de completar el documento de la base.
       match /hojas/{bloqueId} {
         allow read, create, update: if puedeVerTodosEquipos();
+        allow delete: if esPM();
       }
     }
 
     match /calidad_publicada/{documentoId} {
+      allow delete: if esPM();
       allow read: if puedeVerTodosEquipos()
         || esCatalogadorDelDocumento(documentoId)
         || esTLDelEquipo(resource.data.equipo);
@@ -327,9 +330,10 @@ service cloud.firestore {
         return autenticado() && request.auth.uid == uid && perfil().rol in ['admin','pm','tl','catalogador'];
       }
       allow get, list: if buzonSpark();
+      allow list: if esPM();
       allow create, update: if buzonSpark() && auditText(aviso,250)
         && request.resource.data.keys().hasOnly(['leidaEn']) && request.resource.data.leidaEn == request.time;
-      allow delete: if false;
+      allow delete: if esPM();
     }
 
     match /auditorias/{auditoriaId} {
@@ -337,12 +341,12 @@ service cloud.firestore {
       allow create: if puedeVerTodosEquipos() && auditCreate(auditoriaId,request.resource.data);
       allow update: if autenticado() && resource.data.resultado.trim().lower() != 'null'
         && auditChange(resource.data,request.resource.data);
-      allow delete: if false;
+      allow delete: if esPM();
 
       match /historial/{eventoId} {
         allow get, list: if puedeLeerAuditoria(
           get(/databases/$(database)/documents/auditorias/$(auditoriaId)).data);
-        allow write: if false;
+        allow list, delete: if esPM();
       }
     }
 
@@ -358,7 +362,7 @@ service cloud.firestore {
         && request.resource.data.resumen is map && request.resource.data.resumen.size() <= 6
         && request.resource.data.incidenciasArchivo is list && request.resource.data.incidenciasArchivo.size() <= 200
         && request.resource.data.duplicadosArchivo is list && request.resource.data.duplicadosArchivo.size() <= 200;
-      allow delete: if false;
+      allow delete: if esPM();
     }
 
     // Cada documento pertenece al UID de su ruta. Solo la fecha de lectura puede cambiar.
@@ -375,7 +379,7 @@ service cloud.firestore {
       }
       allow get, list: if buzonPropio();
       allow update: if buzonPropio() && lecturaValida(uid);
-      allow create, delete: if false;
+      allow list, delete: if esPM();
     }
 
   }

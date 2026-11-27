@@ -1313,7 +1313,7 @@ body.employee-mode :is(#qualityOverviewCards,#qualityFlowCards) .quality-goal{gr
  </dialog>
  <section id="auditReports" hidden></section>
 </section>
-<div id="viewUpload" class="hidden"><div class="pm-overview-heading"><p class="pm-eyebrow">ACTUALIZACIÓN DE INFORMACIÓN</p><h1>Cargar bases</h1><p>Seleccioná todos los archivos, revisalos y cargalos juntos.</p></div><nav class="upload-tabs" aria-label="Carga de bases"><button type="button" data-upload="lote" aria-pressed="true">Carga conjunta</button></nav><section class="panel bulk-upload" data-upload-panel="lote" aria-labelledby="bulkTitle"><h2 id="bulkTitle">Cargar archivos juntos</h2><p>Agregá las bases de Productividad, Holds, Finalizadas, Calidad y Auditorías. Detectamos el formato de cada archivo.</p><label for="bulkFiles">Seleccionar archivos</label><input id="bulkFiles" type="file" multiple accept=".xlsx,.xlsm,.xls,.csv"><p id="bulkCount" class="muted"></p><label for="bulkMonth">Mes de referencia, si el archivo no incluye fechas</label><input id="bulkMonth" type="month"><div class="table-wrap"><table><thead><tr><th>Archivo</th><th>Base</th><th>Revisión</th><th>Acciones</th></tr></thead><tbody id="bulkRows"></tbody></table></div><div class="bulk-actions"><button id="bulkAnalyze" type="button">Revisar archivos</button><button id="bulkSave" type="button" disabled>Cargar y publicar todo</button><button id="bulkClear" type="button" class="tab">Limpiar selección</button></div><p id="bulkStatus" class="status" role="status" aria-live="polite"></p></section><div id="publicationActions"><h2>Publicar datos guardados</h2><p>Este paso actualiza las fichas de Productividad, Holds y Finalizadas.</p></div>
+<div id="viewUpload" class="hidden"><div class="pm-overview-heading"><p class="pm-eyebrow">ACTUALIZACIÓN DE INFORMACIÓN</p><h1>Cargar bases</h1><p>Seleccioná todos los archivos, revisalos y cargalos juntos.</p></div><section id="resetBasesPanel" class="panel" hidden><h2>Restablecer datos a cero</h2><p>Borra las bases importadas y sus indicadores, incluidos los registros de auditorías. Conserva las cuentas, los equipos, los permisos y los objetivos.</p><button type="button" id="resetBases">Restablecer datos a cero</button><p id="resetBasesStatus" class="status" role="status"></p></section><nav class="upload-tabs" aria-label="Carga de bases"><button type="button" data-upload="lote" aria-pressed="true">Carga conjunta</button></nav><section class="panel bulk-upload" data-upload-panel="lote" aria-labelledby="bulkTitle"><h2 id="bulkTitle">Cargar archivos juntos</h2><p>Agregá las bases de Productividad, Holds, Finalizadas, Calidad y Auditorías. Detectamos el formato de cada archivo.</p><label for="bulkFiles">Seleccionar archivos</label><input id="bulkFiles" type="file" multiple accept=".xlsx,.xlsm,.xls,.csv"><p id="bulkCount" class="muted"></p><label for="bulkMonth">Mes de referencia, si el archivo no incluye fechas</label><input id="bulkMonth" type="month"><div class="table-wrap"><table><thead><tr><th>Archivo</th><th>Base</th><th>Revisión</th><th>Acciones</th></tr></thead><tbody id="bulkRows"></tbody></table></div><div class="bulk-actions"><button id="bulkAnalyze" type="button">Revisar archivos</button><button id="bulkSave" type="button" disabled>Cargar y publicar todo</button><button id="bulkClear" type="button" class="tab">Limpiar selección</button></div><p id="bulkStatus" class="status" role="status" aria-live="polite"></p></section><div id="publicationActions"><h2>Publicar datos guardados</h2><p>Este paso actualiza las fichas de Productividad, Holds y Finalizadas.</p></div>
 <section class="panel" id="auditUploadPanel" data-upload-panel="auditorias" hidden>
  <h2>Importar auditorías</h2>
  <label for="auditFile">Archivo Excel o CSV</label>
@@ -1351,7 +1351,7 @@ body.employee-mode :is(#qualityOverviewCards,#qualityFlowCards) .quality-goal{gr
 <script type="module">
 import {initializeApp} from 'https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js';
 import {getAuth,onAuthStateChanged,signInWithEmailAndPassword,createUserWithEmailAndPassword,sendPasswordResetEmail,signOut,EmailAuthProvider,reauthenticateWithCredential,updatePassword} from 'https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js';
-import {getFirestore,doc,getDoc,getDocs,collection,query,where,writeBatch,serverTimestamp,runTransaction,onSnapshot,orderBy,limit,documentId} from 'https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js';
+import {getFirestore,doc,getDoc,getDocs,getDocsFromServer,collection,query,where,writeBatch,serverTimestamp,runTransaction,onSnapshot,orderBy,limit,documentId} from 'https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js';
 import {indexPeople,analyzeQuality,restoreArchivedQuality,qualityPeriods,selectQualityPeriod,summary,bucketQuality} from './calidad.mjs?v=archivo-1';
 import {analysisPeriod,inPeriod,operationalFlow,operationalFlows,defaultProductivityGoals,productivityTotals,normalizeQualityFlow,publishedProductivity} from './gestion-desarrollo.mjs?v=productividad-personal';
 import {setupFilters} from './filtros-desarrollo.mjs?v=resumen';
@@ -1364,6 +1364,7 @@ import {pmFlowLabels,pmOperationalFlow,initiativeFlow,pmTaskDistribution} from '
 
 const sparkAuditCall=createSparkAudits({db,doc,getDocs,collection,query,where,documentId,runTransaction,serverTimestamp,
  currentUid:()=>auth.currentUser?.uid,currentMeli:()=>profileData?.idMeli,currentRole:()=>profileData?.rol});
+import {resetImportedData} from './reset-bases.mjs';
 import {setupBulkUpload} from './carga-conjunta.mjs?v=1';
 const bulkHandlers=new Map();let bulkSaving=false,bulkUpload;
 function bindBulkHandler(id,event,handler){bulkHandlers.set(id,handler);$(id).addEventListener(event,handler);}
@@ -1455,7 +1456,7 @@ function arrangeEmployeePanels(){
  }
 }
 function showDashboard(name,admin){document.body.classList.remove('auth-screen');isAdmin=admin;isPM=qualityGoalEditor()||accessPermission?.nivel==='superadmin';selectedTeam=isPM?'':validTeam(profileData?.equipo);publishedItems=[];kpiCache=[];holdsCache=[];gestionCache=[];excludedPeople=new Set();$('personFilter').replaceChildren(new Option(admin?'Todos los catalogadores':'Mi productividad',''));document.body.classList.toggle('admin-mode',admin);const welcome=$('employeeGreeting').closest('.header-welcome');const header=document.querySelector('header.kpi-header');header.insertBefore(welcome,$('themeToggle'));$('adminSidebar').classList.toggle('hidden',!admin);document.body.classList.toggle('employee-mode',!admin);$('employeeGreeting').textContent='¡Hola, '+name+'!';$('headerWelcomeDescription').textContent=admin?'Productividad, creaciones, holds y horarios de gestión.':'Tu productividad, creaciones, holds y horarios de gestión en un solo lugar.';$('welcome').textContent=admin?'Bienvenido, '+name:'Mi productividad';$('login').classList.add('hidden');$('dashboard').classList.remove('hidden');$('logout').classList.remove('hidden');$('tabUpload').classList.toggle('hidden',!isPM);$('publishKpis').classList.toggle('hidden',!isPM);$('pmTeamWrap').classList.toggle('hidden',!isPM);$('pmComparison').classList.toggle('hidden',!isPM);$('pmTeamFilter').value=isPM?'':selectedTeam;switchTab(false);arrangeEmployeePanels();if(admin){devFilters.start(auth.currentUser.uid);selectAdminSection('resumen');}loadDashboardKpis().catch(console.error);loadQuality();}
-function switchTab(upload){if(upload&&!canImportBases())return;auditFeatures.closeView();$('viewSettings').classList.add('hidden');$('viewDashboard').classList.toggle('hidden',upload);$('viewUpload').classList.toggle('hidden',!upload);$('tabDashboard').classList.toggle('active',!upload);$('tabUpload').classList.toggle('active',upload);}
+function switchTab(upload){if(upload&&!canImportBases())return;$('resetBasesPanel').hidden=!canResetBases();auditFeatures.closeView();$('viewSettings').classList.add('hidden');$('viewDashboard').classList.toggle('hidden',upload);$('viewUpload').classList.toggle('hidden',!upload);$('tabDashboard').classList.toggle('active',!upload);$('tabUpload').classList.toggle('active',upload);}
 $('tabDashboard').addEventListener('click',()=>switchTab(false));$('tabUpload').addEventListener('click',()=>switchTab(true));
 const authViews={
  signin:{title:'Ingresá a tu panel',description:'Consultá tus indicadores de productividad.',submit:'Iniciar sesión',busy:'Ingresando…'},
@@ -3449,8 +3450,45 @@ showDashboard=function(...args){
 const originalPmRender=renderPmOverview;
 renderPmOverview=function(){if(isAdmin)setupPmExactDesign();return originalPmRender();};
 
-bulkUpload=setupBulkUpload({$,allowed:canImportBases,
- lock(value){for(const panel of document.querySelectorAll('[data-upload-panel]:not([data-upload-panel="lote"])'))panel.inert=value;},
+function canResetBases(){
+ return profileData?.rol==='pm';
+}
+let resetBasesBusy=false,bulkUploadBusy=false;
+$('resetBases').addEventListener('click',async()=>{
+ if(resetBasesBusy||bulkUploadBusy||!canResetBases()||!auth.currentUser)return;
+ if(prompt('Esta acción borra las bases importadas, los indicadores y las auditorías. Cerrá las otras sesiones de carga. Para confirmar, escribí RESTABLECER.')!=='RESTABLECER')return;
+ const uid=auth.currentUser.uid,status=$('resetBasesStatus'),button=$('resetBases');
+ const panels=[...document.querySelectorAll('[data-upload-panel]')];
+ const previousInert=panels.map(panel=>panel.inert);
+ resetBasesBusy=true;button.disabled=true;
+ panels.forEach(panel=>panel.inert=true);
+ status.className='status';status.textContent='Revisando las bases guardadas…';
+ try{
+  const list=async ref=>(await getDocsFromServer(ref)).docs.map(item=>item.ref);
+  const count=await resetImportedData({
+   root:name=>list(collection(db,name)),
+   children:(parent,name)=>list(collection(parent,name)),
+   async remove(refs){
+    if(auth.currentUser?.uid!==uid)throw Error('La sesión cambió.');
+    const batch=writeBatch(db);
+    refs.forEach(ref=>batch.delete(ref));
+    await batch.commit();
+   },
+   progress(deleted,total){status.textContent='Eliminando registros ('+deleted+' de '+total+')…';}
+  });
+  bulkUpload.reset();
+  status.className='status good';status.textContent=count?'Datos restablecidos. Ya podés cargar las bases oficiales.':'Las bases ya están vacías.';
+  await Promise.allSettled([loadDashboardKpis(),loadQuality()]);
+ }catch(error){
+  console.error(error);
+  status.className='status bad';status.textContent='El reinicio no se completó. Puede haber cambios parciales. '+error.message;
+ }finally{
+  resetBasesBusy=false;button.disabled=false;
+  panels.forEach((panel,index)=>panel.inert=previousInert[index]);
+ }
+});
+bulkUpload=setupBulkUpload({$,allowed:()=>canImportBases()&&!resetBasesBusy,
+ lock(value){bulkUploadBusy=value;$('resetBases').disabled=value||resetBasesBusy;for(const panel of document.querySelectorAll('[data-upload-panel]:not([data-upload-panel="lote"])'))panel.inert=value;},
  async readSheets(file){await loadXlsx();const wb=window.XLSX.read(await file.arrayBuffer(),{type:'array',raw:true,cellDates:true,codepage:65001});return wb.SheetNames.map(name=>({name,rows:window.XLSX.utils.sheet_to_json(wb.Sheets[name],{header:1,defval:'',raw:true}).slice(0,15)}));},
  async analyze(file,type,month){
   const uid=auth.currentUser?.uid;if(!uid||!canImportBases())throw Error('Iniciá sesión con permiso para cargar bases.');
